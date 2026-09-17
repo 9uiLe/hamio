@@ -1,0 +1,32 @@
+name: Set up hamio
+description: Install an explicitly pinned, verified hamio release without Bun or Nix
+inputs:
+  version:
+    description: Exact vX.Y.Z release; defaults to .hamio-version in the working directory
+    required: false
+    default: ""
+  token:
+    description: GitHub token used for read-only release and attestation verification
+    required: false
+    default: ${{ github.token }}
+outputs:
+  binary:
+    description: Absolute path to the installed executable
+    value: ${{ steps.install.outputs.binary }}
+runs:
+  using: composite
+  steps:
+    - id: install
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        HAMIO_VERSION: ${{ inputs.version }}
+        HAMIO_ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        prefix="$RUNNER_TEMP/hamio"
+        args=(--prefix "$prefix")
+        if [[ -n "$HAMIO_VERSION" ]]; then args+=(--version "$HAMIO_VERSION"); fi
+        sh "$HAMIO_ACTION_PATH/scripts/install.sh" "${args[@]}"
+        printf '%s\n' "$prefix/bin" >> "$GITHUB_PATH"
+        printf 'binary=%s/bin/hamio\n' "$prefix" >> "$GITHUB_OUTPUT"
