@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "description": "Development recording fixtures; not the product UI.",
+  "environment": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "bun": "1.4.2"
+  },
+  "sources": {
+    "bun.lock": "9548e3f7a8cbab7a6acaf0106aa2d34ee9c7dca21e6fa70d439c118711c89bb4",
+    "flake.lock": "b8ca102a5e7a2a73a804dd6b116fd29ee04a83b959b0f11befa886bdbd2965dd",
+    "flake.nix": "6648dc809fc1543773cee0085240b4ee571a34b815f5c1f9c2ee61bac71dc1e8",
+    "package.json": "3a63eefafa348fbb6fbb1d1e513b71050c166de07bb5151d23c00ccf9c3ec4e3",
+    "scripts/preview.sh": "6a1327de752e78f6b5f6a0907646387fe2aa46bc66ad6d306bb702252f9d13bf",
+    "scripts/preview/artifacts.ts": "929a05f869939ab0d1900d2910466b813aad8ed06f74641c1bb31cdb1cb9c3dc",
+    "scripts/preview/capture.ts": "8f317afec4fd7a8cf1eff28487dcbfc98a72342a17b4e884c8819ecffefb6bc6",
+    "scripts/preview/check.ts": "45309ebfc2b84b9ea5853ab0a6599ee4d0add4f18a83884552e3ba3ae1ccadf7",
+    "scripts/preview/fixture.ts": "9f5d7e48581a317c58bbe1767ee611e4c0cb91e7258497a5478fea55289bf209",
+    "scripts/preview/generate.ts": "75ab1e9d30465322045e7c19fea7ff8b221a0d66dd671fafa6cc447c5daa3251",
+    "scripts/preview/scenarios.ts": "ecb6d4109ffa88961206d4daf6adede9484dbcc6accdf612f025f81d9dedc02f"
+  },
+  "images": {
+    "fixture-input.png": "cf9994b7d8a5876965d984dfccd7226bfad4114a814faabbba4f53995f10581f",
+    "fixture-result.png": "1be9e657b0133546e0b9ce751ff703fb325547fd51dcd0aa34082fcb6c9b0c64"
+  }
+}
