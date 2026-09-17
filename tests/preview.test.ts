@@ -130,4 +130,12 @@ test("preview rejects missing screens, unbounded output, and a stalled process",
       steps: [{ waitFor: "never" }],
     }),
   ).rejects.toThrow("timed out");
+  await expect(
+    captureTerminal({
+      ...geometry,
+      timeoutMs: 100,
+      command: command("process.stdout.write('done'); setInterval(() => {}, 1000)"),
+      steps: [{ waitFor: "done" }],
+    }),
+  ).rejects.toThrow("timed out");
 });

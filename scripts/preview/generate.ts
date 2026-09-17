@@ -59,7 +59,9 @@ try {
     for (const [name, cast] of recorded.snapshots) {
       const prefix = join(temporary, `${scenario.name}-${name}`);
       await Bun.write(`${prefix}.cast`, cast);
-      await run([...agg, "--select", "100%", `${prefix}.cast`, `${prefix}.gif`]);
+      // Select the last event directly: percentage rounding can seek before it.
+      const lastEvent = cast.trimEnd().split("\n").length - 2;
+      await run([...agg, "--select", `event:${lastEvent}`, `${prefix}.cast`, `${prefix}.gif`]);
       await run([
         "python3",
         "-c",

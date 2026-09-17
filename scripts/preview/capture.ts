@@ -83,13 +83,14 @@ export async function captureTerminal(options: CaptureOptions) {
           }
           wake();
         },
-        exit(_terminal, status) {
+        exit() {
           try {
             append(decoder.decode());
           } catch {
             fail("Preview output ended with invalid UTF-8.");
           }
-          if (status !== 0) fail("Preview terminal closed with an error.");
+          // Bun reports normal PTY closure as EOF on macOS and EIO on Linux.
+          // This callback signals stream closure; child.exited determines success.
           closed = true;
           finished.resolve();
           wake();
@@ -117,6 +118,7 @@ export async function captureTerminal(options: CaptureOptions) {
     await finished.promise;
     if (fault) throw fault;
     const exitCode = await child.exited;
+    if (fault) throw fault;
     if (exitCode !== 0) throw new Error(`Preview command failed with exit code ${exitCode}.`);
     return { cast: `${events.join("\n")}\n`, snapshots, bytes };
   } finally {
