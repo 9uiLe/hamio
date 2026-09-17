@@ -4,7 +4,8 @@ import { readEvents } from "../src/adapters/input.ts";
 import { TerminalView } from "../src/adapters/terminal.ts";
 import { type Environment, parseCommand } from "../src/application/command.ts";
 import type { Ports } from "../src/application/ports.ts";
-import { execute, reportFailure } from "../src/application/run.ts";
+import { execute } from "../src/application/run.ts";
+import { reportFailure } from "../src/application/response.ts";
 import { Cancelled } from "../src/core/contract.ts";
 import { inputLine, optionLines } from "../src/terminal/prompt-view.ts";
 
@@ -260,5 +261,40 @@ test("progress failures reach cancellation and cleanup instead of escaping the t
     });
     expect(await aborted.promise).toBe(failure);
     await expect(view.close()).rejects.toBe(failure);
+  }
+});
+
+test("identical progress frames are skipped and redraw after an intervening message", async () => {
+  const writes: string[] = [];
+  const view = new TerminalView(
+    {
+      async write(text) {
+        writes.push(text);
+      },
+    },
+    appearance,
+    (error) => {
+      throw error;
+    },
+  );
+  const read = () => ({
+    first: { label: "work", current: 1, total: 10 },
+    active: 1,
+    succeeded: 0,
+    failed: 0,
+  });
+  try {
+    view.progress(read);
+    await Bun.sleep(130);
+    view.progress(read);
+    await Bun.sleep(130);
+    expect(writes.filter((text) => text.includes("1/10"))).toHaveLength(1);
+    await view.message("warning", "notice");
+    view.progress(read);
+    await Bun.sleep(130);
+    expect(writes.filter((text) => text.includes("1/10"))).toHaveLength(2);
+    expect(writes.join("")).toContain("notice");
+  } finally {
+    await view.close();
   }
 });

@@ -1,7 +1,4 @@
-import { version } from "../../package.json";
-
 export const API_VERSION = 1;
-export const VERSION = version;
 export const limits = {
   documentBytes: 256 * 1024,
   frameBytes: 64 * 1024,

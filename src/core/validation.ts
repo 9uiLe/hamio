@@ -26,7 +26,10 @@ function validateTree(value: unknown): asserts value is JsonValue {
     if (++nodes > limits.nodes || depth > limits.depth)
       limited("JSON structure exceeds its limit.");
     if (typeof item === "string") {
-      if (Buffer.byteLength(item) > limits.stringBytes) limited("A string exceeds its byte limit.");
+      // A UTF-16 code unit needs at most three UTF-8 bytes. Small values cannot
+      // exceed the byte limit; avoid rescanning every key in high-volume streams.
+      if (item.length > limits.stringBytes / 3 && Buffer.byteLength(item) > limits.stringBytes)
+        limited("A string exceeds its byte limit.");
       // Reject lone UTF-16 surrogates rather than changing their encoded value.
       if (!item.isWellFormed()) invalid("Strings must contain valid Unicode.");
     } else if (typeof item === "number") {
@@ -128,11 +131,12 @@ function level(value: unknown): Level {
     return value;
   return invalid("A message level is invalid.");
 }
-function progress(obj: Record<string, JsonValue>) {
+function progress(
+  obj: Record<string, JsonValue>,
+): asserts obj is Record<string, JsonValue> & { current: number; total: number } {
   const current = number(obj.current);
   const total = number(obj.total);
   if (total <= 0 || current > total) invalid("Progress must be between zero and a positive total.");
-  return { current, total };
 }
 function result(value: JsonValue | undefined): Result {
   const obj = record(value, ["success", "message", "data"]);
@@ -245,7 +249,8 @@ function block(value: JsonValue): Block {
     }
     case "progress":
       record(obj, ["kind", "label", "current", "total"]);
-      return { kind: "progress", label: string(obj.label), ...progress(obj) };
+      progress(obj);
+      return { kind: "progress", label: string(obj.label), current: obj.current, total: obj.total };
     case "result": {
       const { kind: _, ...data } = obj;
       return { kind: "result", ...result(data) };
@@ -275,32 +280,60 @@ const eventKeys = {
 } satisfies Record<Event["type"], readonly string[]>;
 function eventDefinition(value: JsonValue): Event {
   const obj = record(value);
-  const base = {
-    apiVersion: version(obj.apiVersion),
-    runId: id(obj.runId),
-    seq: integer(obj.seq, Number.MAX_SAFE_INTEGER),
-  };
+  const apiVersion = version(obj.apiVersion);
+  const runId = id(obj.runId);
+  const seq = integer(obj.seq, Number.MAX_SAFE_INTEGER);
   switch (obj.type) {
     case "run.start":
       record(obj, eventKeys["run.start"]);
-      return { ...base, type: "run.start", title: string(obj.title) };
+      return { apiVersion, runId, seq, type: "run.start", title: string(obj.title) };
     case "task.start":
       record(obj, eventKeys["task.start"]);
-      return { ...base, type: "task.start", taskId: id(obj.taskId), label: string(obj.label) };
+      return {
+        apiVersion,
+        runId,
+        seq,
+        type: "task.start",
+        taskId: id(obj.taskId),
+        label: string(obj.label),
+      };
     case "task.progress":
       record(obj, eventKeys["task.progress"]);
-      return { ...base, type: "task.progress", taskId: id(obj.taskId), ...progress(obj) };
+      progress(obj);
+      return {
+        apiVersion,
+        runId,
+        seq,
+        type: "task.progress",
+        taskId: id(obj.taskId),
+        current: obj.current,
+        total: obj.total,
+      };
     case "task.finish":
       record(obj, eventKeys["task.finish"]);
       if (obj.status !== "succeeded" && obj.status !== "failed")
         invalid("The task status is unsupported.");
-      return { ...base, type: "task.finish", taskId: id(obj.taskId), status: obj.status };
+      return {
+        apiVersion,
+        runId,
+        seq,
+        type: "task.finish",
+        taskId: id(obj.taskId),
+        status: obj.status,
+      };
     case "message":
       record(obj, eventKeys.message);
-      return { ...base, type: "message", level: level(obj.level), text: string(obj.text) };
+      return {
+        apiVersion,
+        runId,
+        seq,
+        type: "message",
+        level: level(obj.level),
+        text: string(obj.text),
+      };
     case "run.finish":
       record(obj, eventKeys["run.finish"]);
-      return { ...base, type: "run.finish", result: result(obj.result) };
+      return { apiVersion, runId, seq, type: "run.finish", result: result(obj.result) };
     default:
       return invalid("The event type is unsupported.");
   }

@@ -1,4 +1,4 @@
-import type { Appearance } from "../application/command.ts";
+import type { Appearance } from "./appearance.ts";
 import { paint } from "./format.ts";
 import { fit, safeText } from "./text.ts";
 

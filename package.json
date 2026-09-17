@@ -26,7 +26,8 @@
     "build": "bun scripts/build.ts",
     "hamio": "bun --no-env-file --no-install src/cli.ts",
     "package": "bun run build && bun scripts/package.ts",
-    "release:package": "bun run build && bun scripts/release/package.ts"
+    "release:package": "bun scripts/release/package.ts",
+    "release:verify": "bun scripts/release/verify.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",

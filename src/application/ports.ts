@@ -1,6 +1,6 @@
 import type { Answers, Block, Field, Level, Result } from "../core/contract.ts";
 import type { Progress } from "../core/session.ts";
-import type { Appearance } from "./command.ts";
+import type { Appearance } from "../terminal/appearance.ts";
 
 export interface Writer {
   write(text: string): Promise<void>;

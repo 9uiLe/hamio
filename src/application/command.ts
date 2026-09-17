@@ -1,4 +1,5 @@
-import { ContractError, limits, VERSION } from "../core/contract.ts";
+import type { Appearance } from "../terminal/appearance.ts";
+import { ContractError } from "../core/contract.ts";
 
 export interface Environment {
   readonly inputTTY: boolean;
@@ -8,12 +9,7 @@ export interface Environment {
   readonly noColor: string | undefined;
   readonly columns: number;
 }
-export interface Appearance {
-  readonly color: boolean;
-  readonly width: number;
-  readonly live: boolean;
-}
-type Section = "forms" | "display" | "stream" | "limits" | "all";
+export type Section = "forms" | "display" | "stream" | "limits" | "all";
 export type Command =
   | { kind: "help" }
   | { kind: "version" }
@@ -111,31 +107,4 @@ export function parseCommand(args: readonly string[], environment: Environment):
   const events = options.has("events");
   if (events && view) argument("--events requires --format json.");
   return { kind, events, appearance: view };
-}
-
-export const help = `hamio ${VERSION} — terminal UI over JSON (API v1)
-
-  hamio form --definition FILE [--values FILE|-] [--interactive auto|always|never]
-  hamio render [--input FILE|-] [--format human|json]
-  hamio stream [--format human|json] [--events]
-  hamio capabilities [--section forms|display|stream|limits|all]
-  hamio --version
-
---color auto|always|never is available for form, render and stream.
-Human UI uses stderr; responses use stdout. See docs/api.md for the contract.
-`;
-export function capabilities(section: Section | undefined) {
-  const base = {
-    apiVersion: 1,
-    version: VERSION,
-    commands: ["form", "render", "stream", "capabilities"],
-  };
-  const details = {
-    forms: ["text", "confirm", "select", "multiselect", "secret"],
-    display: ["message", "key-value", "table", "progress", "result", "error"],
-    stream: ["run.start", "task.start", "task.progress", "task.finish", "message", "run.finish"],
-    limits,
-  };
-  if (section === undefined) return base;
-  return section === "all" ? { ...base, ...details } : { ...base, [section]: details[section] };
 }

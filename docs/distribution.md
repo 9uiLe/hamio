@@ -1,66 +1,66 @@
 # hamio 導入・更新・リリース
 
-hamio は、本体・製品依存・Bun を含む単一実行ファイルを GitHub Releases で配布する。利用側は採用する版を固定し、検証した実行ファイルを自分のリポジトリへ配置する。通常実行に Bun・Node.js・Nix は不要であり、業務処理の言語ランタイムは利用側が用意する。
+hamio は、本体・製品依存・Bun をまとめた実行ファイルを GitHub Releases で配布する。利用側は完全な版を指定し、検証済みの実行ファイルをプロジェクトへ配置する。通常実行に Bun・Node.js・Nix は不要である。業務処理の言語ランタイムは利用側が用意する。
 
-本書は利用者の導入・更新と、保守者の梱包・公開を定める。公開コマンドは [API 契約](api.md)、製品の責務と品質条件は[基本設計](design.md)、実装・検証・公開の状態は [README](../README.md)を参照する。
+本書は、利用者による取得・配置・更新と、保守者による配布候補の生成・検証・公開を定める。公開状況は [README](../README.md)、入出力は [API 契約](api.md)、内部の処理境界は[実装設計](implementation.md#9-ビルドと配布の境界)を参照する。
 
 ## 配布方式と対象環境
 
-| 配布対象       | ビルド・実行試験の runner   |
+| 対象識別子     | ビルド・実行試験の環境      |
 | -------------- | --------------------------- |
 | `darwin-arm64` | macOS 15、Apple Silicon     |
 | `linux-x64`    | Ubuntu 24.04、x86_64、glibc |
 | `linux-arm64`  | Ubuntu 24.04、ARM64、glibc  |
 
-各 OS・CPU の runner で CLI、PTY、同梱実行ファイルを試験する。対象リリースで確認した環境をリリースノートに記載し、古い OS、Intel Mac、Windows、musl、すべての端末を保証対象には含めない。x64 の Bun ランタイムは SSE4.2 以上を要求する。[Bun の CPU 要件](https://bun.com/docs/installation#cpu-requirements)
+各対象の native runner で CLI、PTY、同梱実行ファイル、配布候補、公開物の導入を試験する。確認した環境をリリースノートへ記載する。古い OS、Intel Mac、Windows、musl、すべての端末を保証対象には含めない。x64 の Bun は SSE4.2 以上を要求する。[Bun の CPU 要件](https://bun.com/docs/installation#cpu-requirements)
 
-製品版は `package.json` の `version` を実行ファイルへ埋め込み、同じ版の `vX.Y.Z` タグで公開する。インストーラーは完全な版指定だけを受け付ける。`latest`、範囲指定、暗黙の更新は設けない。入出力の契約版 `apiVersion` は製品版と独立して管理する。
+製品版は `package.json` の `version` を実行ファイルに埋め込み、同じ版の `vX.Y.Z` タグで公開する。インストーラーは完全な版だけを受け付ける。`latest`、範囲指定、暗黙の更新は扱わない。公開データの `apiVersion` は製品版とは独立した契約版である。
 
 ## 配布物と在庫情報
 
-hamio 本体は [MIT License](../LICENSE) で提供し、著作権表記は `Copyright (c) 2026 9uiLe` とする。`package.json` の `license` は `MIT` とし、配布する notices に本体のライセンス全文を含める。同梱する第三者のコードには各部品のライセンスが適用される。
+| 資産名                            | 内容                                                               |
+| --------------------------------- | ------------------------------------------------------------------ |
+| `hamio-vX.Y.Z-<対象>.gz`          | 単一実行ファイルの gzip                                            |
+| `hamio-vX.Y.Z-<対象>.sha256`      | gzip と展開後の `hamio` の SHA-256                                 |
+| `hamio-vX.Y.Z-<対象>.spdx.json`   | SPDX 2.3 形式の同梱部品の在庫                                      |
+| `hamio-vX.Y.Z-<対象>.notices.txt` | 本体・npm の許諾全文、Bun の notices、ソース・再リンク手順への参照 |
+| `install.sh`                      | 全対象共通の POSIX インストーラー。macOS の梱包で生成              |
 
-| 公開資産                          | 内容                                                                              |
-| --------------------------------- | --------------------------------------------------------------------------------- |
-| `hamio-vX.Y.Z-<対象>.gz`          | 単一実行ファイルの gzip                                                           |
-| `hamio-vX.Y.Z-<対象>.sha256`      | gzip と展開後 `hamio` の SHA-256                                                  |
-| `hamio-vX.Y.Z-<対象>.spdx.json`   | 本体、production npm 依存、Bun の SPDX 2.3 在庫                                   |
-| `hamio-vX.Y.Z-<対象>.notices.txt` | 本体と npm のライセンス本文、Bun の提供元の notices、ソース・再リンク手順への参照 |
-| `install.sh`                      | macOS の梱包時に生成する共通の POSIX インストーラー                               |
+SBOM（Software Bill of Materials）は同梱部品の在庫情報である。本体、解決した production npm 依存、同梱 Bun を記録し、開発ツールを製品依存へ含めない。ソース commit、作業ツリーの変更有無、ビルド入力の内容 hash、lockfile・実行ファイル・gzip・ランタイムの hash、npm の版と取得元を含める。日時は commit 時刻から決める。
 
-SBOM（Software Bill of Materials）は配布物に含まれる部品の在庫情報である。ソース commit、作業ツリーの変更有無、lockfile hash、実行ファイル・gzip・同梱 Bun の hash、production npm の解決版と取得元を記録する。本体の `licenseDeclared` は `MIT` とし、開発ツールを製品依存へ含めない。
+hamio 本体は [MIT License](../LICENSE)、著作権表記は `Copyright (c) 2026 9uiLe`。package の `license` と SBOM の `licenseDeclared` を `MIT` とし、notices に全文を含める。第三者のコードには各部品のライセンスが適用される。
 
-Bun は native ライブラリと polyfill を含む一つの部品として記録する。この扱いを aggregate と呼ぶ。内部部品の個別の版・ライセンスを網羅的に確定した在庫ではなく、未確認のライセンスは `NOASSERTION` とする。証明の署名は在庫の網羅性や脆弱性の不存在を保証しない。
+Bun は native ライブラリと polyfill を含む一つの部品として在庫に記録する。内部の個別の版・許諾を網羅的に確定した SBOM ではなく、未確認の項目には `NOASSERTION` を使う。証明の署名も在庫の網羅性や脆弱性の不存在を保証しない。
 
-Bun は MIT の本体に加え、LGPL の JavaScriptCore と他の native ライブラリを含む。[固定した提供元の notices](https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/LICENSE.md)に従って再リンク用の Bun を生成できる。hamio の同じタグのソースと固定依存を用意し、`HAMIO_BUN_RUNTIME` にその Bun を指定して `bun scripts/build.ts` を実行する。独自ビルドは公式資産の hash・証明の対象にはならない。公開者は各部品の許諾・通知・ソース提供条件を確認する。
+Bun は MIT の本体、LGPL の JavaScriptCore、他の native ライブラリを含む。[固定した提供元の notices](https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/LICENSE.md)に従って再リンク用 Bun を用意できる。hamio の同じタグのソースと固定依存を取得し、`HAMIO_BUN_RUNTIME` にその Bun を指定して `bun scripts/build.ts` を実行する。独自ビルドは公式資産の hash・証明の対象外となる。公開者は各部品の許諾・通知・ソース提供条件を確認する。
 
 ## 導入時の前提と信頼条件
 
-導入・更新は GitHub への通信を伴い、GitHub CLI、POSIX shell、gzip、`sha256sum` または `shasum` を使う。GitHub CLI は2.100.0で動作確認しており、`release verify`、`release verify-asset`、`attestation verify --source-digest` が必要である。[公式の導入経路](https://cli.github.com/)で用意し、認証済みの CLI または読み取り用 `GH_TOKEN` を使う。
+取得・更新には GitHub への通信、GitHub CLI、POSIX shell、gzip、`sha256sum` または `shasum` が必要である。GitHub CLI は2.100.0で動作確認しており、`release verify`、`release verify-asset`、`attestation verify --source-digest` を使う。[公式の導入経路](https://cli.github.com/)で用意し、認証済み CLI または読み取り用 `GH_TOKEN` を使う。
 
-| 検証対象            | 信頼条件                                                                                      |
-| ------------------- | --------------------------------------------------------------------------------------------- |
-| 公開元              | GitHub.com の `9uiLe/hamio`                                                                   |
-| リリース            | 指定タグの immutable release。公開済みタグと資産が固定されていること                          |
-| release attestation | 取得した各資産が指定した公開リリースに属すること                                              |
-| provenance          | `.github/workflows/release.yml`、指定タグ、タグの commit、GitHub-hosted runner に由来すること |
-| 完全性              | gzip と展開後の実行ファイルの SHA-256 が一致すること                                          |
-| 製品版              | 実行ファイルの `--version` が指定版と一致すること                                             |
+| 検証する対象        | 必須条件                                                                            |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| 公開元              | GitHub.com の `9uiLe/hamio`                                                         |
+| リリース            | 指定タグの immutable release。公開済みのタグ・資産が固定されている                  |
+| release attestation | 取得した各資産が指定した公開リリースに属する                                        |
+| provenance          | `.github/workflows/release.yml`、指定タグと commit、GitHub-hosted runner に由来する |
+| 完全性              | gzip と展開後の実行ファイルの SHA-256 が一致する                                    |
+| 製品版              | 実行ファイルの `--version` が指定版と一致する                                       |
 
-provenance はソースとビルド工程の由来、attestation はその情報に対する署名付きの証明を指す。検証に使う GitHub CLI と、信頼するリポジトリ・workflow を導入の起点とする。取得したインストーラー自身も実行前に検証する。
+provenance はソースとビルド工程の由来を表す。attestation はその情報に対する署名付き証明である。検証に使う GitHub CLI と、信頼する公開元・workflow を導入の起点とする。インストーラーも実行前に検証する。
 
-配置先は信頼するユーザーだけが書き込めるディレクトリとし、root 権限を必要としない。導入後は実行ファイルへの symlink を呼び出す。通常起動に通信、版確認、補助プロセス、ランタイム取得は含めない。
+配置先は信頼するユーザーだけが書き込めるディレクトリにする。root 権限は不要である。導入後は実行ファイルへの symlink を直接呼び出し、通常起動で通信、版照会、補助プロセス、ランタイム取得を行わない。
 
 ## リポジトリへの導入
 
-[リリース一覧](https://github.com/9uiLe/hamio/releases)から採用する公開版を選ぶ。以下の `v0.1.0` は版指定の形式例であり、公開を示すものではない。利用する公開版へ置き換え、利用側リポジトリの直下で実行する。公開版がない場合は[手元でビルドした実行ファイル](#手元でビルドした実行ファイル)を使う。
+[リリース一覧](https://github.com/9uiLe/hamio/releases)から採用する版を選ぶ。以下の `v0.1.0` は書式例であり、公開を示すものではない。利用する公開版に置き換えて、利用側リポジトリの直下で実行する。公開版がない場合は[ローカルビルド](#手元でビルドした実行ファイル)を使う。
 
 ```sh
 printf '%s\n' v0.1.0 > .hamio-version
 printf '%s\n' '.tools/' >> .gitignore
 ```
 
-次の手順でインストーラーを取得・検証し、利用側に保存して実行する。
+指定版のインストーラーを一時ディレクトリへ取得し、リリースとの結び付きと由来を検証してから利用側に保存する。
 
 ```sh
 (
@@ -87,30 +87,30 @@ sh scripts/install-hamio.sh
 .tools/bin/hamio capabilities
 ```
 
-`.hamio-version` と `scripts/install-hamio.sh` は利用側の Git で管理する。インストーラーを更新する場合も、対象リリースから取得・検証して差分をレビューする。
+`.hamio-version` と `scripts/install-hamio.sh` を利用側の Git で管理する。インストーラー自体を更新する場合も、対象版から取得・検証し、差分をレビューする。
 
 ### 配置と失敗時の動作
 
 インストーラーは次の順序で処理する。
 
-1. OS・CPU と版指定を検証し、配置先ごとの lock を取得する。
-2. immutable release を検証し、タグのソース commit を解決する。
+1. OS・CPU・版指定を検証し、配置先の lock を取得する。
+2. immutable release を確認し、タグのソース commit を解決する。
 3. gzip、checksum、SBOM、notices を一時領域へ取得し、各資産の由来を検証する。
-4. gzip の SHA-256 を確認し、容量制限付きで展開する。
-5. 展開後の SHA-256 と `--version` を確認する。
+4. gzip の hash を確認し、容量制限付きで展開する。
+5. 展開後の hash と `--version` を照合する。
 6. `.tools/lib/hamio/<版>-<対象>/` へ保存し、最後に `.tools/bin/hamio` の symlink を切り替える。
 
-検証失敗時は使用中の symlink を切り替えない。同じ版の保存先に異なるバイト列がある場合、管理対象外の実行ファイルがある場合、別のインストーラーが lock を保持する場合も停止する。
+検証失敗時は使用中の symlink を維持する。同じ版の保存先に異なるバイト列がある場合、管理対象外の実行ファイルがある場合、別の導入処理が lock を保持する場合も停止する。
 
-SIGKILL や電源断で lock が残った場合は、実行中のインストーラーがないことを確認して `.tools/.hamio-install.lock` を削除する。
+SIGKILL や電源断で lock が残った場合は、導入処理が動いていないことを確認して `.tools/.hamio-install.lock` を削除する。
 
-| 指定                 | 動作                                        |
-| -------------------- | ------------------------------------------- |
-| 指定なし             | `.hamio-version` の版を `.tools` へ配置する |
-| `--version vX.Y.Z`   | pin ファイルより優先する完全な版指定        |
-| `--prefix DIRECTORY` | 配置先を変更する                            |
+| オプション           | 動作                                    |
+| -------------------- | --------------------------------------- |
+| 指定なし             | `.hamio-version` の版を `.tools` へ配置 |
+| `--version vX.Y.Z`   | pin ファイルより優先する完全な版指定    |
+| `--prefix DIRECTORY` | 配置先を指定                            |
 
-通常運用はプロジェクトごとの pin と `.tools` を使う。明示的な版指定は一時的な検証にも使える。ユーザー共通の配置が必要なら `--prefix "$HOME/.local"` を指定する。
+通常運用はプロジェクトごとの pin と `.tools` を使う。明示的な版指定は一時的な検証にも使える。ユーザー共通の配置には `--prefix "$HOME/.local"` を指定する。
 
 ## スクリプトから呼び出す
 
@@ -125,11 +125,11 @@ response=$(
 printf '%s\n' "$response"
 ```
 
-対話では stdin を端末に接続し、提供値がある場合は `--values` にファイルを指定する。UI は stderr、回答は stdout へ分離される。利用側は回答と終了コードを確認して業務処理を進める。[Shell](../examples/form.sh)と[Python](../examples/form.py)の例、[API 契約](api.md)を参照する。
+対話には stdin の端末接続を使い、提供値がある場合は `--values` にファイルを指定する。UI は stderr、回答は stdout へ分離される。利用側は回答と終了コードを確認して業務を進める。[Shell](../examples/form.sh)・[Python](../examples/form.py)の例と [API 契約](api.md)に接続方法を示す。
 
 ## GitHub Actions で使う
 
-[composite action](../action.yml)は同じインストーラーを呼び、`PATH` と `binary` output を設定する。製品の版を `.hamio-version`、インストーラーを含む action の版を `uses` の完全な commit SHA で固定する。
+[composite action](../action.yml)は同じインストーラーを実行し、`PATH` と `binary` output を設定する。製品版は `.hamio-version`、action とインストーラーは `uses` の完全な commit SHA で固定する。
 
 ```yaml
 permissions:
@@ -148,19 +148,19 @@ jobs:
       - run: hamio capabilities
 ```
 
-`with.version` は pin ファイルを上書きする完全な版指定、`with.token` は読み取り用 GitHub token とする。token の既定値は `github.token`。対応する GitHub-hosted runner を使う。キャッシュを理由に検証を省略しない。
+`with.version` は pin より優先する完全な版指定、`with.token` は読み取り用 token で、既定は `github.token` とする。対応する GitHub-hosted runner を使い、キャッシュを理由に検証を省略しない。
 
 ## 更新・ロールバック・削除
 
-更新時は対象版のリリースノート、API、対応環境、Bun・依存の変更を確認する。`.hamio-version` を変更して `sh scripts/install-hamio.sh` を実行し、利用側のフォーム、表示、失敗処理を検査してから pin の変更をマージする。
+更新ではリリースノート、API、対応環境、Bun・依存の変更を確認する。`.hamio-version` を対象版へ変更してインストーラーを実行し、利用側のフォーム、表示、失敗処理を検査してから pin の変更をマージする。
 
-ロールバックも pin を対象の公開版へ戻して同じインストーラーを実行する。保存済みの版を選ぶ場合も公開資産を取得・検証するため通信が必要である。脆弱性のある版を採用するかどうかは利用側が判断する。
+ロールバックは pin を対象の公開版へ戻し、同じインストーラーを実行する。保存済みの版でも公開資産の取得・検証に通信を使う。脆弱性のある版を採用するかは利用側が判断する。
 
-古い配置物は使用中の symlink と実行中のプロセスが参照していないことを確認して削除する。hamio 全体の削除対象は `.tools/bin/hamio` と `.tools/lib/hamio/` とし、他のツールと共有する prefix 全体を削除しない。
+古い配置物は使用中の symlink と実行中プロセスが参照していないことを確認して削除する。hamio 全体の削除対象は `.tools/bin/hamio` と `.tools/lib/hamio/`。他のツールと共有する prefix 全体を削除しない。
 
 ## 手元でビルドした実行ファイル
 
-レビューしたソースを hamio の clone 内でビルドし、同じ OS・CPU の利用側へコピーできる。`consumer_dir` は実在する利用側リポジトリへ置き換える。
+レビューしたソースを hamio の clone でビルドし、同じ OS・CPU の利用側へ配置できる。次の `consumer_dir` は実在する利用側リポジトリに置き換える。
 
 ```sh
 ./scripts/dev.sh bun run setup
@@ -171,50 +171,68 @@ cp dist/hamio "$consumer_dir/.tools/local-hamio/hamio"
 "$consumer_dir/.tools/local-hamio/hamio" capabilities
 ```
 
-コピー後の実行に Bun・Node.js・Nix は不要である。ローカルビルドには GitHub の公開資産の証明は付かないため、ソースとビルド環境を自分で確認する。公開版のインストーラーが管理する `.tools/bin/hamio` とは配置先を分ける。
+配置後の実行に Bun・Node.js・Nix は不要である。ローカルビルドには公開資産の証明が付かないため、ソースとビルド環境を確認して使う。公開版インストーラーが管理する `.tools/bin/hamio` とは配置先を分ける。
 
 ## 保守者のリリース工程
 
-### 梱包と公開前の確認
+### 配布候補の生成と検証
 
-`./scripts/dev.sh bun run release:package` はホスト向けの実行ファイルと、`dist/release/` の gzip、checksum、SBOM、notices を生成する。macOS の梱包は共通インストーラーも生成する。ローカルの梱包コマンドは公開や証明発行を行わない。
+`./scripts/dev.sh bun run release:package` は、ソースの内容・commit・時刻・ランタイムを特定し、専用領域で固定依存の取得、ビルド、梱包を行う。ホスト向けの資産を `dist/release/` に保存する。
 
-リリースは次の順序で進める。
+公開条件の確認には `./scripts/dev.sh bun run release:verify` を使う。
 
-1. 変更と `package.json` の版を PR でレビューし、format、check、必要な preview を通して `master` へマージする。
-2. 本体の `LICENSE` と package の `license`、同梱部品の配布条件を確認する。Bun 更新時は `scripts/release/metadata.ts` の版・revision と notices も更新する。
-3. Bun と native 依存の security advisory・変更履歴を確認する。JavaScript の既知脆弱性は workflow の `bun audit` でも検査する。
-4. 対象版の `master` commit に `vX.Y.Z` タグを作り、push する。
-5. [Release workflow](../.github/workflows/release.yml)の全 job と、公開された実物の導入結果を確認する。
+1. 同じ入力を異なる二つのディレクトリに複製し、それぞれ固定依存を取得する。
+2. 二候補を順次ビルド・梱包し、全資産の名前と SHA-256 を比較する。
+3. 一つ目の gzip を展開し、実行ファイルの hash を照合する。
+4. 展開した実行ファイルを再ビルドせず API・端末試験へ渡す。
+5. 入力の不変を再確認し、合格した資産と `dist/release-verification.json` を保存する。
+
+日時を含む SBOM も比較対象とする。同じソース・依存・ランタイム・対象環境の再現性を検査し、異なる OS・CPU の実行ファイル同士の一致は求めない。候補は既存の `dist/hamio` を使わず、生成中の入力・ランタイムの変更を検出すると失敗する。
+
+保存は出力先の lock を取得して資産ディレクトリ一式を入れ替える。古い資産を退避し、配置失敗時は復元する。復元できない場合は退避先を残してエラーで知らせる。SIGKILL などで `dist/release.lock` が残った場合は、生成処理が動いていないことと退避資産を確認して復旧する。ローカルでの生成・検証は公開と証明発行を行わない。
+
+### 公開の操作
+
+1. 変更と `package.json` の版を PR でレビューし、format、check、必要な preview と対象環境の試験を通して `master` へマージする。
+2. 本体の LICENSE と package の license、同梱部品の配布条件を確認する。Bun 更新時は `scripts/release/metadata.ts` の版・revision と notices を揃える。
+3. Bun・native 依存の advisory と変更履歴を確認する。JavaScript 依存は `bun audit` でも検査する。
+4. 対象の `master` commit に `vX.Y.Z` タグを作成し、push する。
+5. Release workflow の全 job と公開物の導入結果を確認する。
 
 ```sh
-# X.Y.Z は package.json と一致させ、<...> は対象 commit に置換する。
+# X.Y.Z は package.json の版、<...> はレビュー済みの対象 commit に置換する。
 git tag -a vX.Y.Z -m 'hamio vX.Y.Z' <REVIEWED_MASTER_COMMIT>
 git push origin refs/tags/vX.Y.Z
 ```
 
-公開前検査は、公開元・タグ・package の版、`master` への commit の包含、clean worktree、LICENSE とライセンス識別子を確認する。条件を満たさなければ失敗する。通常の branch push・マージは Release の起動対象に含めない。所有者は版タグを選んで `workflow_dispatch` から実行することもできる。
+preflight は公開元、タグ、package の版、`master` への包含、clean worktree、LICENSE とライセンス識別子を確認し、不一致を拒否する。Release は通常の branch push・マージでは起動しない。所有者は対象の版タグを選び `workflow_dispatch` で実行することもできる。
 
 ### 権限と公開順序
 
-| job              | 処理                                                              | 権限                                                                                   |
-| ---------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `build`          | 3対象で固定依存の取得、公開前検査、audit、check、梱包             | `contents: read`                                                                       |
-| `attest`         | ビルド済み資産の provenance と、gzip に結び付く SBOM の証明を発行 | `contents: read`、`id-token: write`、`attestations: write`、`artifact-metadata: write` |
-| `publish`        | 全資産を draft に添付して公開し、immutable release を確認         | `contents: write`                                                                      |
-| `verify-install` | 3対象で公開資産を検証・導入し、capabilities を実行                | `contents: read`                                                                       |
+| job              | 担当する工程                                                    | 権限                                                                                   |
+| ---------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `build`          | 3対象の preflight、audit、check、二回の生成・比較、展開後の試験 | `contents: read`                                                                       |
+| `attest`         | 全資産の provenance と gzip に結び付く SBOM の証明              | `contents: read`、`id-token: write`、`attestations: write`、`artifact-metadata: write` |
+| `publish`        | 全資産を draft へ添付し、公開後に immutable release を確認      | `contents: write`                                                                      |
+| `verify-install` | 3対象で公開物を検証・導入し、capabilities を実行                | `contents: read`                                                                       |
 
-証明発行と公開の job は製品コードを実行しない。Actions は完全な commit SHA で固定する。日常の PR 検査は Linux 1ジョブとし、配布対象別のビルド・公開・導入試験は Release workflow が担当する。
+証明発行・公開の job は製品コードを実行しない。Actions を完全な commit SHA で固定する。PR の共通検査は Linux 1ジョブ、配布対象別の生成・実行・導入試験は Release workflow が担当する。
 
-immutable releases をリポジトリ設定で有効にし、公開前にも確認する。公開済みタグと資産は差し替えない。公開途中で draft が残った場合は内容を調査し、不要な draft だけを削除して再実行する。
+immutable releases をリポジトリ設定で有効にし、公開前にも確認する。公開済みタグ・資産は差し替えない。draft が残った場合は内容を調査し、不要な draft だけを削除して再実行する。
 
-公開後の導入試験が失敗した場合は影響環境を告知し、原因に応じて修正版を発行する。同梱 Bun の修正も hamio の製品版を更新して配布する。取得先や証明サービスの障害時も検証を省略しない。
+公開後の導入試験が失敗した場合は影響環境を告知し、原因に応じて修正版を発行する。同梱 Bun の修正も hamio の新しい製品版で提供する。取得先や証明サービスの障害時も検証を省略しない。
 
 ## 検証の範囲
 
-[distribution.test.ts](../tests/distribution.test.ts) は GitHub CLI の代替実装を使い、信頼条件の引数、検証失敗時の非実行、更新・ロールバック、lock、既存ファイルの保護を試験する。[executable.test.ts](../tests/executable.test.ts) は本物の実行ファイルを Bun のない PATH と別ディレクトリで動かす。
+| 入口                                                  | 確認するもの                                                                            |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [distribution.test.ts](../tests/distribution.test.ts) | GitHub CLI の代替実装による検証条件、失敗時の非実行、更新・復旧、lock、既存ファイル保護 |
+| [executable.test.ts](../tests/executable.test.ts)     | 本物の実行ファイルを使う Bun のない PATH、別ディレクトリ、暗黙設定、端末入力            |
+| [release.test.ts](../tests/release.test.ts)           | 独立ルートのビルド、入力の固定、資産配置と失敗時の復元                                  |
+| `release:verify`                                      | 独立した二候補の全資産と、実際に梱包した実行ファイルの API・端末動作                    |
+| 公開後の導入試験                                      | 実際の GitHub 署名、公開資産との結び付き、対象環境への配置と起動                        |
 
-GitHub の署名と公開資産の結び付きは Release workflow の公開後の導入試験で確認する。ローカルの代替実装による試験は検証方針と失敗処理の評価であり、署名検証や他の OS での実行結果はそれぞれ実施して記録する。
+代替実装による試験を実際の署名検証の結果とみなさない。各対象の実行結果を個別に記録する。再現性のローカル検査も、別ホストでの一致や依存の無害性を証明するものではない。
 
 ## 根拠
 
@@ -223,3 +241,4 @@ GitHub の署名と公開資産の結び付きは Release workflow の公開後�
 - [GitHub-hosted runners](https://docs.github.com/en/actions/reference/runners/github-hosted-runners): runner の OS・CPU。
 - [actions/attest](https://github.com/actions/attest/tree/1e69f48acb82d1966a394da916b4c1698aa569d6): provenance と SBOM の証明発行。
 - [SPDX 2.3](https://spdx.github.io/spdx-spec/v2.3/): 在庫の交換形式と `NOASSERTION`。
+- [SOURCE_DATE_EPOCH](https://reproducible-builds.org/docs/source-date-epoch/): ソースの時刻を使った再現可能な生成物。
