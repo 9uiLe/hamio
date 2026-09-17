@@ -141,13 +141,17 @@ hooks 自体は一時 Git リポジトリで正常系、不正な commit・push 
 
 ## 5. GitHub Actions
 
-| workflow                                               | 起動条件                                                                                         | 環境と役割                                                                  |
-| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- |
-| [Quality](../.github/workflows/quality.yml) の PR 検査 | 所有者または Dependabot による同一リポジトリの `master` 向け PR。opened / synchronize / reopened | Ubuntu 24.04 の1ジョブで共通検査                                            |
-| Quality の手動検査                                     | 所有者が ref と runner を選ぶ `workflow_dispatch`                                                | Ubuntu 24.04 または macOS 15                                                |
-| [Release](../.github/workflows/release.yml)            | 所有者が ref と mode を選ぶ `workflow_dispatch`                                                  | macOS arm64、Linux x64/arm64 の候補検証。公開は版タグ・明示指定・承認が必要 |
+共通の品質検査は Quality、OS・CPU ごとの配布検証と公開は Release が担当する。どのソースを検証するかは event と ref で決め、実行結果に対象 commit を記録する。
 
-branch push、PR close、タグ push は起動条件に含めない。通常の PR は共通検査を一度実行し、対象環境ごとの配布検証は Release workflow で行う。
+| workflow と入口                                         | 起動条件                                                                                         | 対象と役割                                                     |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| [Quality](../.github/workflows/quality.yml) の PR 検査  | 所有者または Dependabot による同一リポジトリの `master` 向け PR。opened / synchronize / reopened | PR のマージ候補を Ubuntu 24.04 の1ジョブで検査                 |
+| Quality の手動検査                                      | 所有者が ref と runner を指定する `workflow_dispatch`                                            | 選択した ref を Ubuntu 24.04 または macOS 15 で検査            |
+| [Release](../.github/workflows/release.yml) の `verify` | 所有者が ref を指定する手動実行。既定のモード                                                    | 選択した ref から3対象の候補を生成し、再現性・動作・証明を検証 |
+| Release の `publish`                                    | 所有者が版タグとモードを指定する手動実行                                                         | 候補検証、Environment 承認、公開、3対象の導入試験              |
+| Release の `verify-install`                             | 所有者が workflow ref と公開製品の `version` を指定する手動実行                                  | 指定した公開版の導入と利用側 Action を3対象で検証              |
+
+branch push、PR close、タグ push は起動条件に含めない。通常の PR は共通検査を一度実行し、配布物は macOS arm64、Linux x64 / arm64 の native runner で検証する。公開済みの製品を調べる `verify-install` では、workflow の ref と製品のタグを分けて記録する。Release の操作は[配布手順](distribution.md#保守者のリリース工程)に従う。
 
 ### PR の検査と権限
 
@@ -167,6 +171,7 @@ ruleset はブランチ・タグへの更新条件、Environment は公開 job �
 | `v*` タグ作成         | 管理者のみ。管理者は所有者1名                                                                                          |
 | `v*` タグ更新・削除   | 作成制限とは別 ruleset で禁止。管理者も bypass しない                                                                  |
 | `release` Environment | 所有者の承認、`v*` タグのみ。管理者 bypass は無効、自己承認は許可                                                      |
+| immutable releases    | 有効。所有者が公開承認前に確認し、公開後は実際の release attestation を検証                                            |
 | Actions               | 既定 token は読み取り専用。PR 承認は許可せず、job ごとに必要な権限だけ付与                                             |
 | 投稿                  | collaborator のみに制限。期限を確認して更新                                                                            |
 | 脆弱性対応            | 非公開報告、Dependabot alerts・security updates、secret scanning・push protection を有効化                             |
@@ -178,8 +183,11 @@ ruleset はブランチ・タグへの更新条件、Environment は公開 job �
 ```sh
 gh api repos/9uiLe/hamio/rulesets
 gh api repos/9uiLe/hamio/environments/release
+gh api repos/9uiLe/hamio/immutable-releases --jq .enabled
 gh api repos/9uiLe/hamio/interaction-limits
 ```
+
+管理設定の照会は所有者の認証で行う。Release job の `GITHUB_TOKEN` に管理権限を持たせず、公開承認前の設定確認と、公開後の資産検証をそれぞれの権限で行う。
 
 ### OS ごとの確認
 

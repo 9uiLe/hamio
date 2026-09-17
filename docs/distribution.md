@@ -2,7 +2,7 @@
 
 hamio は、製品コード・製品依存・Bun をまとめた実行ファイルを GitHub Releases で配布する。利用側は公開版を明示して導入し、スクリプトからその実行ファイルを直接呼び出す。通常実行には Bun・Node.js・Nix を必要としない。業務処理に使う言語ランタイムは利用側が用意する。
 
-本書の前半は利用者による取得・配置・更新、[保守者のリリース工程](#保守者のリリース工程)以降は生成・検証・公開を定める。入力形式は [API 契約](api.md)、ビルド内部の責務は[実装設計](implementation.md#9-ビルドと配布の境界)、特定 commit の検証結果と公開状況は[リリース評価](release-readiness.md)を参照する。
+利用者は[リポジトリへの導入](#リポジトリへの導入)、[GitHub Actions](#github-actions-で使う)、[更新とロールバック](#更新ロールバック削除)の手順に従う。保守者は[リリース工程](#保守者のリリース工程)に従い、配布候補、承認付き公開、公開版の導入試験を管理する。入力形式は [API 契約](api.md)、ビルド内部の責務は[実装設計](implementation.md#9-ビルドと配布の境界)、公開版の実施結果は[リリース評価](release-readiness.md)に定める。
 
 ## 配布方式と対象環境
 
@@ -55,7 +55,7 @@ immutable release は公開後のタグと資産を固定する仕組み、prove
 
 ## リポジトリへの導入
 
-[リリース一覧](https://github.com/9uiLe/hamio/releases)から採用する版を選ぶ。以下の `v0.1.0` は書式例であり、公開を示すものではない。利用する公開版に置き換え、利用側リポジトリの直下で実行する。公開版がない場合は[ローカルビルド](#手元でビルドした実行ファイル)を使う。
+[リリース一覧](https://github.com/9uiLe/hamio/releases)から採用する版を選び、対応環境と既知の制約を確認する。以下は公開版 [v0.1.0](https://github.com/9uiLe/hamio/releases/tag/v0.1.0) を導入する例である。別の版を採用する場合は完全なタグ名に置き換え、利用側リポジトリの直下で実行する。
 
 ```sh
 printf '%s\n' v0.1.0 > .hamio-version
@@ -177,72 +177,115 @@ cp dist/hamio "$consumer_dir/.tools/local-hamio/hamio"
 
 ## 保守者のリリース工程
 
-公開は、配布候補の生成、再現性と動作の検証、署名付き証明の検証、所有者の承認、immutable release の公開、公開物の導入試験の順で行う。候補の検証は公開前に実施でき、公開資産との結び付きは公開後に確認する。
+配布は、固定入力からの候補生成、候補の証明と動作確認、所有者の公開承認、公開資産の導入試験で構成する。[Release workflow](../.github/workflows/release.yml) は `9uiLe/hamio` の所有者による `workflow_dispatch` だけを入口とし、タグ push では起動しない。
+
+| mode             | 指定する対象                           | 実行する job                               | 完了時の状態                                       |
+| ---------------- | -------------------------------------- | ------------------------------------------ | -------------------------------------------------- |
+| `verify`（既定） | `--ref` のブランチまたはタグ           | build → attest → verify-candidate          | 候補と実際の証明を検証。タグ・Release は作成しない |
+| `publish`        | `--ref` の完全な版タグ                 | 候補検証 → 承認 → publish → verify-install | 全資産を公開し、3対象で導入を確認                  |
+| `verify-install` | workflow の `--ref` と製品の `version` | verify-install                             | 指定した公開版の導入だけを3対象で確認              |
+
+workflow の ref は検証手順を選ぶ。製品のタグは検証する公開物を選ぶ。`publish` では同じタグを使い、`verify-install` では両者を独立して指定する。各結果には workflow と製品の commit をそれぞれ残す。
+
+### 権限と公開順序
+
+| 担当               | 責務                                                                | 必要な権限                                                                             |
+| ------------------ | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 所有者             | 保護設定と immutable releases の確認、公開判断、Environment 承認    | リポジトリの管理権限                                                                   |
+| `build`            | 3対象の preflight、audit、check、二回の生成・比較、展開後の試験     | `contents: read`                                                                       |
+| `attest`           | 全資産の provenance と gzip に結び付く SBOM の証明発行              | `contents: read`、`id-token: write`、`attestations: write`、`artifact-metadata: write` |
+| `verify-candidate` | 実際の provenance、圧縮前後の hash、独立プロジェクトでの実行        | `contents: read`                                                                       |
+| `publish`          | 承認後の draft 作成、全資産の添付、公開、immutable release の検証   | `contents: write`                                                                      |
+| `verify-install`   | 公開資産の取得・検証・導入、利用側 Action、独立プロジェクトでの実行 | `contents: read`                                                                       |
+
+証明発行と公開の job は製品コードを実行しない。製品の smoke test へ token を渡さず、Actions は完全な commit SHA で固定する。PR の共通検査は Linux 1ジョブ、3環境の配布検証は手動の Release workflow が担当する。
+
+`release` Environment は所有者の承認と `v*` タグを必須にし、管理者による承認の bypass を無効にする。単独保守のため起動者の自己承認は許可する。設定は[リポジトリの保護設定](development.md#リポジトリの保護設定)に従う。
+
+immutable releases の設定照会には `Administration: read` が必要であり、標準の `GITHUB_TOKEN` では取得できない。所有者は管理権限のある認証で設定を確認し、公開 job は限定した権限で公開資産を操作する。[設定照会 API](https://docs.github.com/en/rest/repos/repos#check-if-immutable-releases-are-enabled-for-a-repository)
 
 ### 配布候補の生成と検証
 
-`./scripts/dev.sh bun run release:package` はソースの内容・commit・時刻・ランタイムを特定し、専用領域で固定依存の取得、ビルド、梱包を行う。ホスト向けの資産を `dist/release/` に保存する。
+ローカルでは固定 Nix 環境を使う。
 
-公開条件の確認には `./scripts/dev.sh bun run release:verify` を使う。
+```sh
+./scripts/dev.sh bun run release:package
+./scripts/dev.sh bun run release:verify
+```
 
-1. 同じ入力を異なる二つのディレクトリへ複製し、それぞれ固定依存を取得する。
-2. 二候補を順次ビルド・梱包し、全資産の名前と SHA-256 を比較する。
-3. 一つ目の gzip を展開し、実行ファイルの hash を照合する。
-4. 展開した実行ファイルを再ビルドせず API・端末試験に渡す。
-5. 入力の不変を再確認し、合格した資産と `dist/release-verification.json` を保存する。
+`release:package` は一候補を生成する。`release:verify` は次をすべて確認してから検証済み資産を保存する。
 
-日時を含む SBOM も比較対象とする。比較する条件は同じソース・依存・ランタイム・対象環境とし、異なる OS・CPU の資産同士の一致は求めない。既存の `dist/hamio` は候補生成に使わない。生成中の入力・ランタイム変更は失敗として扱う。
+1. ソースの commit・内容と固定ランタイムを取得し、候補ごとの独立した作業ディレクトリを用意する。
+2. 各ディレクトリで固定依存を取得し、同じ入力から順次ビルド・梱包する。
+3. 二候補の全資産の名前と SHA-256 を照合する。SBOM と notices も比較対象に含める。
+4. 一つ目の gzip を展開して hash を確認し、実行ファイルを再ビルドせず API・端末試験へ渡す。
+5. 生成中に入力が変わっていないことを確認し、`dist/release/` と `dist/release-verification.json` を保存する。
 
-保存時は出力先を lock し、資産ディレクトリ一式を入れ替える。古い資産は退避し、配置失敗時に復元する。復元できない場合は退避先を残してエラーで知らせる。SIGKILL などで `dist/release.lock` が残った場合は、生成処理が動いていないことと退避資産を確認して復旧する。ローカルでの生成・検証は公開や証明発行を行わない。
+比較条件は同じソース・依存・ランタイム・対象環境とする。SBOM の日時は commit 時刻から決め、異なる OS・CPU の資産同士の一致は求めない。共有の `dist/hamio` は候補生成に使わず、入力やランタイムが生成中に変われば失敗とする。
+
+保存時は出力先を lock し、古い資産を退避してディレクトリ一式を入れ替える。配置失敗時は復元し、復元できない場合は退避先を残してエラーで知らせる。SIGKILL などで `dist/release.lock` が残った場合は、生成処理が動いていないことと退避資産を確認して復旧する。ローカルの配布コマンドは公開・証明発行を行わない。
 
 ### 候補の検証と公開の操作
 
-Release workflow は所有者の手動実行だけを受け付ける。既定の `mode=verify` ではブランチまたは版タグを検証し、タグや GitHub Release を作成しない。署名付き証明は実際に発行・検証するため、候補の workflow 実行と provenance は公開リポジトリ上に残る。
+候補のレビューには `mode=verify` を使う。`REVIEW_BRANCH` はレビュー対象のブランチに置き換える。
 
 ```sh
-# REVIEW_BRANCH をレビューするブランチへ置き換える。
 gh workflow run release.yml --ref REVIEW_BRANCH -f mode=verify
 ```
 
-3対象の check、audit、独立した二回の梱包、展開後の API・端末試験を通し、全資産の provenance と gzip に対応する SBOM の証明を発行する。別 job の新しい native runner が provenance の repository・workflow・source ref・commit を照合し、gzip と展開後の hash を確認する。独立した Git プロジェクトで開発ランタイムのない PATH と限定した環境変数を使い、実行ファイルの版、機能照会、非対話フォームを試験する。
+3対象の native runner で preflight、audit、check、二候補の一致、展開後の API・端末試験を確認する。全資産の provenance と gzip に対応する SBOM の証明を発行し、別 job の新しい runner が repository・workflow・source ref・commit・GitHub-hosted runner を照合する。gzip と展開後の hash も確認し、独立した Git プロジェクトで版・機能照会・非対話フォームを試験する。
 
-Actions の `verification-<対象>` artifact には commit、入力・資産の hash、対象、ランタイム、サイズを30日間保存する。候補資産の保持は7日間とする。公開判断に必要な記録は[リリース評価](release-readiness.md)とその根拠データへ保存する。
+`verify` の実行記録と証明は公開リポジトリ上に残る。Actions の候補資産は7日間、`verification-<対象>` artifact の検証記録は30日間保持する。長期保管が必要な commit、入力・資産 hash、対象、ランタイム、サイズ、実行結果は[リリース評価](release-readiness.md)と根拠データへ保存する。
 
 正式公開は次の手順で行う。
 
 1. 変更と `package.json` の版を PR でレビューし、`quality` と候補検証を通して `master` へマージする。
-2. 本体・同梱部品の許諾、Bun・native 依存の advisory、対応環境、性能の実測範囲を確認する。確認先、固定 revision、結果をリリース評価へ記録する。
-3. レビュー済みの `master` commit に `vX.Y.Z` タグを作成して push する。タグは作成後に更新・削除できないため、対象 commit と版を事前に照合する。タグ push では workflow は起動しない。
-4. そのタグに `mode=publish` を明示して Release workflow を実行する。タグのソースで候補の全検証を実施する。
-5. `release` Environment の承認画面で対象 commit、3環境の検証結果、許諾・advisory の記録を確認し、所有者が公開を承認する。
-6. 公開後の3環境での取得・immutable release 検証・導入、利用側 Action、非対話フォームの試験結果を確認する。
+2. 同梱部品の許諾、Bun・native 依存の advisory、対応環境、性能の実測範囲を確認する。固定 revision、確認先、確認日、結果を記録する。
+3. 対象 commit と版を照合し、レビュー済みの `master` commit に `vX.Y.Z` タグを作成して push する。タグは作成後に更新・削除できない。
+4. タグを ref にして `mode=publish` を実行する。タグのソースで候補の全検証を行う。
+5. 所有者の認証で immutable releases の有効化を確認する。Environment の承認画面で対象 commit、3環境の結果、許諾・advisory の記録を照合して承認する。
+6. 全資産の公開と immutable release の検証、公開後の3環境の導入試験を確認し、製品タグ・commit と各工程の結果を保存する。
 
 ```sh
-# X.Y.Z は package.json の版、<...> はレビュー済みの対象 commit に置換する。
+# X.Y.Z と <...> は package.json の版とレビュー済み master commit に置換する。
 git tag -a vX.Y.Z -m 'hamio vX.Y.Z' <REVIEWED_MASTER_COMMIT>
 git push origin refs/tags/vX.Y.Z
 gh workflow run release.yml --ref vX.Y.Z -f mode=publish
 ```
 
-preflight は公開元、明示した実行モード、clean worktree、LICENSE とライセンス識別子を確認する。公開モードでは完全な版タグと package の一致、`master` への包含も必須とする。`vX.Y.Z-rc.N` などの接尾辞は受け付けない。
+preflight は公開元、明示したモード、clean worktree、LICENSE とライセンス識別子を確認する。公開では完全な版タグと package の一致、`master` への包含も必須とする。`vX.Y.Z-rc.N` などの接尾辞は受け付けない。
 
-### 権限と公開順序
+Environment の承認前に所有者が実行する設定確認は次のとおりである。結果が `true` でなければ公開しない。
 
-| job                | 工程                                                                 | 権限                                                                                   |
-| ------------------ | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `build`            | 3対象の preflight、audit、check、二回の生成・比較、展開後の試験      | `contents: read`                                                                       |
-| `attest`           | 全資産の provenance と gzip に結び付く SBOM の証明                   | `contents: read`、`id-token: write`、`attestations: write`、`artifact-metadata: write` |
-| `verify-candidate` | 実際の provenance、圧縮前後の hash、独立プロジェクトからの実行       | `contents: read`                                                                       |
-| `publish`          | 公開モード・版タグ・Environment 承認を条件に draft 作成・公開        | `contents: write`                                                                      |
-| `verify-install`   | 3対象で公開物の検証・導入、利用側 Action、独立プロジェクトからの実行 | `contents: read`                                                                       |
+```sh
+gh api repos/9uiLe/hamio/immutable-releases --jq .enabled
+```
 
-証明発行・公開の job は製品コードを実行しない。製品の smoke test には token を渡さない。Actions は完全な commit SHA で固定する。PR の共通検査は Linux 1ジョブとし、3環境の配布検証は手動の Release workflow が担当する。
+公開 job は全資産を draft に添付してから公開し、`gh release verify` で実際の immutable release を検証する。同じ版の Release が存在する場合は draft を含めて停止する。
 
-`release` Environment の承認者は所有者のみ、対象は `v*` タグのみとし、管理者による承認の bypass を無効にする。単独保守のため起動者自身による承認を許可する。設定値と保護対象は[開発手順](development.md#リポジトリの保護設定)に定める。
+### 公開物の導入試験
 
-公開前に immutable releases が有効であることを確認し、全資産を draft に添付してから公開する。同じ版のリリースが存在する場合は停止する。draft が残っている場合は内容を調査し、不要な draft だけを削除して再実行する。公開済みタグ・資産は差し替えない。
+`verify-install` job は `publish` 成功後に自動実行する。既存の公開版を調べる場合は `mode=verify-install` を使い、`version` に完全な `vX.Y.Z` を指定する。
 
-公開前の候補検証では immutable release と資産の結び付きを検証できない。公開後の導入試験が失敗した場合は、影響環境をリリースノートへ記載し、その版の推奨を止め、修正版を新しい版で発行する。取得先や証明サービスの障害でも検証を省略しない。影響調査と修正は[セキュリティ方針](../SECURITY.md)に従う。
+```sh
+# master の検証手順で、指定した公開製品版を検証する。
+gh workflow run release.yml --ref master -f mode=verify-install -f version=vX.Y.Z
+```
+
+このモードでは build、attest、verify-candidate、publish を実行しない。3対象の runner は指定版の immutable release とタグの commit を取得し、`install.sh` の資産への帰属と由来を検証してから実行する。利用側 Action はその製品 commit から checkout する。
+
+インストーラーと Action の両経路を確認し、独立した Git プロジェクトから限定した環境変数・開発ランタイムのない PATH で版、機能照会、非対話フォームを試験する。検証 workflow の ref・commit・実行 URL と、製品のタグ・commit・資産 digest を別に記録する。検証手順の変更によって、公開製品のバイト列や利用側 Action が置き換わることはない。
+
+### 公開と導入の失敗
+
+| 状態                         | 対応                                                                     |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| 候補の生成・証明・検証が失敗 | 公開せず、対象 commit と失敗工程を調査する                               |
+| 公開前の draft が残存        | 内容と添付資産を調査し、不要な draft だけを削除して再実行する            |
+| 公開後の導入試験が失敗       | 影響環境をリリースノートへ記載し、その版の推奨を止め、新しい版で修正する |
+| 取得先や証明サービスが停止   | 検証を省略せず停止する。利用側では使用中の版を保持する                   |
+
+公開済みのタグ・資産は差し替えない。公開前の候補検証で確認できる由来と動作、公開後に確認する immutable release と資産の結び付きを区別する。影響調査、脆弱性の報告、修正版の提供は[セキュリティ方針](../SECURITY.md)に従う。
 
 ## 検証の範囲
 

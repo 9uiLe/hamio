@@ -1,6 +1,6 @@
 # hamio 実装設計
 
-hamio は、利用側から受け取った定義と状態を検証し、ターミナル表示と JSON 応答へ変換する。業務処理を呼び出す機能は持たない。実行ごとの状態と I/O の寿命を明示し、入力規則と表示計算を端末なしで検証できる構成とする。
+hamio の実装は、外部入力を検証済みモデルへ変換し、回答・業務状態をターミナル表示と JSON 応答へ変換する処理で構成する。実行状態と資源の寿命は一回の呼び出しに閉じる。業務処理は利用側が実行し、hamio のモジュールは業務のコマンドや権限を持たない。
 
 本書はモジュールの依存方向、処理順序、副作用、資源の所有者を定める。製品の責務は[基本設計](design.md)、公開データは [API 契約](api.md)、操作は[開発手順](development.md)と[配布手順](distribution.md)を参照する。
 
@@ -185,9 +185,23 @@ compiler は `src/cli.ts` と製品依存を bundle し、指定した実行フ�
 
 ### 証明・公開・利用側への配置
 
-[Release workflow](../.github/workflows/release.yml) は生成、証明発行、候補の検証、承認付き公開、公開物の導入を別 job に分ける。候補検証は [verify-candidate.sh](../scripts/verify-candidate.sh) が repository・workflow・ref・commit・runner と資産 hash を確認し、[smoke-consumer.sh](../scripts/smoke-consumer.sh) が新しい Git ディレクトリで製品を実行する。製品プロセスには token や開発ランタイムを使える PATH を渡さない。
+[Release workflow](../.github/workflows/release.yml) は候補生成、証明発行、候補検証、公開、公開物の導入を別 job に分ける。所有者が `verify`、`publish`、`verify-install` を指定し、次の依存関係で実行する。
 
-公開資産の取得と配置は [install.sh](../scripts/install.sh)、利用側 CI への接続は [action.yml](../action.yml) が担当する。候補の実行確認と、公開後の immutable release・資産の結び付き・インストーラー・Action の確認は別の試験として扱う。公開条件と失敗時の操作は[配布手順](distribution.md#保守者のリリース工程)に定める。
+| モード           | job の依存関係                                                      | 対象の識別                                                     |
+| ---------------- | ------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `verify`         | build → attest → verify-candidate                                   | 選択した workflow ref のソース commit                          |
+| `publish`        | build → attest → verify-candidate → 承認 → publish → verify-install | workflow と製品の両方を版タグへ固定                            |
+| `verify-install` | verify-install のみ                                                 | workflow の ref と、`version` が指す公開製品の commit を分ける |
+
+build は3対象の native runner で候補を生成する。attest は全資産の provenance と gzip に結び付く SBOM の証明を発行する。verify-candidate は別の runner を使い、[verify-candidate.sh](../scripts/verify-candidate.sh) で repository・workflow・ref・commit・runner と資産 hash を照合する。
+
+[smoke-consumer.sh](../scripts/smoke-consumer.sh) は新しいローカル Git ディレクトリで版、機能照会、非対話フォームを試験する。実行時は token を渡さず、限定した環境変数と Bun・Node.js・Nix のない PATH を使う。
+
+公開の管理設定は所有者が確認し、`release` Environment の承認を与える。publish job は `contents: write` で draft に全資産を添付してから公開し、immutable release を検証する。attest と publish は製品コードを実行せず、必要な書き込み権限をそれぞれの job に限定する。
+
+公開資産の取得・検証・配置は [install.sh](../scripts/install.sh)、利用側 CI の PATH と出力への接続は [action.yml](../action.yml) が担当する。verify-install は公開版のタグから製品 commit を取得し、公開されたインストーラーとその commit の Action を試験する。検証用の workflow commit から製品や Action を置き換えない。
+
+候補検証は由来と実行を、公開物の導入試験は immutable release、資産への帰属、取得・配置、利用側 Action を確認する。実行のモード、workflow と製品の識別情報、各工程の結果を[リリース評価](release-readiness.md)に記録する。権限、承認、失敗時の操作は[配布手順](distribution.md#保守者のリリース工程)に定める。
 
 ## 10. 検証の構成
 
