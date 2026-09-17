@@ -10,7 +10,9 @@
   "scripts": {
     "setup": "bun install --frozen-lockfile --ignore-scripts && bun run hooks:install",
     "hooks:install": "bun scripts/install-hooks.ts",
-    "check": "bun run lint && bun run format:check && bun run typecheck && bun test",
+    "check": "bun run lint && bun run format:check && bun run typecheck && bun test && bun run preview:check",
+    "preview": "./scripts/preview.sh",
+    "preview:check": "bun scripts/preview/check.ts",
     "check:staged": "lint-staged --concurrent 2",
     "lint": "biome lint --error-on-warnings . && shellcheck scripts/*.sh .husky/pre-commit .husky/pre-push && actionlint",
     "lint:fix": "biome lint --write .",

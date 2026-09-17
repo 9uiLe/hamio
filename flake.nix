@@ -19,7 +19,7 @@
         let
           pkgs = import nixpkgs { inherit system; };
         in
-        {
+        rec {
           default = pkgs.mkShellNoCC {
             packages = with pkgs; [
               bun
@@ -31,6 +31,21 @@
               actionlint
             ];
             HAMIO_DEV_SHELL = "1";
+          };
+          preview = pkgs.mkShellNoCC {
+            inputsFrom = [ default ];
+            packages = [
+              pkgs.asciinema-agg
+              (pkgs.python3.withPackages (python: [ python.pillow ]))
+            ];
+            HAMIO_PREVIEW_SHELL = "1";
+            HAMIO_PREVIEW_FONTS = pkgs.symlinkJoin {
+              name = "hamio-preview-fonts";
+              paths = [
+                pkgs.jetbrains-mono
+                pkgs.noto-fonts-cjk-sans
+              ];
+            };
           };
         }
       );
