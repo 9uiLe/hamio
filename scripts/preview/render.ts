@@ -81,7 +81,7 @@ export async function renderPreviews(recording: boolean) {
     for (const name of files) await rename(join(temporary, name), join("dist/preview", name));
     const manifest = {
       schemaVersion: 1,
-      description: "Development recording fixtures; not the product UI.",
+      description: "Product CLI previews and separately identified recording fixtures.",
       environment: { platform: process.platform, arch: process.arch, bun: Bun.version },
       sources,
       images,
