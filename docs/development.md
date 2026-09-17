@@ -106,19 +106,33 @@ hooks はローカルで回避できるため、強制的なマージ制限に�
 
 ## 5. GitHub Actions
 
-[Quality workflow](../.github/workflows/quality.yml)は `master` 向け PR、`master` への push、手動実行を対象とする。実行者をリポジトリ所有者に限定し、PR は同一リポジトリを送信元とするものだけを検査する。
+[Quality workflow](../.github/workflows/quality.yml)は `master` 向け PR の作成・更新・再開と、手動実行を対象とする。実行者をリポジトリ所有者に限定し、PR は同一リポジトリを送信元とするものだけを検査する。マージによる `master` への push と PR の close では実行しない。直接 push した変更も自動検査の対象外となるため、変更は PR で検証する。
 
-`ubuntu-24.04` と `macos-15` で、次の順序で実行する。
+PR は `ubuntu-24.04` の1ジョブで、次の順序で実行する。
 
-1. 固定した Actions と Nix を使い、対象コードを checkout する。
+1. 対象コードを checkout し、固定した Nix を導入する。
 2. `nix flake check --all-systems --no-build --no-write-lock-file` で Nix 定義を評価する。
-3. Nix 環境で `bun install --frozen-lockfile --ignore-scripts` を実行する。
-4. 同じ環境で `bun run check` を実行する。
+3. Nix shell を一度起動し、`bun install --frozen-lockfile --ignore-scripts` を実行する。
+4. その shell 内で `bun run check` を実行する。依存取得に失敗した場合は検査へ進まない。
 5. `git diff --exit-code` で追跡対象ファイルに変更が生じていないことを確認する。
 
 Actions は完全な commit SHA、Nix インストーラーは版を固定する。`pull_request_target` は使わず、トークンは読み取り権限に限定し、checkout の認証情報を保持しない。CI では hooks をインストールせず、検査コマンドを直接実行する。
 
-同じ workflow と ref の古い実行はキャンセルする。各 OS のジョブには20分の上限を設け、一方が失敗しても他方の結果を確認できるようにする。失敗した検査をマージ禁止の条件にする場合は、GitHub の branch ruleset で別途管理する。
+同じ event・ref・runner の古い実行はキャンセルする。PR と手動実行、異なる OS の手動実行は互いをキャンセルしない。ジョブの上限は20分とする。失敗した検査をマージ禁止の条件にする場合は、GitHub の branch ruleset で `quality` を必須チェックとして管理する。
+
+### macOS の検証
+
+静的解析と format を OS ごとに繰り返さず、日常の PR は Linux で検証する。Bun・Nix・hooks・OS に関わる依存を変更した場合は、Actions の `Run workflow` で対象ブランチと `runner: macos-15` を選び、マージ前に macOS でも同じ検査を実行する。CLI では次のように指定する。
+
+```sh
+gh workflow run quality.yml --ref YOUR_BRANCH -f runner=macos-15
+```
+
+`YOUR_BRANCH` は確認するブランチ名に置き換える。手動実行では PR のマージ候補ではなく、選択したブランチの commit を検証する。再現確認には `runner=ubuntu-24.04` も選べる。変更が検査済み commit から進んだ場合は、必要な OS の検査を再実行する。
+
+通常の PR だけでは macOS 固有の実行差は検出しない。`nix flake check --all-systems --no-build` が成功しても、各 OS でプログラムを実行したことにはならない。製品の端末 I/O、プロセス管理、配布物を実装する段階で、OS ごとの実行テストを自動化する範囲を定める。
+
+ジョブの構成と高速化の判断は[CI の測定と検証範囲](research/ci.md)を参照する。
 
 ## 6. 開発用スキル
 
