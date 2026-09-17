@@ -8,6 +8,11 @@ import {
   imageNames,
   manifestPath,
   previewDirectory,
+  previewChanges,
+  recordingChanges,
+  recordingHashes,
+  recordingManifestPath,
+  recordingNames,
   sourceHashes,
 } from "../scripts/preview/artifacts.ts";
 import { captureTerminal } from "../scripts/preview/capture.ts";
@@ -40,8 +45,14 @@ test("preview records a real terminal and drives input without inheriting creden
       steps: [{ waitFor: "入力待ち", snapshot: "input", send: "\r" }, { waitFor: "回答完了" }],
     });
     expect(result.cast).toContain("回答完了");
-    expect(result.snapshots.get("input")).toContain("入力待ち");
-    expect(result.snapshots.get("input")).not.toContain("回答完了");
+    const frame = result.snapshots.get("input");
+    if (frame === undefined) throw new Error("Missing input frame.");
+    const snapshot = result.cast
+      .split("\n")
+      .slice(0, frame + 2)
+      .join("\n");
+    expect(snapshot).toContain("入力待ち");
+    expect(snapshot).not.toContain("回答完了");
     expect(result.cast).not.toContain("do-not-record");
   } finally {
     if (previous === undefined) delete process.env.HAMIO_PREVIEW_TEST_SECRET;
@@ -67,6 +78,7 @@ test("preview freshness detects source additions, changed sources, and altered P
     await checkPreviews(root);
     await Bun.write(join(root, "src/new.ts"), "export {};\n");
     await expect(checkPreviews(root)).rejects.toThrow("stale");
+    expect(await previewChanges(root)).toEqual(["src/new.ts"]);
     await rm(join(root, "src"), { recursive: true });
     await Bun.write(join(root, "package.json"), '{"changed": true}');
     await expect(checkPreviews(root)).rejects.toThrow("stale");
@@ -76,6 +88,71 @@ test("preview freshness detects source additions, changed sources, and altered P
     const image = await Bun.file(join(directory, name)).bytes();
     await Bun.write(join(directory, name), Buffer.concat([image, Buffer.from("modified")]));
     await expect(checkPreviews(root)).rejects.toThrow("stale");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("preview reuses verified images without renderer tools and leaves them unchanged", async () => {
+  const root = await mkdtemp(join(tmpdir(), "hamio-preview-reuse-"));
+  try {
+    for (const name of imageNames) {
+      await Bun.write(join(root, previewDirectory, name), Bun.file(join(previewDirectory, name)));
+    }
+    const sources = await sourceHashes(root);
+    const images = await imageHashes(join(root, previewDirectory));
+    const manifest = JSON.stringify({ schemaVersion: 1, sources, images });
+    await Bun.write(join(root, manifestPath), manifest);
+    const before = Bun.file(join(root, manifestPath)).lastModified;
+    const child = Bun.spawn(
+      [process.execPath, join(import.meta.dir, "../scripts/preview/generate.ts")],
+      {
+        cwd: root,
+        env: { PATH: "", HOME: root },
+        stdout: "pipe",
+        stderr: "pipe",
+      },
+    );
+    const [code, output, errors] = await Promise.all([
+      child.exited,
+      new Response(child.stdout).text(),
+      new Response(child.stderr).text(),
+    ]);
+    expect(errors).toBe("");
+    expect(code).toBe(0);
+    expect(output).toContain("reused verified files");
+    expect(await Bun.file(join(root, manifestPath)).text()).toBe(manifest);
+    expect(Bun.file(join(root, manifestPath)).lastModified).toBe(before);
+    expect(await imageHashes(join(root, previewDirectory))).toEqual(images);
+    await Bun.write(join(root, manifestPath), "{");
+    await expect(checkPreviews(root)).rejects.toThrow("stale");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("recording reuse requires matching sources and intact local files", async () => {
+  const root = await mkdtemp(join(tmpdir(), "hamio-preview-recording-"));
+  try {
+    expect((await recordingChanges(root)).length).toBeGreaterThan(0);
+    await Bun.write(join(root, "package.json"), "{}");
+    for (const name of recordingNames) await Bun.write(join(root, "dist/preview", name), "fixture");
+    const sources = await sourceHashes(root);
+    const recordings = await recordingHashes(join(root, "dist/preview"));
+    await Bun.write(
+      join(root, recordingManifestPath),
+      JSON.stringify({ schemaVersion: 1, sources, recordings }),
+    );
+    expect(await recordingChanges(root)).toEqual([]);
+    await Bun.write(join(root, "package.json"), '{"changed":true}');
+    expect(await recordingChanges(root)).toEqual(["package.json"]);
+    await Bun.write(join(root, "package.json"), "{}");
+    const name = recordingNames[0];
+    if (!name) throw new Error("Missing recording fixture.");
+    await Bun.write(join(root, "dist/preview", name), "altered");
+    expect(await recordingChanges(root)).toEqual([`dist/preview/${name}`]);
+    await rm(join(root, "dist/preview", name));
+    expect((await recordingChanges(root)).length).toBeGreaterThan(0);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

@@ -22,7 +22,7 @@ export async function captureTerminal(options: CaptureOptions) {
   const home = await mkdtemp(join(tmpdir(), "hamio-preview-"));
   const header = JSON.stringify({ version: 2, width: options.cols, height: options.rows });
   const events: string[] = [header];
-  const snapshots = new Map<string, string>();
+  const snapshots = new Map<string, number>();
   const decoder = new TextDecoder("utf-8", { fatal: true });
   const started = performance.now();
   const finished = Promise.withResolvers<void>();
@@ -107,7 +107,7 @@ export async function captureTerminal(options: CaptureOptions) {
       }
       if (fault) throw fault;
       received = received.slice(received.indexOf(step.waitFor) + step.waitFor.length);
-      if (step.snapshot) snapshots.set(step.snapshot, `${events.join("\n")}\n`);
+      if (step.snapshot) snapshots.set(step.snapshot, events.length - 2);
       if (step.send !== undefined) {
         await Bun.sleep(options.holdMs ?? 500);
         if (fault) throw fault;
