@@ -8,13 +8,13 @@
 
 `9uiLe/wts` は、TypeScript の共通関数で表示と対話をまとめる参照事例である。以下の記述は commit `ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83` を対象とする。
 
-| 参照ファイル | 確認できる構成 |
-| --- | --- |
-| [package.json](https://github.com/9uiLe/wts/blob/ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83/package.json) | Clack、Chalk、Ora、Commander を直接依存として固定する |
-| [src/ui.ts](https://github.com/9uiLe/wts/blob/ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83/src/ui.ts) | 成功、警告、失敗、詳細、処理中表示を共通関数にまとめる |
-| [src/terminal.ts](https://github.com/9uiLe/wts/blob/ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83/src/terminal.ts) | TTY、CI、TERM、色に関する環境変数で表示を切り替える |
-| [src/prompts.ts](https://github.com/9uiLe/wts/blob/ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83/src/prompts.ts) | 非対話環境の検出とキャンセルを扱う |
-| [scripts/build.ts](https://github.com/9uiLe/wts/blob/ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83/scripts/build.ts) | Bun compile で macOS arm64 向け実行ファイルを生成する |
+| 参照ファイル                                                                                                    | 確認できる構成                                         |
+| --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [package.json](https://github.com/9uiLe/wts/blob/ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83/package.json)         | Clack、Chalk、Ora、Commander を直接依存として固定する  |
+| [src/ui.ts](https://github.com/9uiLe/wts/blob/ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83/src/ui.ts)               | 成功、警告、失敗、詳細、処理中表示を共通関数にまとめる |
+| [src/terminal.ts](https://github.com/9uiLe/wts/blob/ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83/src/terminal.ts)   | TTY、CI、TERM、色に関する環境変数で表示を切り替える    |
+| [src/prompts.ts](https://github.com/9uiLe/wts/blob/ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83/src/prompts.ts)     | 非対話環境の検出とキャンセルを扱う                     |
+| [scripts/build.ts](https://github.com/9uiLe/wts/blob/ac7daf4e828849dff3a9b1ddae4bc7ad68dccc83/scripts/build.ts) | Bun compile で macOS arm64 向け実行ファイルを生成する  |
 
 wts は同一 TypeScript プロセス内の関数で UI を利用する。独立実行ファイルへまとめるだけでは、別言語から同じ関数を直接呼び出せるようにはならない。hamio では表示共通化の考え方を参照し、言語間のデータ契約を別に設ける。
 
@@ -22,11 +22,11 @@ Gum との比較では端末部品の有無だけでなく、入力・結果・�
 
 ## UI 基盤
 
-| ライブラリ | 公式に提供する機能 | hamio で確認する点 |
-| --- | --- | --- |
+| ライブラリ                                            | 公式に提供する機能                                                          | hamio で確認する点                                                              |
+| ----------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
 | [Clack](https://bomb.sh/docs/clack/packages/prompts/) | 入力、選択、確認、秘密入力、進捗、カスタム入出力ストリーム、AbortController | フォームと段階表示の第一候補。共通契約から変換し、内部 API を利用側に公開しない |
-| [Ink](https://github.com/vadimdemedes/ink) | React を使う対話型 CLI の構築 | 複雑な常時表示画面を扱う比較対象。初期設計の必須依存には含めない |
-| [Gum](https://github.com/charmbracelet/gum) | スクリプトから呼べる UI コマンド | 利用方法と連携負担を比較する既存製品 |
+| [Ink](https://github.com/vadimdemedes/ink)            | React を使う対話型 CLI の構築                                               | 複雑な常時表示画面を扱う比較対象。初期設計の必須依存には含めない                |
+| [Gum](https://github.com/charmbracelet/gum)           | スクリプトから呼べる UI コマンド                                            | 利用方法と連携負担を比較する既存製品                                            |
 
 日本語幅、IME、emoji、画面幅変更、画面読み上げ、端末の入力モード復旧、Bun 同梱での動作は、選定した版と実機の組み合わせで検証する。機能一覧への記載だけで、すべての端末環境への適合を判断しない。
 
@@ -46,12 +46,12 @@ Gum との比較では端末部品の有無だけでなく、入力・結果・�
 
 これらの仕様から、対話の可否、出力形式、装飾の可否は別の設定として扱う。AI エージェントが端末を利用する場合もあるため、TTY の有無だけでは機械モードを確定しない。
 
-| 利用場面 | 入力経路 | 出力経路 |
-| --- | --- | --- |
+| 利用場面       | 入力経路                                           | 出力経路                                                   |
+| -------------- | -------------------------------------------------- | ---------------------------------------------------------- |
 | 人向けフォーム | 明示した入力定義と、端末のキー入力を別経路で受ける | 端末 UI は stderr、回答 JSON は呼び出し元が捕捉する stdout |
-| 非対話フォーム | 入力定義と事前指定の値 | 検証済み回答、不足項目、エラー |
-| 単発表示 | 型と意味を指定した結果データ | 人向け表示または機械向け JSON |
-| 連続表示 | stdin の event 列 | 集約した端末表示または必要な状態変化 |
+| 非対話フォーム | 入力定義と事前指定の値                             | 検証済み回答、不足項目、エラー                             |
+| 単発表示       | 型と意味を指定した結果データ                       | 人向け表示または機械向け JSON                              |
+| 連続表示       | stdin の event 列                                  | 集約した端末表示または必要な状態変化                       |
 
 stdout が pipe でも、stdin と stderr が端末ならフォームは対話し得る。進捗表示の stdin が pipe であることも正常である。各ストリームの役割を個別に判定し、同じ stdin を JSON とキー入力に同時使用しない。
 

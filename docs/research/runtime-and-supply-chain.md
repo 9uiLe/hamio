@@ -8,11 +8,11 @@
 
 この機能は、利用者による Bun の事前導入を不要にする構成の根拠となる。UI ライブラリの動作、native assets、メモリ、起動時間、利用側との入出力は、配布する組み合わせごとに検証する必要がある。
 
-| 項目 | 確認日の Bun 公式文書にある条件 |
-| --- | --- |
-| macOS | 13.0 以降、x64 / arm64 |
-| Linux | glibc 2.17 以降、または musl 用バイナリ。kernel 5.6 以降を推奨 |
-| x64 CPU | SSE4.2 が必要。baseline / modern は同じバイナリに解決される |
+| 項目    | 確認日の Bun 公式文書にある条件                                |
+| ------- | -------------------------------------------------------------- |
+| macOS   | 13.0 以降、x64 / arm64                                         |
+| Linux   | glibc 2.17 以降、または musl 用バイナリ。kernel 5.6 以降を推奨 |
+| x64 CPU | SSE4.2 が必要。baseline / modern は同じバイナリに解決される    |
 
 出典: [Bun: Installation](https://bun.com/docs/installation)。この表は Bun の条件であり、hamio の動作保証表ではない。hamio は macOS と Linux を対象とし、CPU・最低 OS・libc の正式な範囲をリリース前に定める。
 
@@ -44,14 +44,14 @@ hamio 内では受信メッセージ、待ち行列、表示ログの保持量�
 
 Nix は `devShells`、`nix develop --command`、flake の lockfile を提供する。hamio ではツールチェーンを `flake.lock`、JS 依存を `bun.lock` で管理し、ローカルと CI の定義を共有する。[Nix 2.35: develop](https://nix.dev/manual/nix/2.35/command-ref/new-cli/nix3-develop)、[Nix 2.35: flake](https://nix.dev/manual/nix/2.35/command-ref/new-cli/nix3-flake)
 
-参照する Nix 2.35 文書には両コマンドの experimental 注記がある。Nix の採用版、必要な feature 設定、導入経路、信頼するキャッシュを明記する。開発 shell の固定と、隔離ビルド・バイト単位の再現性は別の検証対象とする。
+参照する Nix 2.35 文書には両コマンドの experimental 注記がある。hamio が使用する Nix の版、必要な feature 設定、導入経路、信頼するキャッシュは[開発手順](../development.md)に定める。参照文書の版と採用版の対応は固定した環境で検証する。開発 shell の固定と、隔離ビルド・バイト単位の再現性は別の検証対象とする。
 
-| 機能 | 公式仕様と制約 |
-| --- | --- |
-| [bun ci / frozen lockfile](https://bun.com/docs/pm/cli/install) | 宣言と lockfile の不一致で失敗する。`--ignore-scripts` はルートと trusted dependencies を含む lifecycle scripts を止める |
-| [lifecycle scripts](https://bun.com/docs/pm/lifecycle) | 既定の許可リストがあり、`trustedDependencies: []` はそれを置き換える。Bun がすべての依存スクリプトを常に禁止するわけではない |
-| [minimumReleaseAge](https://bun.com/docs/pm/cli/install#minimum-release-age) | 新しい依存解決に適用する。既存 lockfile の版は変わらず、timestamp のない版は age 判定を通過する |
-| [bun audit](https://bun.com/docs/pm/cli/audit) | パッケージ名と版を NPM へ送って既知の脆弱性を調べる。既定以外の registry 由来は対象外 |
+| 機能                                                                         | 公式仕様と制約                                                                                                               |
+| ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| [bun ci / frozen lockfile](https://bun.com/docs/pm/cli/install)              | 宣言と lockfile の不一致で失敗する。`--ignore-scripts` はルートと trusted dependencies を含む lifecycle scripts を止める     |
+| [lifecycle scripts](https://bun.com/docs/pm/lifecycle)                       | 既定の許可リストがあり、`trustedDependencies: []` はそれを置き換える。Bun がすべての依存スクリプトを常に禁止するわけではない |
+| [minimumReleaseAge](https://bun.com/docs/pm/cli/install#minimum-release-age) | 新しい依存解決に適用する。既存 lockfile の版は変わらず、timestamp のない版は age 判定を通過する                              |
+| [bun audit](https://bun.com/docs/pm/cli/audit)                               | パッケージ名と版を NPM へ送って既知の脆弱性を調べる。既定以外の registry 由来は対象外                                        |
 
 hamio は Bun と依存を固定し、通常の CI では lockfile の変更と lifecycle scripts の暗黙実行を禁止する。必要なビルド処理は個別に明示する。公開からの待機期間を使う場合は、緊急セキュリティ更新の例外手順も必要になる。
 
@@ -91,4 +91,4 @@ lockfile の部品一覧と最終バイナリの同梱コードが一致する�
 - 改ざん、別 workflow、想定外ソース commit、検証失敗の配布物を拒否すること。
 - SBOM を出荷物と照合し、起動・メモリ・CPU・業務への追加時間を基本設計の性能予算で評価すること。
 
-これらは検証計画であり、hamio の実装・試験結果は未提供である。
+この一覧は製品の配布前に確認する条件である。開発基盤の検査結果と、配布する実行ファイルの試験結果は分けて記録する。
