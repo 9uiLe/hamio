@@ -3,16 +3,16 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { Readable, Writable } from "node:stream";
-import { limits } from "../src/contract.ts";
-import { formResponse } from "../src/form.ts";
-import { Output, readEvents } from "../src/io.ts";
-import { Session } from "../src/session.ts";
-import {
-  displayDefinition,
-  eventDefinition,
-  formDefinition,
-  parseJson,
-} from "../src/validation.ts";
+import { limits } from "../src/core/contract.ts";
+import { resolveForm } from "../src/core/form.ts";
+import { Output } from "../src/adapters/output.ts";
+import { readEvents } from "../src/adapters/input.ts";
+import { Session } from "../src/core/session.ts";
+import { decodeDisplay, decodeEvent, decodeForm, parseJson } from "../src/core/validation.ts";
+
+const displayDefinition = (value: unknown) => decodeDisplay(JSON.stringify(value));
+const eventDefinition = (value: unknown) => decodeEvent(JSON.stringify(value));
+const formDefinition = (value: unknown) => decodeForm(JSON.stringify(value));
 
 const definition = {
   apiVersion: 1,
@@ -96,7 +96,7 @@ test("missing, invalid and secret answers never leak partial values", async () =
     expect(invalid.code).toBe(4);
     expect(invalid.json().issues[0].code).toBe("LENGTH");
     expect(invalid.stdout + invalid.stderr).not.toContain("do-not-echo");
-    const duplicate = formResponse(formDefinition(definition), { ...valid, many: ["a", "a"] });
+    const duplicate = resolveForm(formDefinition(definition), { ...valid, many: ["a", "a"] });
     expect(duplicate.status).toBe("invalid_values");
   });
 });
@@ -222,7 +222,7 @@ test("stream keeps constant machine output and frees completed task detail", asy
   expect(result.stderr).toBe("");
   const session = new Session();
   for (const raw of events) session.accept(eventDefinition(raw));
-  expect(session.active.size).toBe(0);
+  expect(session.snapshot().active).toBe(0);
   expect(() =>
     session.accept(eventDefinition(event("message", 2004, { level: "info", text: "late" }))),
   ).toThrow("finished");
@@ -257,11 +257,11 @@ test("NDJSON handles split UTF-8, CRLF, trailing frame and oversized partial fra
     Readable.from(Array.from(bytes, (byte) => Buffer.from([byte]))),
     new AbortController().signal,
   ))
-    result.push(value);
+    for (const line of value) result.push(parseJson(line));
   expect(result).toEqual([{ text: "日本語" }, { last: true }]);
   const consume = async (bytes: Buffer) => {
-    for await (const _ of readEvents(Readable.from([bytes]), new AbortController().signal)) {
-      /* consume */
+    for await (const batch of readEvents(Readable.from([bytes]), new AbortController().signal)) {
+      for (const line of batch) parseJson(line);
     }
   };
   await expect(consume(Buffer.alloc(limits.frameBytes + 1, 32))).rejects.toThrow("limit");

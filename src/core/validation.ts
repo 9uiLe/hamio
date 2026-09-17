@@ -16,7 +16,11 @@ import {
 } from "./contract.ts";
 import { answerIssue } from "./form.ts";
 
-export function validateTree(value: unknown): asserts value is JsonValue {
+const reservedKeys = ["__proto__", "prototype", "constructor"];
+function rawRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object";
+}
+function validateTree(value: unknown): asserts value is JsonValue {
   let nodes = 0;
   function visit(item: unknown, depth: number): void {
     if (++nodes > limits.nodes || depth > limits.depth)
@@ -30,12 +34,12 @@ export function validateTree(value: unknown): asserts value is JsonValue {
         invalid("Numbers must be finite and integers must be safe.");
     } else if (Array.isArray(item)) {
       for (const child of item) visit(child, depth + 1);
-    } else if (item !== null && typeof item === "object") {
-      for (const [key, child] of Object.entries(item)) {
-        if (["__proto__", "prototype", "constructor"].includes(key))
-          invalid("A reserved key was used.");
+    } else if (rawRecord(item)) {
+      for (const key in item) {
+        if (!Object.hasOwn(item, key)) continue;
+        if (reservedKeys.includes(key)) invalid("A reserved key was used.");
         visit(key, depth + 1);
-        visit(child, depth + 1);
+        visit(item[key], depth + 1);
       }
     } else if (item !== null && typeof item !== "boolean") invalid();
   }
@@ -51,13 +55,15 @@ export function parseJson(text: string): JsonValue {
   validateTree(value);
   return value;
 }
-function isRecord(value: unknown): value is Record<string, unknown> {
+function isRecord(value: JsonValue | undefined): value is Record<string, JsonValue> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
-export function record(value: unknown, keys?: readonly string[]): Record<string, unknown> {
+function record(value: JsonValue | undefined, keys?: readonly string[]): Record<string, JsonValue> {
   if (!isRecord(value)) invalid("An object is required.");
-  if (keys && Object.keys(value).some((key) => !keys.includes(key)))
-    invalid("An unknown property was provided.");
+  if (keys)
+    for (const key of Object.keys(value)) {
+      if (!keys.includes(key)) invalid("An unknown property was provided.");
+    }
   return value;
 }
 function string(value: unknown): string {
@@ -66,10 +72,7 @@ function string(value: unknown): string {
 }
 function id(value: unknown): string {
   const text = string(value);
-  if (
-    !/^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/.test(text) ||
-    ["__proto__", "prototype", "constructor"].includes(text)
-  )
+  if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{0,63}$/.test(text) || reservedKeys.includes(text))
     invalid("An identifier is invalid.");
   return text;
 }
@@ -87,7 +90,7 @@ function integer(value: unknown, maximum: number): number {
   if (!Number.isSafeInteger(result) || result > maximum) invalid("An integer is out of range.");
   return result;
 }
-function array(value: unknown, maximum: number): unknown[] {
+function array(value: JsonValue | undefined, maximum: number): JsonValue[] {
   if (!Array.isArray(value)) invalid("An array is required.");
   if (value.length > maximum) limited("An array exceeds its item limit.");
   return value;
@@ -125,25 +128,27 @@ function level(value: unknown): Level {
     return value;
   return invalid("A message level is invalid.");
 }
-function progress(obj: Record<string, unknown>) {
+function progress(obj: Record<string, JsonValue>) {
   const current = number(obj.current);
   const total = number(obj.total);
   if (total <= 0 || current > total) invalid("Progress must be between zero and a positive total.");
   return { current, total };
 }
-function result(value: unknown): Result {
+function result(value: JsonValue | undefined): Result {
   const obj = record(value, ["success", "message", "data"]);
   const data = obj.data;
-  if (data !== undefined) validateTree(data);
+  // The complete JSON tree has already been validated at the decoding boundary.
   return {
     success: boolean(obj.success),
     ...(obj.message === undefined ? {} : { message: string(obj.message) }),
     ...(data === undefined ? {} : { data }),
   };
 }
-function field(value: unknown): Field {
+const fieldKeys = ["id", "kind", "label", "description", "required", "default"];
+const textKeys = [...fieldKeys, "minLength", "maxLength"];
+const choiceKeys = [...fieldKeys, "options"];
+function field(value: JsonValue): Field {
   const obj = record(value);
-  const common = ["id", "kind", "label", "description", "required", "default"];
   const base = {
     id: id(obj.id),
     label: string(obj.label),
@@ -155,7 +160,7 @@ function field(value: unknown): Field {
   switch (obj.kind) {
     case "text":
     case "secret": {
-      record(obj, [...common, "minLength", "maxLength"]);
+      record(obj, textKeys);
       const minLength =
         obj.minLength === undefined ? 0 : integer(obj.minLength, limits.stringBytes);
       const maxLength =
@@ -168,12 +173,12 @@ function field(value: unknown): Field {
       break;
     }
     case "confirm":
-      record(obj, common);
+      record(obj, fieldKeys);
       parsed = { ...base, kind: "confirm" };
       break;
     case "select":
     case "multiselect": {
-      record(obj, [...common, "options"]);
+      record(obj, choiceKeys);
       const options = nonempty(array(obj.options, limits.options)).map((option) => {
         const choice = record(option, ["value", "label"]);
         return { value: string(choice.value), label: string(choice.label) };
@@ -189,8 +194,7 @@ function field(value: unknown): Field {
     invalid("A default does not satisfy its field constraints.");
   return parsed;
 }
-export function formDefinition(value: unknown): FormDefinition {
-  validateTree(value);
+function formDefinition(value: JsonValue): FormDefinition {
   const obj = record(value, ["apiVersion", "id", "title", "fields"]);
   const apiVersion = version(obj.apiVersion);
   const fields = nonempty(array(obj.fields, limits.fields)).map(field);
@@ -202,7 +206,7 @@ export function formDefinition(value: unknown): FormDefinition {
     fields,
   };
 }
-function block(value: unknown): Block {
+function block(value: JsonValue): Block {
   const obj = record(value);
   switch (obj.kind) {
     case "message":
@@ -253,45 +257,64 @@ function block(value: unknown): Block {
       return invalid("The display kind is unsupported.");
   }
 }
-export function displayDefinition(value: unknown): DisplayDefinition {
-  validateTree(value);
+function displayDefinition(value: JsonValue): DisplayDefinition {
   const obj = record(value, ["apiVersion", "blocks"]);
   return {
     apiVersion: version(obj.apiVersion),
     blocks: array(obj.blocks, limits.blocks).map(block),
   };
 }
-export function eventDefinition(value: unknown): Event {
-  validateTree(value);
+const eventBase = ["apiVersion", "runId", "seq", "type"];
+const eventKeys = {
+  "run.start": [...eventBase, "title"],
+  "task.start": [...eventBase, "taskId", "label"],
+  "task.progress": [...eventBase, "taskId", "current", "total"],
+  "task.finish": [...eventBase, "taskId", "status"],
+  message: [...eventBase, "level", "text"],
+  "run.finish": [...eventBase, "result"],
+} satisfies Record<Event["type"], readonly string[]>;
+function eventDefinition(value: JsonValue): Event {
   const obj = record(value);
   const base = {
     apiVersion: version(obj.apiVersion),
     runId: id(obj.runId),
     seq: integer(obj.seq, Number.MAX_SAFE_INTEGER),
   };
-  const common = ["apiVersion", "runId", "seq", "type"];
   switch (obj.type) {
     case "run.start":
-      record(obj, [...common, "title"]);
+      record(obj, eventKeys["run.start"]);
       return { ...base, type: "run.start", title: string(obj.title) };
     case "task.start":
-      record(obj, [...common, "taskId", "label"]);
+      record(obj, eventKeys["task.start"]);
       return { ...base, type: "task.start", taskId: id(obj.taskId), label: string(obj.label) };
     case "task.progress":
-      record(obj, [...common, "taskId", "current", "total"]);
+      record(obj, eventKeys["task.progress"]);
       return { ...base, type: "task.progress", taskId: id(obj.taskId), ...progress(obj) };
     case "task.finish":
-      record(obj, [...common, "taskId", "status"]);
+      record(obj, eventKeys["task.finish"]);
       if (obj.status !== "succeeded" && obj.status !== "failed")
         invalid("The task status is unsupported.");
       return { ...base, type: "task.finish", taskId: id(obj.taskId), status: obj.status };
     case "message":
-      record(obj, [...common, "level", "text"]);
+      record(obj, eventKeys.message);
       return { ...base, type: "message", level: level(obj.level), text: string(obj.text) };
     case "run.finish":
-      record(obj, [...common, "result"]);
+      record(obj, eventKeys["run.finish"]);
       return { ...base, type: "run.finish", result: result(obj.result) };
     default:
       return invalid("The event type is unsupported.");
   }
+}
+
+export function decodeForm(text: string): FormDefinition {
+  return formDefinition(parseJson(text));
+}
+export function decodeDisplay(text: string): DisplayDefinition {
+  return displayDefinition(parseJson(text));
+}
+export function decodeEvent(text: string): Event {
+  return eventDefinition(parseJson(text));
+}
+export function decodeValues(text: string) {
+  return record(parseJson(text));
 }
