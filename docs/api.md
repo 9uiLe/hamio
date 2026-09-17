@@ -1,8 +1,8 @@
 # hamio API v1
 
-本書は、利用側のプログラムが hamio を呼び出すための CLI、JSON、終了状態、資源上限を定める。hamio は入力と表示を担当し、業務の実行、権限、並列数、再試行は利用側が管理する。製品全体の責務は[基本設計](design.md)、内部構成は[実装設計](implementation.md)を参照する。
+hamio は、スクリプトの入力フォームと表示を担当するターミナル UI ツールである。本書は利用側のプログラムが共有する CLI、JSON、終了状態、資源上限を定める。業務の実行、権限、並列数、再試行は利用側が管理する。
 
-API v1 の通信はローカルのプロセス I/O で行う。サーバー、認証トークン、言語別 SDK は必要ない。実行可能な接続例は [Shell](../examples/form.sh) と [Python](../examples/form.py) に用意する。
+API v1 の通信はローカルのプロセス I/O で行う。製品 API に接続するためのサーバー、認証トークン、言語別 SDK は必要ない。実行ファイルの導入と更新は[配布手順](distribution.md)、責務は[基本設計](design.md)、内部構成は[実装設計](implementation.md)を参照する。接続例は [Shell](../examples/form.sh) と [Python](../examples/form.py) に用意する。
 
 ## コマンドと入出力
 

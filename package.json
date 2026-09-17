@@ -1,5 +1,6 @@
 {
   "name": "hamio",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "packageManager": "bun@1.4.2",
@@ -24,7 +25,8 @@
     "test:watch": "bun test --watch",
     "build": "bun scripts/build.ts",
     "hamio": "bun --no-env-file --no-install src/cli.ts",
-    "package": "bun run build && bun scripts/package.ts"
+    "package": "bun run build && bun scripts/package.ts",
+    "release:package": "bun run build && bun scripts/release/package.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
