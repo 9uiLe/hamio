@@ -1,6 +1,6 @@
 # hamio API v1
 
-hamio は、スクリプトの入力フォームと表示を担当するターミナル UI ツールである。本書は利用側のプログラムが共有する CLI、JSON、終了状態、資源上限を定める。業務の実行、権限、並列数、再試行は利用側が管理する。
+本書は hamio を呼び出すプログラム向けの契約である。コマンド、入出力の経路、JSON の形式、終了状態、資源上限を定める。hamio はフォームと表示を担当し、業務の実行、権限、並列数、再試行は利用側が管理する。
 
 API v1 の通信はローカルのプロセス I/O で行う。製品 API に接続するためのサーバー、認証トークン、言語別 SDK は必要ない。実行ファイルの導入と更新は[配布手順](distribution.md)、責務は[基本設計](design.md)、内部構成は[実装設計](implementation.md)を参照する。接続例は [Shell](../examples/form.sh) と [Python](../examples/form.py) に用意する。
 
@@ -39,7 +39,7 @@ TTY は標準入出力が接続する端末を指す。接続先から既定動�
 | `--color auto`              | 既定値。stderr が TTY、`TERM` が `dumb` 以外、`NO_COLOR` が未設定または空の場合に色を使う                       |
 | `--color always / never`    | 色の有効・無効を明示する。always は `NO_COLOR` より優先する                                                     |
 
-フォームの回答は対話時も JSON であり、stdout を利用側で捕捉できる。`never` は色を止める設定で、対話フォームのカーソル操作は止めない。機械利用では `form --interactive never` または `render / stream --format json` を指定する。このとき stderr は空とし、stdout に診断や端末装飾を混ぜない。`/dev/tty` は暗黙に開かない。
+フォームの回答は対話時も JSON であり、stdout を利用側で捕捉できる。`--color never` は色を止める設定で、対話フォームのカーソル操作は止めない。機械利用では `form --interactive never` または `render / stream --format json` を指定する。このとき stderr は空とし、stdout に診断や端末装飾を混ぜない。`/dev/tty` は暗黙に開かない。
 
 ## 共通データと互換性
 

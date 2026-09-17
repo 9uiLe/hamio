@@ -5,6 +5,7 @@ import { join, resolve } from "node:path";
 import { buildExecutable } from "../scripts/build/compiler.ts";
 import { publishAssets, sha256 } from "../scripts/release/artifacts.ts";
 import { run } from "../scripts/release/process.ts";
+import { releaseMode } from "../scripts/release/policy.ts";
 import { assertSourceUnchanged, captureSource, writeSource } from "../scripts/release/source.ts";
 
 async function temporary(action: (path: string) => Promise<void>) {
@@ -94,4 +95,19 @@ test("asset publication replaces a complete set, rejects competing writes and re
     expect(await readdir(output)).toEqual(["new.gz"]);
     expect(await readdir(directory)).toEqual(["release"]);
   });
+});
+
+test("publication policy rejects forks, mismatched tags, branches and implicit publication", () => {
+  expect(releaseMode("verify", "9uiLe/hamio", "refs/heads/candidate", "v0.1.0")).toBe("verify");
+  expect(releaseMode("verify", "9uiLe/hamio", "refs/tags/v0.1.0", "v0.1.0")).toBe("verify");
+  expect(releaseMode("publish", "9uiLe/hamio", "refs/tags/v0.1.0", "v0.1.0")).toBe("publish");
+  for (const [mode, repository, ref] of [
+    [undefined, "9uiLe/hamio", "refs/tags/v0.1.0"],
+    ["publish", "fork/hamio", "refs/tags/v0.1.0"],
+    ["publish", "9uiLe/hamio", "refs/heads/master"],
+    ["publish", "9uiLe/hamio", "refs/tags/v0.2.0"],
+    ["verify", "9uiLe/hamio", "refs/pull/1/merge"],
+    ["verify", "9uiLe/hamio", "refs/tags/v0.2.0"],
+  ])
+    expect(() => releaseMode(mode, repository, ref, "v0.1.0")).toThrow();
 });

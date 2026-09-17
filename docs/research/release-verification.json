@@ -1,0 +1,127 @@
+{
+  "run": {
+    "databaseId": 35224202459,
+    "headSha": "b1d00e50f29a4aa9e3ea45c435f6ba21e7eec7cd",
+    "url": "https://github.com/9uiLe/hamio/actions/runs/35224202459",
+    "conclusion": "success"
+  },
+  "jobs": [
+    {
+      "name": "build (macos-15, darwin-arm64)",
+      "conclusion": "success",
+      "startedAt": "2026-09-17T12:58:34Z",
+      "completedAt": "2026-09-17T13:01:09Z"
+    },
+    {
+      "name": "build (ubuntu-24.04, linux-x64)",
+      "conclusion": "success",
+      "startedAt": "2026-09-17T12:58:27Z",
+      "completedAt": "2026-09-17T12:59:29Z"
+    },
+    {
+      "name": "build (ubuntu-24.04-arm, linux-arm64)",
+      "conclusion": "success",
+      "startedAt": "2026-09-17T12:58:29Z",
+      "completedAt": "2026-09-17T12:59:17Z"
+    },
+    {
+      "name": "attest (linux-arm64)",
+      "conclusion": "success",
+      "startedAt": "2026-09-17T13:01:11Z",
+      "completedAt": "2026-09-17T13:01:17Z"
+    },
+    {
+      "name": "attest (darwin-arm64)",
+      "conclusion": "success",
+      "startedAt": "2026-09-17T13:01:12Z",
+      "completedAt": "2026-09-17T13:01:25Z"
+    },
+    {
+      "name": "attest (linux-x64)",
+      "conclusion": "success",
+      "startedAt": "2026-09-17T13:01:11Z",
+      "completedAt": "2026-09-17T13:01:17Z"
+    },
+    {
+      "name": "verify-candidate (ubuntu-24.04-arm, linux-arm64)",
+      "conclusion": "success",
+      "startedAt": "2026-09-17T13:01:30Z",
+      "completedAt": "2026-09-17T13:01:52Z"
+    },
+    {
+      "name": "verify-candidate (macos-15, darwin-arm64)",
+      "conclusion": "success",
+      "startedAt": "2026-09-17T13:01:34Z",
+      "completedAt": "2026-09-17T13:02:04Z"
+    },
+    {
+      "name": "verify-candidate (ubuntu-24.04, linux-x64)",
+      "conclusion": "success",
+      "startedAt": "2026-09-17T13:01:27Z",
+      "completedAt": "2026-09-17T13:01:48Z"
+    },
+    {
+      "name": "publish",
+      "conclusion": "skipped",
+      "startedAt": "2026-09-17T13:02:05Z",
+      "completedAt": "2026-09-17T13:02:04Z"
+    },
+    {
+      "name": "verify-install",
+      "conclusion": "skipped",
+      "startedAt": "2026-09-17T13:02:05Z",
+      "completedAt": "2026-09-17T13:02:04Z"
+    }
+  ],
+  "verification": [
+    {
+      "sourceCommit": "b1d00e50f29a4aa9e3ea45c435f6ba21e7eec7cd",
+      "sourceSha256": "f665a4f5c22359b011bd37fab345d7759c16031693f16a8224499a514a034f06",
+      "target": "darwin-arm64",
+      "runtimeSha256": "35d20dd0263e5c950194434b925454fdfa9ba6e4467da960410fa05b08a7a5b5",
+      "independentBuilds": 2,
+      "assets": {
+        "hamio-v0.1.0-darwin-arm64.gz": "7e61f5862973acb191ec486a36bb19815bf7a9264678fd7488aeebb5e3cf989a",
+        "hamio-v0.1.0-darwin-arm64.notices.txt": "80789d9fbc94bfa5216c8a160e3b96e6254a51bd23d2a0ed3890748b599a8ab3",
+        "hamio-v0.1.0-darwin-arm64.sha256": "de4bfd615501b50a75c9e3d5d0b2d0f6d044994fbb3a04b9531b36cc80e60cd1",
+        "hamio-v0.1.0-darwin-arm64.spdx.json": "d831ead2a9e8167845f2d2e38d35a30c974765b3ec8286a63ae9f52c62e02c0b",
+        "install.sh": "17951451585545c4b0b8e564fa4782e37b4a32433c760c61ca87431dfbe2b64d"
+      },
+      "executableTests": "api.test.ts + executable.test.ts",
+      "binaryBytes": 62259954,
+      "archiveBytes": 25556809
+    },
+    {
+      "sourceCommit": "b1d00e50f29a4aa9e3ea45c435f6ba21e7eec7cd",
+      "sourceSha256": "f665a4f5c22359b011bd37fab345d7759c16031693f16a8224499a514a034f06",
+      "target": "linux-arm64",
+      "runtimeSha256": "616f267a34278ff5ac282df37ffdfba1d7141f4f6926bca99af2cd6ef3ad32b1",
+      "independentBuilds": 2,
+      "assets": {
+        "hamio-v0.1.0-linux-arm64.gz": "b88ad1dfbd47393bdfacef6e0a4343f4928cc19d216a89cae26664e186694c99",
+        "hamio-v0.1.0-linux-arm64.notices.txt": "80789d9fbc94bfa5216c8a160e3b96e6254a51bd23d2a0ed3890748b599a8ab3",
+        "hamio-v0.1.0-linux-arm64.sha256": "f0fd1a5e90c3356704c228f3ec3e8813919de8ba8376848e3db3d687d09590cc",
+        "hamio-v0.1.0-linux-arm64.spdx.json": "734dd0c58f2e15ed0d2cc102962a1dd4e605c07cb2c2ad2b757f8fa6e6418abb"
+      },
+      "executableTests": "api.test.ts + executable.test.ts",
+      "binaryBytes": 81316136,
+      "archiveBytes": 36353325
+    },
+    {
+      "sourceCommit": "b1d00e50f29a4aa9e3ea45c435f6ba21e7eec7cd",
+      "sourceSha256": "f665a4f5c22359b011bd37fab345d7759c16031693f16a8224499a514a034f06",
+      "target": "linux-x64",
+      "runtimeSha256": "a83d263767d839e4d2649ca8e35d07159c7afc99afdc96d731ced29e056dda0c",
+      "independentBuilds": 2,
+      "assets": {
+        "hamio-v0.1.0-linux-x64.gz": "33a94ff8e2995dbcb32609ef656188dcadbfc8062c379da5a1489de0116cc191",
+        "hamio-v0.1.0-linux-x64.notices.txt": "80789d9fbc94bfa5216c8a160e3b96e6254a51bd23d2a0ed3890748b599a8ab3",
+        "hamio-v0.1.0-linux-x64.sha256": "c72a740181363f4c8b9d3cc1f95eb8bd5fc6c6c250925e74920e86fa690e06e1",
+        "hamio-v0.1.0-linux-x64.spdx.json": "745bbf0e4b05e647036ec2ec5b15de6657d06416c29738d6385700fb010d9a04"
+      },
+      "executableTests": "api.test.ts + executable.test.ts",
+      "binaryBytes": 81356256,
+      "archiveBytes": 36442779
+    }
+  ]
+}

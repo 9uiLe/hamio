@@ -1,9 +1,14 @@
 name: Release
 
 on:
-  push:
-    tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      mode:
+        description: Verify a candidate, or publish a reviewed version tag
+        type: choice
+        options: [verify, publish]
+        default: verify
+        required: true
 
 permissions:
   contents: read
@@ -14,7 +19,7 @@ concurrency:
 
 jobs:
   build:
-    if: github.repository == '9uiLe/hamio' && github.actor == github.repository_owner && startsWith(github.ref, 'refs/tags/v')
+    if: github.repository == '9uiLe/hamio' && github.actor == github.repository_owner
     strategy:
       fail-fast: false
       matrix:
@@ -27,6 +32,8 @@ jobs:
             target: linux-arm64
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 25
+    outputs:
+      tag: ${{ steps.validate.outputs.tag }}
     env:
       HUSKY: "0"
     steps:
@@ -39,6 +46,9 @@ jobs:
           github-token: ""
           diagnostic-endpoint: ""
       - name: Validate, test and package native executable
+        id: validate
+        env:
+          RELEASE_MODE: ${{ inputs.mode }}
         run: |
           nix develop --no-write-lock-file --command sh -eu -c '
             bun install --frozen-lockfile --ignore-scripts
@@ -48,6 +58,7 @@ jobs:
             bun run release:verify
           '
           git diff --exit-code
+          cat dist/release-verification.json >> "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: release-${{ matrix.target }}
@@ -55,6 +66,12 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 7
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: verification-${{ matrix.target }}
+          path: dist/release-verification.json
+          if-no-files-found: error
+          retention-days: 30
 
   attest:
     needs: build
@@ -80,11 +97,43 @@ jobs:
       - name: Bind inventory to compressed executable
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
-          subject-path: assets/hamio-${{ github.ref_name }}-${{ matrix.target }}.gz
-          sbom-path: assets/hamio-${{ github.ref_name }}-${{ matrix.target }}.spdx.json
+          subject-path: assets/hamio-${{ needs.build.outputs.tag }}-${{ matrix.target }}.gz
+          sbom-path: assets/hamio-${{ needs.build.outputs.tag }}-${{ matrix.target }}.spdx.json
+
+  verify-candidate:
+    needs: [build, attest]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-15
+            target: darwin-arm64
+          - runner: ubuntu-24.04
+            target: linux-x64
+          - runner: ubuntu-24.04-arm
+            target: linux-arm64
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-${{ matrix.target }}
+          path: assets
+      - name: Verify real provenance and run without development runtimes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+          RELEASE_REF: ${{ github.ref }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: sh scripts/verify-candidate.sh assets
 
   publish:
-    needs: attest
+    if: inputs.mode == 'publish' && startsWith(github.ref, 'refs/tags/v')
+    needs: [build, verify-candidate]
+    environment: release
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -120,6 +169,7 @@ jobs:
           Bun's native component versions are not individually resolved; see the inventory comment and upstream notices.
           These platform tests do not guarantee older OS versions, musl, all terminals or every performance budget.
           NOTES
+          printf '\nValidation run: https://github.com/%s/actions/runs/%s\nSource commit: %s\n' "$GH_REPO" "$GITHUB_RUN_ID" "$GITHUB_SHA" >> notes.md
           gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" --notes-file notes.md --generate-notes assets/*
           gh release edit "$RELEASE_TAG" --draft=false
           gh release verify "$RELEASE_TAG"
@@ -150,3 +200,16 @@ jobs:
             --source-ref "refs/tags/$RELEASE_TAG" --source-digest "$RELEASE_COMMIT" --deny-self-hosted-runners
           sh install.sh --version "$RELEASE_TAG" --prefix "$RUNNER_TEMP/consumer/.tools"
           "$RUNNER_TEMP/consumer/.tools/bin/hamio" capabilities
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Exercise the consumer action and an independent project
+        id: setup
+        uses: ./
+        with:
+          version: ${{ github.ref_name }}
+      - name: Exercise shell consumers without Bun, Node.js or Nix
+        env:
+          HAMIO_BINARY: ${{ steps.setup.outputs.binary }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: sh scripts/smoke-consumer.sh "$HAMIO_BINARY" "${RELEASE_TAG#v}"
