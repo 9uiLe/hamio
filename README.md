@@ -23,7 +23,7 @@ AI エージェントと CI は `form --interactive never` または `render / s
 
 [公開リリース](https://github.com/9uiLe/hamio/releases)から採用する版を選び、`.hamio-version` に完全な `vX.Y.Z` を記録します。GitHub CLI でインストーラーと資産の証明を検証し、プロジェクト内の `.tools/bin/hamio` から実行します。更新とロールバックも同じ検証経路を使います。[導入・更新手順](docs/distribution.md)
 
-2026-09-17の[リリース評価](docs/release-readiness.md)では、3環境で配布候補の再現性、API・端末試験、実際の由来の証明、独立プロジェクトからの実行を確認しています。この評価時点で正式リリースは未公開です。候補検証と、公開後の資産取得・導入の確認を区別して記録しています。
+初回版 [v0.1.0](https://github.com/9uiLe/hamio/releases/tag/v0.1.0) を公開しています。3環境で配布候補の再現性、API・端末試験、証明を確認し、公開後のインストーラー・GitHub Action・独立プロジェクトからの実行も検証済みです。対象 commit、実測値、確認範囲は[リリース評価](docs/release-readiness.md)に記録しています。
 
 ## ソースからビルドする
 
