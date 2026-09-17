@@ -1,0 +1,237 @@
+{
+  "checkedAt": "2026-09-17T12:55:56.075309+00:00",
+  "runtimeRevision": "744846f844374847c902b5e7fd59b4342a51ef99",
+  "sourceDependencies": [
+    {
+      "name": "boringssl",
+      "repository": "oven-sh/boringssl",
+      "revision": "41bf9b59c2ebf277a7aa427e1ecad5cc80dd4d4f",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/boringssl.ts"
+    },
+    {
+      "name": "brotli",
+      "repository": "google/brotli",
+      "revision": "v1.1.0",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/brotli.ts"
+    },
+    {
+      "name": "cares",
+      "repository": "c-ares/c-ares",
+      "revision": "c7a3138dcfe3bb0eaaf10c0c24c36dc66dc790ab",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/cares.ts"
+    },
+    {
+      "name": "hdrhistogram",
+      "repository": "HdrHistogram/HdrHistogram_c",
+      "revision": "be60a9987ee48d0abf0d7b6a175bad8d6c1585d1",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/hdrhistogram.ts"
+    },
+    {
+      "name": "highway",
+      "repository": "google/highway",
+      "revision": "2607d3b5b0113992fe84d3848859eae13b3b52c1",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/highway.ts"
+    },
+    {
+      "name": "libarchive",
+      "repository": "libarchive/libarchive",
+      "revision": "ded82291ab41d5e355831b96b0e1ff49e24d8939",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/libarchive.ts"
+    },
+    {
+      "name": "libdeflate",
+      "repository": "ebiggers/libdeflate",
+      "revision": "c8c56a20f8f621e6a966b716b31f1dedab6a41e3",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/libdeflate.ts"
+    },
+    {
+      "name": "libjpeg-turbo",
+      "repository": "libjpeg-turbo/libjpeg-turbo",
+      "revision": "e352b02f794f701407b39af08576035ba3360d60",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/libjpeg-turbo.ts"
+    },
+    {
+      "name": "libspng",
+      "repository": "randy408/libspng",
+      "revision": "fb768002d4288590083a476af628e51c3f1d47cd",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/libspng.ts"
+    },
+    {
+      "name": "libuv",
+      "repository": "oven-sh/libuv",
+      "revision": "8023581113b276e7c1aee3f82da57ca0893faab1",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/libuv.ts"
+    },
+    {
+      "name": "libwebp",
+      "repository": "webmproject/libwebp",
+      "revision": "b7e29b9d75bd31422b00c2a446d49d7af06c328d",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/libwebp.ts"
+    },
+    {
+      "name": "lolhtml",
+      "repository": "oven-sh/lol-html",
+      "revision": "725ce499aa9b71e38b7a2d0a9fbb6d7294a4079e",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/lolhtml.ts"
+    },
+    {
+      "name": "lshpack",
+      "repository": "litespeedtech/ls-hpack",
+      "revision": "8905c024b6d052f083a3d11d0a169b3c2735c8a1",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/lshpack.ts"
+    },
+    {
+      "name": "lsqpack",
+      "repository": "litespeedtech/ls-qpack",
+      "revision": "1e9c5b8e59f8161c54f168a570c8bfdc59ded0c3",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/lsqpack.ts"
+    },
+    {
+      "name": "lsquic",
+      "repository": "litespeedtech/lsquic",
+      "revision": "3181911301b1aa4f54c1ed690901abc674ee08fb",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/lsquic.ts"
+    },
+    {
+      "name": "mimalloc",
+      "repository": "oven-sh/mimalloc",
+      "revision": "6a64e1ba7f5b2130d4efccb67ec87fd0003f0f6a",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/mimalloc.ts"
+    },
+    {
+      "name": "picohttpparser",
+      "repository": "h2o/picohttpparser",
+      "revision": "066d2b1e9ab820703db0837a7255d92d30f0c9f5",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/picohttpparser.ts"
+    },
+    {
+      "name": "rust-argon2",
+      "repository": "sru-systems/rust-argon2",
+      "revision": "ed81866f163f0c7026aa6fd8388adf37242eb32a",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/rust-argon2.ts"
+    },
+    {
+      "name": "tinycc",
+      "repository": "oven-sh/tinycc",
+      "revision": "05f0fafaa3be31e31d7b4b5c17dc60f62c991171",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/tinycc.ts"
+    },
+    {
+      "name": "webkit",
+      "repository": "oven-sh/WebKit",
+      "revision": "2e2aa2290fac856d6f451ceacb58f7f5b44dd057",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/webkit.ts"
+    },
+    {
+      "name": "zlib",
+      "repository": "zlib-ng/zlib-ng",
+      "revision": "12731092979c6d07f42da27da673a9f6c7b13586",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/zlib.ts"
+    },
+    {
+      "name": "zstd",
+      "repository": "facebook/zstd",
+      "revision": "f8745da6ff1ad1e7bab384bd1f9d742439278e99",
+      "source": "https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/scripts/build/deps/zstd.ts"
+    }
+  ],
+  "osvQueries": [
+    {
+      "commit": "41bf9b59c2ebf277a7aa427e1ecad5cc80dd4d4f"
+    },
+    {
+      "commit": "c7a3138dcfe3bb0eaaf10c0c24c36dc66dc790ab"
+    },
+    {
+      "commit": "be60a9987ee48d0abf0d7b6a175bad8d6c1585d1"
+    },
+    {
+      "commit": "2607d3b5b0113992fe84d3848859eae13b3b52c1"
+    },
+    {
+      "commit": "ded82291ab41d5e355831b96b0e1ff49e24d8939"
+    },
+    {
+      "commit": "c8c56a20f8f621e6a966b716b31f1dedab6a41e3"
+    },
+    {
+      "commit": "e352b02f794f701407b39af08576035ba3360d60"
+    },
+    {
+      "commit": "fb768002d4288590083a476af628e51c3f1d47cd"
+    },
+    {
+      "commit": "8023581113b276e7c1aee3f82da57ca0893faab1"
+    },
+    {
+      "commit": "b7e29b9d75bd31422b00c2a446d49d7af06c328d"
+    },
+    {
+      "commit": "725ce499aa9b71e38b7a2d0a9fbb6d7294a4079e"
+    },
+    {
+      "commit": "8905c024b6d052f083a3d11d0a169b3c2735c8a1"
+    },
+    {
+      "commit": "1e9c5b8e59f8161c54f168a570c8bfdc59ded0c3"
+    },
+    {
+      "commit": "3181911301b1aa4f54c1ed690901abc674ee08fb"
+    },
+    {
+      "commit": "6a64e1ba7f5b2130d4efccb67ec87fd0003f0f6a"
+    },
+    {
+      "commit": "066d2b1e9ab820703db0837a7255d92d30f0c9f5"
+    },
+    {
+      "commit": "ed81866f163f0c7026aa6fd8388adf37242eb32a"
+    },
+    {
+      "commit": "05f0fafaa3be31e31d7b4b5c17dc60f62c991171"
+    },
+    {
+      "commit": "2e2aa2290fac856d6f451ceacb58f7f5b44dd057"
+    },
+    {
+      "commit": "12731092979c6d07f42da27da673a9f6c7b13586"
+    },
+    {
+      "commit": "f8745da6ff1ad1e7bab384bd1f9d742439278e99"
+    },
+    {
+      "package": {
+        "name": "Brotli",
+        "ecosystem": "OSS-Fuzz"
+      },
+      "version": "1.1.0"
+    }
+  ],
+  "osvResults": {
+    "results": [
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {},
+      {}
+    ]
+  },
+  "noticesSha256": "b9caf52728691b4057e371232c221a132883198be2f3d2ddf92c90404c984b1a"
+}

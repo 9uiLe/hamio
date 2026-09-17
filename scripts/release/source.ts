@@ -26,6 +26,8 @@ const inputs = [
   "scripts/build",
   "scripts/release",
   "scripts/install.sh",
+  "scripts/verify-candidate.sh",
+  "scripts/smoke-consumer.sh",
   ".github/workflows/release.yml",
 ];
 

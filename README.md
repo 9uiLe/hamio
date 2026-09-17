@@ -14,10 +14,10 @@ hamio は、開発用スクリプトの質問、進捗、表、結果を統一�
 | 実行       | macOS arm64 で契約、PTY、同梱実行ファイル、別ディレクトリへの配置、Bun のない PATH での動作を確認             |
 | 配布候補   | macOS arm64 で独立した二回の全資産の一致と、gzip から展開した実行ファイルの API・端末試験を確認               |
 | 導入・更新 | インストーラーと利用側の GitHub Action を実装。失敗処理は GitHub CLI の代替実装で試験                         |
-| 公開       | Release workflow を実装。公開資産の実際の証明検証と Linux の実行は未確認                                      |
+| 公開       | Release workflow を実装。候補検証と所有者承認を経て公開。実行結果と未検証範囲はリリース評価に記録             |
 | 品質       | 性能は対象ソース・環境を特定して測定。最低 OS、実端末、アクセシビリティ、全性能予算は配布対象ごとに評価が必要 |
 
-[受け入れ条件](docs/design.md#12-リリースの受け入れ条件)、[検査の構成](docs/implementation.md#10-検証の構成)、[測定記録](docs/research/reproducibility-performance.md)に評価の範囲を示しています。
+[リリース評価](docs/release-readiness.md)、[セキュリティ方針](SECURITY.md)、[受け入れ条件](docs/design.md#12-リリースの受け入れ条件)、[検査の構成](docs/implementation.md#10-検証の構成)、[測定記録](docs/research/reproducibility-performance.md)に評価の範囲を示しています。
 
 ## スクリプトとの接続
 

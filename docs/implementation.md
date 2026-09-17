@@ -172,6 +172,7 @@ compiler は `src/cli.ts` と製品依存を bundle し、指定した実行フ�
 | [process.ts](../scripts/release/process.ts)           | ビルド用子プロセスの実行、終了待ち、時間・診断出力量の制限                           |
 | [package.ts](../scripts/release/package.ts)           | 一候補の生成、入力再確認、配置、一時領域の解放                                       |
 | [verify.ts](../scripts/release/verify.ts)             | 二候補の比較、展開後の試験、入力再確認、資産・検証記録の保存                         |
+| [policy.ts](../scripts/release/policy.ts)             | 公開元・モード・ref の許可条件を副作用なしで検査                                     |
 | [preflight.ts](../scripts/release/preflight.ts)       | 公開元、タグ、版、ライセンス、clean worktree、master への包含の検査                  |
 
 ### 入力の固定と候補の生成

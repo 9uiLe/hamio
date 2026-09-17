@@ -191,36 +191,54 @@ cp dist/hamio "$consumer_dir/.tools/local-hamio/hamio"
 
 保存は出力先の lock を取得して資産ディレクトリ一式を入れ替える。古い資産を退避し、配置失敗時は復元する。復元できない場合は退避先を残してエラーで知らせる。SIGKILL などで `dist/release.lock` が残った場合は、生成処理が動いていないことと退避資産を確認して復旧する。ローカルでの生成・検証は公開と証明発行を行わない。
 
-### 公開の操作
+### 候補の検証と公開の操作
 
-1. 変更と `package.json` の版を PR でレビューし、format、check、必要な preview と対象環境の試験を通して `master` へマージする。
-2. 本体の LICENSE と package の license、同梱部品の配布条件を確認する。Bun 更新時は `scripts/release/metadata.ts` の版・revision と notices を揃える。
-3. Bun・native 依存の advisory と変更履歴を確認する。JavaScript 依存は `bun audit` でも検査する。
-4. 対象の `master` commit に `vX.Y.Z` タグを作成し、push する。
-5. Release workflow の全 job と公開物の導入結果を確認する。
+Release workflow は所有者の手動実行だけを受け付ける。既定の `mode=verify` はブランチまたは版タグを検証し、GitHub Releases への公開は行わない。証明は実際に発行・検証するため、候補の workflow 実行と provenance は公開リポジトリ上に残る。
+
+```sh
+# REVIEW_BRANCH をレビューするブランチへ置き換える。
+gh workflow run release.yml --ref REVIEW_BRANCH -f mode=verify
+```
+
+3対象の check、audit、独立した二回の梱包、展開後の API・端末試験、provenance と SBOM の証明発行を行う。別 job の新しい native runner が証明の repository・workflow・source ref・commit を照合し、gzip と展開後の hash を確認する。独立した Git プロジェクトで開発ランタイムのない PATH と限定環境を使い、実行ファイルの版、機能照会、非対話フォームの回答を検査する。
+
+Actions の `verification-<対象>` artifact に commit、入力・資産の hash、対象、ランタイム、サイズを30日間保存する。候補資産の保持は7日間。公開前に必要な記録をリポジトリの[リリース評価](release-readiness.md)へ残す。
+
+正式公開は次の順序とする。
+
+1. 変更と `package.json` の版を PR でレビューし、`quality` と候補検証を通して `master` へマージする。
+2. 本体・同梱部品の許諾、Bun・native 依存の advisory、保証対象、性能の実測範囲を確認する。確認先・固定 revision・結果をリリース評価へ記録する。
+3. レビュー済みの `master` commit に `vX.Y.Z` タグを作成して push する。タグは作成後に更新・削除できないため、対象 commit と版を先に照合する。タグ push では workflow は起動しない。
+4. そのタグに対して `mode=publish` を明示して実行する。タグの正確なソースで候補の全検証を再実行する。
+5. `release` Environment の承認画面で対象 commit、3環境の検証結果、許諾・advisory の記録を確認し、所有者が公開を承認する。
+6. 公開後に3環境の実際の取得・immutable release 検証・導入、利用側 Action と非対話フォームの試験結果を確認する。
 
 ```sh
 # X.Y.Z は package.json の版、<...> はレビュー済みの対象 commit に置換する。
 git tag -a vX.Y.Z -m 'hamio vX.Y.Z' <REVIEWED_MASTER_COMMIT>
 git push origin refs/tags/vX.Y.Z
+gh workflow run release.yml --ref vX.Y.Z -f mode=publish
 ```
 
-preflight は公開元、タグ、package の版、`master` への包含、clean worktree、LICENSE とライセンス識別子を確認し、不一致を拒否する。Release は通常の branch push・マージでは起動しない。所有者は対象の版タグを選び `workflow_dispatch` で実行することもできる。
+preflight は公開元、明示した実行モード、clean worktree、LICENSE とライセンス識別子を確認する。公開モードでは完全な版タグと package の一致、`master` への包含も必須とする。`vX.Y.Z-rc.N` などの接尾辞は受け付けない。
 
 ### 権限と公開順序
 
-| job              | 担当する工程                                                    | 権限                                                                                   |
-| ---------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| `build`          | 3対象の preflight、audit、check、二回の生成・比較、展開後の試験 | `contents: read`                                                                       |
-| `attest`         | 全資産の provenance と gzip に結び付く SBOM の証明              | `contents: read`、`id-token: write`、`attestations: write`、`artifact-metadata: write` |
-| `publish`        | 全資産を draft へ添付し、公開後に immutable release を確認      | `contents: write`                                                                      |
-| `verify-install` | 3対象で公開物を検証・導入し、capabilities を実行                | `contents: read`                                                                       |
+| job                | 担当する工程                                                         | 権限                                                                                   |
+| ------------------ | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `build`            | 3対象の preflight、audit、check、二回の生成・比較、展開後の試験      | `contents: read`                                                                       |
+| `attest`           | 全資産の provenance と gzip に結び付く SBOM の証明                   | `contents: read`、`id-token: write`、`attestations: write`、`artifact-metadata: write` |
+| `verify-candidate` | 実際の provenance、圧縮前後の hash、独立プロジェクトからの実行       | `contents: read`                                                                       |
+| `publish`          | 公開モード・版タグ・Environment 承認を条件に draft 作成・公開        | `contents: write`                                                                      |
+| `verify-install`   | 3対象で公開物の検証・導入、利用側 Action、独立プロジェクトからの実行 | `contents: read`                                                                       |
 
-証明発行・公開の job は製品コードを実行しない。Actions を完全な commit SHA で固定する。PR の共通検査は Linux 1ジョブ、配布対象別の生成・実行・導入試験は Release workflow が担当する。
+証明発行・公開の job は製品コードを実行しない。製品の smoke test には token を渡さない。Actions は完全な commit SHA で固定する。PR の共通検査は Linux 1ジョブを維持し、3環境の配布検証は必要なときだけ実行する。
 
-immutable releases をリポジトリ設定で有効にし、公開前にも確認する。公開済みタグ・資産は差し替えない。draft が残った場合は内容を調査し、不要な draft だけを削除して再実行する。
+`release` Environment の承認者は所有者のみ、対象は `v*` タグのみとし、管理者による承認の bypass は無効にする。単独保守のため起動者自身による承認を許可する。リポジトリの保護設定は[開発手順](development.md#リポジトリの保護設定)を参照する。
 
-公開後の導入試験が失敗した場合は影響環境を告知し、原因に応じて修正版を発行する。同梱 Bun の修正も hamio の新しい製品版で提供する。取得先や証明サービスの障害時も検証を省略しない。
+immutable releases を有効にし、公開前にも確認する。全資産を draft に添付してから公開する。公開済みタグ・資産は差し替えない。draft が残った場合は内容を調査し、不要な draft だけを削除して再実行する。
+
+公開前の候補検証では immutable release と資産の結び付きを検証できない。公開後の導入試験はその検証を担当する。失敗時は影響環境をリリースノートへ記載し、最新版としての推奨を止め、修正版を新しい版で発行する。取得先や証明サービスの障害時も検証を省略しない。詳細は[セキュリティ方針](../SECURITY.md)に従う。
 
 ## 検証の範囲
 
@@ -230,6 +248,7 @@ immutable releases をリポジトリ設定で有効にし、公開前にも確�
 | [executable.test.ts](../tests/executable.test.ts)     | 本物の実行ファイルを使う Bun のない PATH、別ディレクトリ、暗黙設定、端末入力            |
 | [release.test.ts](../tests/release.test.ts)           | 独立ルートのビルド、入力の固定、資産配置と失敗時の復元                                  |
 | `release:verify`                                      | 独立した二候補の全資産と、実際に梱包した実行ファイルの API・端末動作                    |
+| `verify-candidate`                                    | 実際の provenance、展開後の hash、独立した Git プロジェクトでの機能照会・フォーム       |
 | 公開後の導入試験                                      | 実際の GitHub 署名、公開資産との結び付き、対象環境への配置と起動                        |
 
 代替実装による試験を実際の署名検証の結果とみなさない。各対象の実行結果を個別に記録する。再現性のローカル検査も、別ホストでの一致や依存の無害性を証明するものではない。

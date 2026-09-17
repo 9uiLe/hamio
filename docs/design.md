@@ -197,7 +197,7 @@ Nix の開発 shell は `aarch64-darwin`、`aarch64-linux`、`x86_64-linux` を�
 | OS に関わる変更     | macOS の手動ジョブを併用し、端末 I/O と実行ファイルを検査                  |
 | リリース            | 三つの対象環境で資産を生成・検証し、公開物を導入                           |
 
-Quality workflow は所有者による同一リポジトリの `master` 向け PR の作成・更新・再開と手動実行を対象とする。branch push と PR close では起動しない。pre-push は作業ツリー、PR はマージ候補、リリースはタグの commit を検査する。
+Quality workflow は所有者または Dependabot による同一リポジトリの `master` 向け PR の作成・更新・再開と手動実行を対象とする。branch push と PR close では起動しない。pre-push は作業ツリー、PR はマージ候補、リリースはタグの commit を検査する。
 
 検査は自動修正せず、開発者が修正の差分を確認する。ツール、hooks、CI、スキルの使い方は[開発手順](development.md)、AI エージェントの作業規則は [AGENTS.md](../AGENTS.md)を正本とする。
 
@@ -215,7 +215,7 @@ PNG と生成記録をソースと同じ commit へ含め、GIF と端末出力�
 
 ### 公開と利用許諾
 
-`9uiLe/hamio` は閲覧、clone、fork が可能な公開リポジトリとし、変更権限を所有者に限定する。投稿とレビューの制限、branch ruleset、期限付き設定の失効を管理する。
+`9uiLe/hamio` は閲覧、clone、fork が可能な公開リポジトリとし、変更権限を所有者に限定する。`master` は PR と `quality` の成功を必須とし、force push・削除を禁止する。版タグは管理者だけが作成し、作成後の変更・削除を禁止する。Dependabot の更新 PR と非公開の脆弱性報告を受け付け、自動マージは行わない。期限付きの投稿制限の失効を管理する。
 
 hamio 本体は [MIT License](../LICENSE)、著作権表記は `Copyright (c) 2026 9uiLe` とする。ライセンスによる利用許諾とリポジトリへの変更権限を別に管理し、本体と第三者部品の許諾・通知条件に従って配布する。
 
@@ -229,7 +229,7 @@ SBOM は本体、解決した production npm 依存、hash で特定した Bun �
 
 ### 公開と導入
 
-公開前にタグと package の版、`master` への commit の包含、clean worktree、ライセンスを検査する。Release workflow はビルド、証明発行、公開、公開物の導入試験を別 job にする。書き込み権限を証明発行・公開に限定し、全資産を draft release に添付してから公開する。
+公開前にタグと package の版、`master` への commit の包含、clean worktree、ライセンスを検査する。Release workflow は手動実行とし、既定は公開しない候補検証とする。ビルド、証明発行、候補の証明・実行検証、公開、公開物の導入試験を別 job にする。公開は版タグ・明示指定・所有者の Environment 承認を必須とし、タグ push だけでは起動しない。書き込み権限を証明発行・公開に限定し、全資産を draft release に添付してから公開する。
 
 immutable releases で公開済みタグと資産を固定する。provenance はソースとビルド工程の由来、release attestation は公開リリースと資産の結び付きを検証するために使う。これらの証明はコードの無害性や SBOM の網羅性を保証しない。
 

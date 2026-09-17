@@ -144,11 +144,11 @@ hooks は一時 Git リポジトリで正常系、不正な commit・push の拒
 
 ## 5. GitHub Actions
 
-| workflow                                    | 起動条件                                                                         | 実行環境                     |
-| ------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------- |
-| [Quality](../.github/workflows/quality.yml) | 所有者による同一リポジトリの `master` 向け PR の opened / synchronize / reopened | Ubuntu 24.04 の1ジョブ       |
-| Quality の手動実行                          | ブランチと runner を選ぶ `workflow_dispatch`                                     | Ubuntu 24.04 または macOS 15 |
-| [Release](../.github/workflows/release.yml) | 所有者の版タグ push、または版タグを選ぶ `workflow_dispatch`                      | macOS arm64、Linux x64/arm64 |
+| workflow                                    | 起動条件                                                                                           | 実行環境                     |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------- | ---------------------------- |
+| [Quality](../.github/workflows/quality.yml) | 所有者または Dependabot による同一リポジトリの `master` 向け PR の opened / synchronize / reopened | Ubuntu 24.04 の1ジョブ       |
+| Quality の手動実行                          | ブランチと runner を選ぶ `workflow_dispatch`                                                       | Ubuntu 24.04 または macOS 15 |
+| [Release](../.github/workflows/release.yml) | 所有者の `workflow_dispatch`。既定は候補検証、公開は版タグと明示指定が必要                         | macOS arm64、Linux x64/arm64 |
 
 Quality は branch push と PR close を対象にしない。Release は通常の branch push・マージを対象にしない。直接 push だけで Quality の自動検査が付く設計ではない。
 
@@ -158,7 +158,22 @@ Quality は checkout、Nix 導入、全 system の Nix 定義評価、固定依�
 
 Actions は完全な commit SHA で固定する。token は `contents: read`、checkout は認証情報を保持しない設定とし、`pull_request_target` は使わない。CI は hooks を導入せず、検査コマンドを直接実行する。Release の権限と公開順序は[配布手順](distribution.md#保守者のリリース工程)に定める。
 
-同じ event・ref・runner の古い Quality 実行をキャンセルする。PR、手動実行、異なる OS の検査は互いをキャンセルしない。上限は20分。マージに成功を要求する場合は branch ruleset の必須チェックへ `quality` を設定する。[構成と測定の根拠](research/ci.md)
+同じ event・ref・runner の古い Quality 実行をキャンセルする。PR、手動実行、異なる OS の検査は互いをキャンセルしない。上限は20分。branch ruleset で `quality` の成功をマージの必須条件とする。[構成と測定の根拠](research/ci.md)
+
+### リポジトリの保護設定
+
+| 対象                  | 設定                                                                                                           |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `master`              | PR 必須、GitHub Actions の `quality` 成功、最新 base との整合、会話の解決。force push・削除は禁止。bypass なし |
+| `v*` タグの作成       | 管理者のみ。現在の管理者は所有者1名                                                                            |
+| `v*` タグの更新・削除 | 禁止。作成制限とは別 ruleset にし、管理者も bypass しない                                                      |
+| `release` Environment | 所有者の承認必須。`v*` タグのみ。管理者 bypass は無効、自己承認は許可                                          |
+| Actions               | 既定 token は読み取り専用。PR の承認を許可しない。job ごとに必要な権限だけ付与                                 |
+| 脆弱性対応            | 非公開報告、Dependabot alerts・security updates、secret scanning・push protection を有効化                     |
+
+単独保守のため、PR の他者承認数は0とする。必須検査と PR 経由のマージは所有者にも適用する。Dependabot は更新 PR の作成と読み取り専用検査を行い、自動マージや公開権限を持たない。外部 fork の PR では workflow を実行しない。
+
+設定は GitHub 上で管理し、ファイルだけでは復元されない。保守者の追加、workflow の job 名変更、公開前には `gh api repos/9uiLe/hamio/rulesets` と `gh api repos/9uiLe/hamio/environments/release` で一致を確認する。投稿制限の期限は `gh api repos/9uiLe/hamio/interaction-limits` で確認し、必要に応じて更新する。公開リポジトリの閲覧・clone・fork は制限しない。
 
 ### OS ごとの確認
 
@@ -184,7 +199,7 @@ AI エージェントは [AGENTS.md](../AGENTS.md)を入口とし、担当範囲
 
 ## 7. 依存とツールの更新
 
-取得元、差分、lifecycle scripts、lockfile を確認して明示的に更新する。通常の実行には `bunx` などの自動取得を使わない。Bun の版は Nix 入力、同梱ランタイム、`packageManager`、`engines`、型定義、配布 metadata と notices で整合させる。
+Dependabot は Bun、GitHub Actions、Nix の更新を週次に提案する。security updates も PR で検査する。取得元、差分、lifecycle scripts、lockfile を確認して明示的に更新する。自動マージは行わない。通常の実行には `bunx` などの自動取得を使わない。Bun の版は Nix 入力、同梱ランタイム、`packageManager`、`engines`、型定義、配布 metadata と notices で整合させる。
 
 ```sh
 bun install --frozen-lockfile --ignore-scripts
