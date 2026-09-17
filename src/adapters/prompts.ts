@@ -9,7 +9,7 @@ import {
   SelectPrompt,
   TextPrompt,
 } from "@clack/core";
-import type { Appearance } from "../application/command.ts";
+import type { Appearance } from "../terminal/appearance.ts";
 import type { Writer } from "../application/ports.ts";
 import { type Answers, Cancelled, ContractError, type Field, limits } from "../core/contract.ts";
 import { answerIssue } from "../core/form.ts";

@@ -250,7 +250,10 @@ async function sourceHashes() {
     "scripts/package.ts",
     "scripts/benchmark-refactor.ts",
   ];
-  for await (const path of new Bun.Glob("src/**/*.ts").scan(".")) files.push(path);
+  for (const pattern of ["src/**/*.ts", "scripts/build/**/*.ts", "scripts/release/**/*"]) {
+    for await (const path of new Bun.Glob(pattern).scan({ cwd: ".", onlyFiles: true }))
+      files.push(path);
+  }
   return Object.fromEntries(
     await Promise.all(files.sort().map(async (path) => [path, hash(await Bun.file(path).bytes())])),
   );

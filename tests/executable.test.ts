@@ -1,23 +1,23 @@
-import { beforeAll, expect, test } from "bun:test";
+import { afterAll, beforeAll, expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { buildExecutable } from "../scripts/build/compiler.ts";
 import { captureTerminal } from "../scripts/preview/capture.ts";
 
-const binary = resolve("dist/hamio");
+let binary = process.env.HAMIO_TEST_BINARY ? resolve(process.env.HAMIO_TEST_BINARY) : "";
+let workspace: string | undefined;
 beforeAll(async () => {
-  const build = Bun.spawn([process.execPath, "scripts/build.ts"], {
-    stdout: "pipe",
-    stderr: "pipe",
-    timeout: 30_000,
-  });
-  const [code, output, error] = await Promise.all([
-    build.exited,
-    new Response(build.stdout).text(),
-    new Response(build.stderr).text(),
-  ]);
-  if (code !== 0) throw new Error(`Executable build failed: ${output}${error}`);
+  if (binary) return;
+  const runtime = process.env.HAMIO_BUN_RUNTIME;
+  if (!runtime) throw new Error("Use the pinned Nix development shell.");
+  workspace = await mkdtemp(join(tmpdir(), "hamio-test-build-"));
+  binary = join(workspace, "hamio");
+  await buildExecutable({ root: process.cwd(), runtime, output: binary });
 }, 30_000);
+afterAll(async () => {
+  if (workspace) await rm(workspace, { recursive: true, force: true });
+});
 
 test("compiled executable runs without Bun in PATH and ignores project configuration", async () => {
   // Reject Nix loader/library paths, including ones invisible to PATH-only tests.

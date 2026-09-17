@@ -1,4 +1,5 @@
-import type { Appearance } from "../application/command.ts";
+import { BatchWriter } from "../application/batch.ts";
+import type { Appearance } from "../terminal/appearance.ts";
 import type { View, Writer } from "../application/ports.ts";
 import type { Block, Level, Result } from "../core/contract.ts";
 import type { Progress } from "../core/session.ts";
@@ -6,18 +7,12 @@ import { Format, progressText } from "../terminal/format.ts";
 import { fit } from "../terminal/text.ts";
 
 export async function writeLines(output: Writer, lines: Iterable<string>): Promise<void> {
-  let text = "";
-  let bytes = 0;
+  const batch = new BatchWriter(output);
   for (const line of lines) {
-    text += line;
-    bytes += Buffer.byteLength(line);
-    if (bytes >= 16 * 1024) {
-      await output.write(text);
-      text = "";
-      bytes = 0;
-    }
+    const pending = batch.append(line);
+    if (pending) await pending;
   }
-  if (text) await output.write(text);
+  await batch.flush();
 }
 
 /** Owns one progress timer and one write. Formatting happens only at draw time. */
@@ -27,7 +22,7 @@ export class TerminalView implements View {
   private timer: ReturnType<typeof setTimeout> | undefined;
   private pending: Promise<void> | undefined;
   private fault: unknown;
-  private drawn = false;
+  private drawn: string | undefined;
   private closed = false;
 
   constructor(
@@ -63,7 +58,8 @@ export class TerminalView implements View {
   }
   private async writeProgress(read: () => Progress): Promise<void> {
     const text = fit(progressText(read()), this.appearance.width);
-    this.drawn = true;
+    if (text === this.drawn) return;
+    this.drawn = text;
     await this.output.write(`\r\u001b[2K${text}`);
   }
   private async clear(): Promise<void> {
@@ -72,8 +68,8 @@ export class TerminalView implements View {
     this.timer = undefined;
     await this.pending;
     if (this.fault) throw this.fault;
-    if (this.drawn) {
-      this.drawn = false;
+    if (this.drawn !== undefined) {
+      this.drawn = undefined;
       await this.output.write("\r\u001b[2K");
     }
   }

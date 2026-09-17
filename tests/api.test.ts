@@ -1,7 +1,8 @@
+import { productCommand } from "./support/command.ts";
 import { expect, test } from "bun:test";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join } from "node:path";
 import { Readable, Writable } from "node:stream";
 import { limits } from "../src/core/contract.ts";
 import { resolveForm } from "../src/core/form.ts";
@@ -32,15 +33,12 @@ const definition = {
   ],
 };
 async function cli(args: string[], input = "") {
-  const child = Bun.spawn(
-    [process.execPath, "--no-env-file", "--no-install", "src/cli.ts", ...args],
-    {
-      stdin: "pipe",
-      stdout: "pipe",
-      stderr: "pipe",
-      timeout: 5000,
-    },
-  );
+  const child = Bun.spawn(productCommand(args), {
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "pipe",
+    timeout: 5000,
+  });
   child.stdin.write(input);
   child.stdin.end();
   const [code, stdout, stderr] = await Promise.all([
@@ -313,17 +311,15 @@ async function pty(path: string, steps: Step[]) {
         'reply=$1; shift; exec "$@" > "$reply"',
         "hamio-test",
         reply,
-        process.execPath,
-        "--no-env-file",
-        "--no-install",
-        resolve("src/cli.ts"),
-        "form",
-        "--definition",
-        path,
-        "--interactive",
-        "always",
-        "--color",
-        "never",
+        ...productCommand([
+          "form",
+          "--definition",
+          path,
+          "--interactive",
+          "always",
+          "--color",
+          "never",
+        ]),
       ],
       {
         env: { PATH: process.env.PATH ?? "", TERM: "xterm-256color", HOME: directory },
@@ -394,10 +390,12 @@ test("TTY Ctrl-C, EOF and SIGTERM cancel without returning partial answers", asy
 });
 
 test("run.finish completes without waiting for stdin EOF", async () => {
-  const child = Bun.spawn(
-    [process.execPath, "--no-env-file", "--no-install", "src/cli.ts", "stream", "--format", "json"],
-    { stdin: "pipe", stdout: "pipe", stderr: "pipe", timeout: 2000 },
-  );
+  const child = Bun.spawn(productCommand(["stream", "--format", "json"]), {
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "pipe",
+    timeout: 2000,
+  });
   child.stdin.write(
     ndjson([
       event("run.start", 0, { title: "test" }),
@@ -462,4 +460,38 @@ test("TTY supports Japanese text and multiple selection, and bounds pasted input
       ],
     },
   );
+});
+
+test("UTF-8 limits preserve multibyte boundaries and reject lone surrogates", () => {
+  for (const text of ["a".repeat(4096), "界".repeat(1365), "😀".repeat(1024)])
+    expect(parseJson(JSON.stringify(text))).toBe(text);
+  for (const text of ["a".repeat(4097), "界".repeat(1366), "😀".repeat(1025)])
+    expect(() => parseJson(JSON.stringify(text))).toThrow("byte limit");
+  for (const text of ["\ud800", `${"a".repeat(1400)}\udfff`])
+    expect(() => parseJson(JSON.stringify(text))).toThrow("valid Unicode");
+});
+
+test("human tables limit visible rows while both output modes redact every secret cell", async () => {
+  const input = JSON.stringify({
+    apiVersion: 1,
+    blocks: [
+      {
+        kind: "table",
+        columns: [
+          { id: "name", label: "Name" },
+          { id: "secret", label: "Secret", secret: true },
+        ],
+        rows: Array.from({ length: 200 }, (_, i) => ({ name: `row-${i}`, secret: `private-${i}` })),
+      },
+    ],
+  });
+  const human = await cli(["render", "--format", "human", "--color", "never"], input);
+  const machine = await cli(["render", "--format", "json"], input);
+  expect(human.code).toBe(0);
+  expect(machine.code).toBe(0);
+  expect(human.stderr).toContain("180 行省略");
+  expect(human.stderr).not.toContain("row-199");
+  expect(human.stdout + human.stderr + machine.stdout).not.toContain("private-");
+  expect(machine.json().blocks[0].rows).toHaveLength(200);
+  expect(machine.json().blocks[0].rows[199]).toEqual({ name: "row-199", secret: "[redacted]" });
 });

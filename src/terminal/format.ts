@@ -1,6 +1,6 @@
-import type { Appearance } from "../application/command.ts";
+import type { Appearance } from "./appearance.ts";
 import type { Block, Level, Result } from "../core/contract.ts";
-import { redacted } from "../core/redaction.ts";
+import { visibleValue } from "../core/redaction.ts";
 import type { Progress } from "../core/session.ts";
 import { fit } from "./text.ts";
 
@@ -38,8 +38,7 @@ export class Format {
   }
   *blocks(blocks: readonly Block[]): Generator<string> {
     const width = this.appearance.width;
-    for (const original of blocks) {
-      const block = redacted(original);
+    for (const block of blocks) {
       switch (block.kind) {
         case "message":
           yield this.message(block.level, block.text);
@@ -55,7 +54,7 @@ export class Format {
           break;
         case "key-value":
           for (const item of block.items)
-            yield `${fit(`${item.label}: ${String(item.value)}`, width)}\n`;
+            yield `${fit(`${item.label}: ${String(visibleValue(item.value, item.secret))}`, width)}\n`;
           break;
         case "table": {
           const columnWidth = Math.max(
@@ -75,7 +74,7 @@ export class Format {
             );
           yield `${row(block.columns.map((column) => column.label))}\n${"─".repeat(width)}\n`;
           for (const values of block.rows.slice(0, 20))
-            yield `${row(block.columns.map((column) => String(values[column.id])))}\n`;
+            yield `${row(block.columns.map((column) => String(visibleValue(values[column.id] ?? null, column.secret))))}\n`;
           if (block.rows.length > 20)
             yield this.message(
               "info",

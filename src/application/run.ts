@@ -1,33 +1,13 @@
-import { Cancelled, ContractError, type FormResponse, VERSION } from "../core/contract.ts";
+import { BatchWriter } from "./batch.ts";
+import { Cancelled, ContractError, type FormResponse } from "../core/contract.ts";
 import { resolveForm } from "../core/form.ts";
 import { redacted } from "../core/redaction.ts";
 import { Session } from "../core/session.ts";
 import { decodeDisplay, decodeEvent, decodeForm, decodeValues } from "../core/validation.ts";
-import { capabilities, type Command, help } from "./command.ts";
-import type { Ports, Writer } from "./ports.ts";
-
-const json = (value: unknown) => `${JSON.stringify(value)}\n`;
-
-/** Bounded batching ends at every input read, so an idle sender never holds replies. */
-class EventOutput {
-  private text = "";
-  private bytes = 0;
-  constructor(private readonly output: Writer) {}
-  append(value: unknown): Promise<void> | undefined {
-    const line = json(value);
-    this.text += line;
-    this.bytes += Buffer.byteLength(line);
-    if (this.bytes >= 16 * 1024) return this.flush();
-    return undefined;
-  }
-  async flush(): Promise<void> {
-    if (!this.text) return;
-    const text = this.text;
-    this.text = "";
-    this.bytes = 0;
-    await this.output.write(text);
-  }
-}
+import type { Command } from "./command.ts";
+import { queryResponse } from "./metadata.ts";
+import { json } from "./response.ts";
+import type { Ports } from "./ports.ts";
 
 async function form(command: Extract<Command, { kind: "form" }>, ports: Ports): Promise<number> {
   const definition = decodeForm(await ports.readDocument(command.definition));
@@ -70,7 +50,7 @@ async function stream(
 ): Promise<number> {
   const session = new Session();
   const view = command.appearance ? await ports.openView(command.appearance) : undefined;
-  const events = command.events ? new EventOutput(ports.output) : undefined;
+  const events = command.events ? new BatchWriter(ports.output) : undefined;
   const progress = () => session.snapshot();
   try {
     for await (const batch of ports.readEvents()) {
@@ -78,7 +58,7 @@ async function stream(
         if (ports.signal.aborted) throw ports.signal.reason ?? new Cancelled();
         const event = decodeEvent(line);
         session.accept(event);
-        const pending = events?.append({ apiVersion: 1, type: "event", event });
+        const pending = events?.append(json({ apiVersion: 1, type: "event", event }));
         if (pending) await pending;
         switch (event.type) {
           case "run.start":
@@ -113,13 +93,9 @@ export async function execute(command: Command, ports: Ports): Promise<number> {
   if (ports.signal.aborted) throw ports.signal.reason ?? new Cancelled();
   switch (command.kind) {
     case "help":
-      await ports.output.write(help);
-      return 0;
     case "version":
-      await ports.output.write(`${VERSION}\n`);
-      return 0;
     case "capabilities":
-      await ports.output.write(json(capabilities(command.section)));
+      await ports.output.write(queryResponse(command));
       return 0;
     case "form":
       return form(command, ports);
@@ -142,29 +118,4 @@ export async function execute(command: Command, ports: Ports): Promise<number> {
       return 0;
     }
   }
-}
-
-/** Converts internal failure into the public response without exposing input or stack. */
-export async function reportFailure(error: unknown, output: Writer): Promise<number> {
-  const cancelled = error instanceof Cancelled;
-  const failure =
-    error instanceof ContractError
-      ? error
-      : new ContractError("UI_ERROR", "The UI could not complete the request.");
-  try {
-    await output.write(
-      json(
-        cancelled
-          ? { apiVersion: 1, status: "cancelled" }
-          : {
-              apiVersion: 1,
-              status: "error",
-              error: { code: failure.code, message: failure.message },
-            },
-      ),
-    );
-  } catch {
-    return 7;
-  }
-  return cancelled ? 130 : failure.exitCode;
 }

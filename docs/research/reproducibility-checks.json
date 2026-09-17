@@ -1,0 +1,179 @@
+{
+  "baseline": [
+    {
+      "file": "hamio",
+      "equal": true,
+      "first": "d33ac53428e0fe6bebfa220ef38af3420742d8950fefb179451da52c021c5c2f",
+      "second": "d33ac53428e0fe6bebfa220ef38af3420742d8950fefb179451da52c021c5c2f",
+      "bytes": 62259954
+    },
+    {
+      "file": "hamio-v0.1.0-darwin-arm64.gz",
+      "equal": true,
+      "first": "b3c96facf0f5b0b0a0067c3d709a8584d81219c7849634b5c7f6b37ae8185725",
+      "second": "b3c96facf0f5b0b0a0067c3d709a8584d81219c7849634b5c7f6b37ae8185725",
+      "bytes": 25556517
+    },
+    {
+      "file": "hamio-v0.1.0-darwin-arm64.notices.txt",
+      "equal": true,
+      "first": "ca106952689fe6804f5dedcbc9edb1400217e0bcf4414fa9a0806aceaae460e2",
+      "second": "ca106952689fe6804f5dedcbc9edb1400217e0bcf4414fa9a0806aceaae460e2",
+      "bytes": 12805
+    },
+    {
+      "file": "hamio-v0.1.0-darwin-arm64.sha256",
+      "equal": true,
+      "first": "cf38db32c36d8e27c2f728831be151a930f5283720a9ccdb5ee9a579fbb721df",
+      "second": "cf38db32c36d8e27c2f728831be151a930f5283720a9ccdb5ee9a579fbb721df",
+      "bytes": 167
+    },
+    {
+      "file": "hamio-v0.1.0-darwin-arm64.spdx.json",
+      "equal": false,
+      "first": "b3030cc6f06f28f934cb7384f98face2a11e8a392920a0194d1ffffc55d1784a",
+      "second": "a2f35af398131ee562e767ba8bf6de92611dcafe3a698d212cd9bb53efc8ee5e",
+      "bytes": 7284
+    },
+    {
+      "file": "install.sh",
+      "equal": true,
+      "first": "17951451585545c4b0b8e564fa4782e37b4a32433c760c61ca87431dfbe2b64d",
+      "second": "17951451585545c4b0b8e564fa4782e37b4a32433c760c61ca87431dfbe2b64d",
+      "bytes": 5298
+    }
+  ],
+  "releaseVerification": {
+    "sourceCommit": "5a96bf52e518858d2c38b23e46ba36c2f915ab21",
+    "sourceSha256": "d6c0b7a8f94b961598d22fa1299cd53021356d14b2ae32719c078c680bfb7073",
+    "target": "darwin-arm64",
+    "runtimeSha256": "35d20dd0263e5c950194434b925454fdfa9ba6e4467da960410fa05b08a7a5b5",
+    "independentBuilds": 2,
+    "assets": {
+      "hamio-v0.1.0-darwin-arm64.gz": "7e61f5862973acb191ec486a36bb19815bf7a9264678fd7488aeebb5e3cf989a",
+      "hamio-v0.1.0-darwin-arm64.notices.txt": "bc101db8fe7dd3f625e2a1f696c6c196b40d221e9d0a1d7d092fd1d3c275b734",
+      "hamio-v0.1.0-darwin-arm64.sha256": "de4bfd615501b50a75c9e3d5d0b2d0f6d044994fbb3a04b9531b36cc80e60cd1",
+      "hamio-v0.1.0-darwin-arm64.spdx.json": "bee0f882cf3cda462b947cc0ed252210e306ced38a78d4dae46eabfabb391cac",
+      "install.sh": "17951451585545c4b0b8e564fa4782e37b4a32433c760c61ca87431dfbe2b64d"
+    },
+    "executableTests": "api.test.ts + executable.test.ts",
+    "binaryBytes": 62259954,
+    "archiveBytes": 25556809
+  },
+  "progress": {
+    "scriptSha256": "c92828f5cd0b562702d2fb755129686ba068c28e714891faeb53cf0145581140",
+    "timestamp": "2026-09-17T10:32:17.123Z",
+    "binaries": {
+      "baseline": "d33ac53428e0fe6bebfa220ef38af3420742d8950fefb179451da52c021c5c2f",
+      "candidate": "dd45f29f67ba6687a186a9004c616159f675d1409fe690edd7d6ceae284c4c82"
+    },
+    "inputSha256": "c99763df3f5dd9ede2809ec07d083760f24b3b341b7004c7c6c3a7da121c6da7",
+    "runtime": {
+      "bun": "1.4.2",
+      "platform": "darwin",
+      "arch": "arm64",
+      "osRelease": "25.2.0",
+      "cpu": "Apple M1 Pro"
+    },
+    "conditions": {
+      "count": 5,
+      "warmup": 1,
+      "frames": 10,
+      "intervalMs": 150,
+      "terminal": "80 columns, 24 rows; stdout/stderr combined; process stdin is a FIFO",
+      "wallTime": "Includes scripted sender pacing; not render latency"
+    },
+    "summary": {
+      "baseline": {
+        "wallMs": 1548.625666,
+        "cpuMs": 47.689,
+        "peakRssBytes": 26066944,
+        "outputBytes": 724,
+        "progressFrames": 10
+      },
+      "candidate": {
+        "wallMs": 1547.7075000000004,
+        "cpuMs": 47.502,
+        "peakRssBytes": 26738688,
+        "outputBytes": 220,
+        "progressFrames": 1
+      }
+    },
+    "samples": {
+      "baseline": [
+        {
+          "wallMs": 1550.7598339999995,
+          "cpuMs": 44.845,
+          "peakRssBytes": 25985024,
+          "outputBytes": 724,
+          "progressFrames": 10
+        },
+        {
+          "wallMs": 1546.7372919999998,
+          "cpuMs": 46.266,
+          "peakRssBytes": 26198016,
+          "outputBytes": 724,
+          "progressFrames": 10
+        },
+        {
+          "wallMs": 1546.6216249999998,
+          "cpuMs": 47.689,
+          "peakRssBytes": 26066944,
+          "outputBytes": 724,
+          "progressFrames": 10
+        },
+        {
+          "wallMs": 1548.625666,
+          "cpuMs": 50.351,
+          "peakRssBytes": 26492928,
+          "outputBytes": 724,
+          "progressFrames": 10
+        },
+        {
+          "wallMs": 1567.3450000000012,
+          "cpuMs": 48.868,
+          "peakRssBytes": 25903104,
+          "outputBytes": 724,
+          "progressFrames": 10
+        }
+      ],
+      "candidate": [
+        {
+          "wallMs": 1548.6375829999997,
+          "cpuMs": 47.201,
+          "peakRssBytes": 26787840,
+          "outputBytes": 220,
+          "progressFrames": 1
+        },
+        {
+          "wallMs": 1546.802208,
+          "cpuMs": 45.596,
+          "peakRssBytes": 26591232,
+          "outputBytes": 220,
+          "progressFrames": 1
+        },
+        {
+          "wallMs": 1547.7075000000004,
+          "cpuMs": 47.502,
+          "peakRssBytes": 26738688,
+          "outputBytes": 220,
+          "progressFrames": 1
+        },
+        {
+          "wallMs": 1547.2853750000013,
+          "cpuMs": 48.875,
+          "peakRssBytes": 26492928,
+          "outputBytes": 220,
+          "progressFrames": 1
+        },
+        {
+          "wallMs": 1549.9378340000003,
+          "cpuMs": 50.947,
+          "peakRssBytes": 26755072,
+          "outputBytes": 220,
+          "progressFrames": 1
+        }
+      ]
+    }
+  }
+}

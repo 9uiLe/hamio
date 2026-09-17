@@ -4,7 +4,8 @@ import { chmod, mkdir, mkdtemp, readFile, readlink, rm, writeFile } from "node:f
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { gzipSync } from "node:zlib";
-import { inventory, productionDependencies, releaseIdentity } from "../scripts/release/metadata.ts";
+import { productionDependencies } from "../scripts/release/dependencies.ts";
+import { inventory, releaseIdentity } from "../scripts/release/metadata.ts";
 
 const installer = resolve("scripts/install.sh");
 const commit = "1234567890abcdef1234567890abcdef12345678";
@@ -225,6 +226,7 @@ test("inventory includes installed production dependencies and states the runtim
     commit,
     modified: false,
     created: "2026-09-17T00:00:00Z",
+    sourceSha256: "6".repeat(64),
     license: "NOASSERTION",
     binarySha256: "1".repeat(64),
     archiveSha256: "5".repeat(64),
