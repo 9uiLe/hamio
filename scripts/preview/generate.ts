@@ -1,109 +1,40 @@
-import { mkdir, mkdtemp, rename, rm } from "node:fs/promises";
-import { join } from "node:path";
 import {
-  imageHashes,
   imageNames,
-  manifestPath,
+  previewChanges,
   previewDirectory,
+  recordingChanges,
+  recordingNames,
   sourceHashes,
 } from "./artifacts.ts";
-import { captureTerminal } from "./capture.ts";
-import { scenarios } from "./scenarios.ts";
 
 const args = process.argv.slice(2);
-if (args.some((arg) => arg !== "--recording") || args.length > 1) {
-  throw new Error("Usage: ./scripts/preview.sh [--recording]");
+if (
+  args.some((arg) => arg !== "--recording" && arg !== "--force") ||
+  new Set(args).size !== args.length
+) {
+  throw new Error("Usage: ./scripts/preview.sh [--recording] [--force]");
 }
-const fonts = process.env.HAMIO_PREVIEW_FONTS;
-if (!fonts) throw new Error("Use ./scripts/preview.sh to load the pinned preview tools.");
-
-async function run(command: string[]) {
-  const child = Bun.spawn(command, {
-    stdout: "inherit",
-    stderr: "inherit",
-    env: { ...process.env, RAYON_NUM_THREADS: "2" },
-    timeout: 60_000,
-    killSignal: "SIGKILL",
-  });
-  if ((await child.exited) !== 0) throw new Error(`${command[0]} failed.`);
-}
-
-const agg = [
-  "agg",
-  "--quiet",
-  "--font-dir",
-  `${fonts}/share/fonts`,
-  "--font-family",
-  "JetBrains Mono,Noto Sans Mono CJK JP",
-  "--font-size",
-  "16",
-  "--line-height",
-  "1.4",
-  "--theme",
-  "github-dark",
-  "--fps-cap",
-  "10",
-  "--last-frame-duration",
-  "1",
-];
-
-await mkdir("dist/preview", { recursive: true });
-const temporary = await mkdtemp("dist/preview/render-");
+const recording = args.includes("--recording");
 const started = performance.now();
 const sources = await sourceHashes();
-try {
-  for (const scenario of scenarios) {
-    const recorded = await captureTerminal(scenario);
-    const castPath = join(temporary, `${scenario.name}.cast`);
-    await Bun.write(castPath, recorded.cast);
-    for (const [name, cast] of recorded.snapshots) {
-      const prefix = join(temporary, `${scenario.name}-${name}`);
-      await Bun.write(`${prefix}.cast`, cast);
-      // Select the last event directly: percentage rounding can seek before it.
-      const lastEvent = cast.trimEnd().split("\n").length - 2;
-      await run([...agg, "--select", `event:${lastEvent}`, `${prefix}.cast`, `${prefix}.gif`]);
-      await run([
-        "python3",
-        "-c",
-        "from PIL import Image; import sys; Image.open(sys.argv[1]).save(sys.argv[2])",
-        `${prefix}.gif`,
-        `${prefix}.png`,
-      ]);
-    }
-    if (args.includes("--recording")) {
-      await run([...agg, castPath, join(temporary, `${scenario.name}.gif`)]);
-    }
+const changes = [
+  ...(await previewChanges(".", sources)),
+  ...(recording ? await recordingChanges(".", sources) : []),
+];
+if (args.includes("--force") || changes.length > 0) {
+  if (process.env.HAMIO_PREVIEW_SHELL !== "1") {
+    const child = Bun.spawn(["./scripts/preview-env.sh", ...args], {
+      stdin: "inherit",
+      stdout: "inherit",
+      stderr: "inherit",
+    });
+    process.exit(await child.exited);
   }
-  const images = await imageHashes(temporary);
-  if (!Bun.deepEquals(sources, await sourceHashes())) {
-    throw new Error("Preview sources changed while rendering. Run the preview again.");
-  }
-  await mkdir(previewDirectory, { recursive: true });
-  for (const name of imageNames) {
-    await rename(join(temporary, name), join(previewDirectory, name));
-  }
-  for (const scenario of scenarios) {
-    for (const extension of args.includes("--recording") ? ["cast", "gif"] : ["cast"]) {
-      const name = `${scenario.name}.${extension}`;
-      await rename(join(temporary, name), join("dist/preview", name));
-    }
-  }
-  await Bun.write(
-    manifestPath,
-    `${JSON.stringify(
-      {
-        schemaVersion: 1,
-        description: "Development recording fixtures; not the product UI.",
-        environment: { platform: process.platform, arch: process.arch, bun: Bun.version },
-        sources,
-        images,
-      },
-      null,
-      2,
-    )}\n`,
-  );
+  const { renderPreviews } = await import("./render.ts");
+  await renderPreviews(recording);
   console.log(`Preview generated in ${((performance.now() - started) / 1000).toFixed(2)}s.`);
-  for (const name of imageNames) console.log(`${previewDirectory}/${name}`);
-} finally {
-  await rm(temporary, { recursive: true, force: true });
+} else {
+  console.log("Preview is current; reused verified files. Use --force to capture again.");
 }
+for (const name of imageNames) console.log(`${previewDirectory}/${name}`);
+if (recording) for (const name of recordingNames) console.log(`dist/preview/${name}`);

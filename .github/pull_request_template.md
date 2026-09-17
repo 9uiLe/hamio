@@ -10,7 +10,7 @@
 
 <!--
 UI の変更がある場合:
-1. ./scripts/preview.sh で再生成し、PNG を開いて確認する。
+1. ./scripts/preview.sh で最新の画像を用意し、PNG を開いて確認する。
 2. 画像と manifest.json を変更と同じ commit に含める。
 3. 対象 commit SHA に固定した raw URL で本文に画像を埋め込む。
    ![入力画面](https://raw.githubusercontent.com/9uiLe/hamio/COMMIT_SHA/docs/previews/fixture-input.png)
