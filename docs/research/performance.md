@@ -2,7 +2,7 @@
 
 確認日: 2026-09-17。対象は、Bun を同梱した UI 実行ファイルの起動、メモリ、並列処理、計測 API である。根拠は Bun の公式ドキュメントと API リファレンスとし、採用する固定版で再確認する。
 
-hamio の性能責務は、入力、表示、通知の受信、起動が利用側の業務へ加える負荷を制御することである。業務の並列数と実行順序は利用側が管理する。合否は [基本設計の暫定性能予算](../design.md#暫定性能予算) で評価する。実装と測定は未実施である。
+hamio の性能責務は、入力、表示、通知の受信、起動が利用側の業務へ加える負荷を制御することである。業務の並列数と実行順序は利用側が管理する。合否は [基本設計の暫定性能予算](../design.md#暫定性能予算) で評価する。本書は測定方法の技術資料であり、製品の測定結果ではない。
 
 ## 起動と配布形式
 
@@ -36,14 +36,14 @@ Worker の比較対象には初期化、状態保持、通信、最後の応答�
 
 ## 計測指標
 
-| 指標・API | 公式仕様と用途 |
-| --- | --- |
-| [経過時間](https://bun.com/docs/project/benchmarking) | `performance.now()` / `Bun.nanoseconds()` を利用できる。公式は CLI 全体の計測に `hyperfine` を紹介する |
-| [bun:jsc memoryUsage()](https://bun.com/reference/bun/jsc/memoryUsage) | JS ヒープ外を含む。`current` は Linux で RSS、macOS で phys_footprint。`peak` は生存期間中の `current` の最大値 |
-| [Bun.unsafe.memoryFootprint()](https://bun.com/reference/bun/unsafe) | macOS で phys_footprint、Linux で共有ページを按分する PSS。取得できない環境では `undefined` |
-| [heapSize()](https://bun.com/reference/bun/jsc/heapSize) | 直近 GC 後の生存オブジェクトと、それらが所有するヒープ外領域。GC 後の新規割当は含まない |
-| [heapStats()](https://bun.com/reference/bun/jsc/heapStats) | ヒープ全体を走査する。`extraMemorySize` は `heapSize` / `heapCapacity` に含まれ、再加算しない |
-| [Subprocess.resourceUsage()](https://bun.com/reference/bun/Subprocess/resourceUsage) | 測定用親プロセスから終了後に取得する。CPU は microseconds、maxRSS は bytes |
+| 指標・API                                                                            | 公式仕様と用途                                                                                                  |
+| ------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
+| [経過時間](https://bun.com/docs/project/benchmarking)                                | `performance.now()` / `Bun.nanoseconds()` を利用できる。公式は CLI 全体の計測に `hyperfine` を紹介する          |
+| [bun:jsc memoryUsage()](https://bun.com/reference/bun/jsc/memoryUsage)               | JS ヒープ外を含む。`current` は Linux で RSS、macOS で phys_footprint。`peak` は生存期間中の `current` の最大値 |
+| [Bun.unsafe.memoryFootprint()](https://bun.com/reference/bun/unsafe)                 | macOS で phys_footprint、Linux で共有ページを按分する PSS。取得できない環境では `undefined`                     |
+| [heapSize()](https://bun.com/reference/bun/jsc/heapSize)                             | 直近 GC 後の生存オブジェクトと、それらが所有するヒープ外領域。GC 後の新規割当は含まない                         |
+| [heapStats()](https://bun.com/reference/bun/jsc/heapStats)                           | ヒープ全体を走査する。`extraMemorySize` は `heapSize` / `heapCapacity` に含まれ、再加算しない                   |
+| [Subprocess.resourceUsage()](https://bun.com/reference/bun/Subprocess/resourceUsage) | 測定用親プロセスから終了後に取得する。CPU は microseconds、maxRSS は bytes                                      |
 
 RSS、PSS、phys_footprint は異なる尺度である。メモリ予算には OS、取得 API、単位を指定し、macOS の `memoryUsage().peak` と `Subprocess.resourceUsage().maxRSS` を置き換えて判定しない。
 
@@ -65,15 +65,15 @@ Bun は JavaScript のヒープとネイティブ側のヒープを持ち、ネ�
 
 ## 測定計画
 
-| 観点 | 記録・比較する内容 |
-| --- | --- |
-| ビルド | ソース commit、Bun 版・revision、lockfile、Nix 入力、ビルド設定、バイナリ hash |
-| 実行環境 | OS、CPU・コア数、RAM、電源と負荷状態、端末アプリ、画面寸法 |
-| 起動 | 初回と繰り返し、cache の条件、起動から入力可能・結果取得・終了まで |
-| 応答 | キー入力から表示反映、キャンセルから終了、全体経過時間 |
-| 負荷 | 小さいフォーム、無更新待機、通常進捗、大量ログ、遅い受信先 |
-| 並列性 | 業務並列数と同時 run 数、hamio の資源量、業務側の実行時間 |
-| 設定比較 | bytecode、smol、Worker の有無を一条件ずつ変更した結果 |
-| 継続利用 | 長時間受信、完了 task の累積、繰り返し実行後のメモリ推移 |
+| 観点     | 記録・比較する内容                                                             |
+| -------- | ------------------------------------------------------------------------------ |
+| ビルド   | ソース commit、Bun 版・revision、lockfile、Nix 入力、ビルド設定、バイナリ hash |
+| 実行環境 | OS、CPU・コア数、RAM、電源と負荷状態、端末アプリ、画面寸法                     |
+| 起動     | 初回と繰り返し、cache の条件、起動から入力可能・結果取得・終了まで             |
+| 応答     | キー入力から表示反映、キャンセルから終了、全体経過時間                         |
+| 負荷     | 小さいフォーム、無更新待機、通常進捗、大量ログ、遅い受信先                     |
+| 並列性   | 業務並列数と同時 run 数、hamio の資源量、業務側の実行時間                      |
+| 設定比較 | bytecode、smol、Worker の有無を一条件ずつ変更した結果                          |
+| 継続利用 | 長時間受信、完了 task の累積、繰り返し実行後のメモリ推移                       |
 
 中央値、p95、試行数、ばらつきを記録し、予算値・測定 API・環境条件と一緒に保存する。同じ業務を hamio なし・ありで比較し、利用側の JSON 生成、転送、待機を追加コストに含める。未達項目は構成と設定を見直す根拠として扱う。

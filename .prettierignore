@@ -1,0 +1,6 @@
+node_modules/
+.husky/_/
+dist/
+coverage/
+bun.lock
+flake.lock
