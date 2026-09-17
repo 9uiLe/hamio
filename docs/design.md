@@ -213,7 +213,7 @@ SBOM は本体、production npm 依存、hash で特定した Bun を記録す�
 
 ### 検証・承認・公開
 
-Release workflow は所有者の手動実行を入口とし、既定の `verify` は候補の生成、証明発行、検証で完了する。`publish` は package と一致する版タグ、`master` への包含、clean worktree、ライセンスを確認し、同じ候補検証を通してから所有者の Environment 承認を待つ。タグ push だけでは公開しない。
+Release workflow は所有者の手動実行を入口とし、既定の `verify` は候補の生成、証明発行、検証で完了する。`publish` は package と一致する版タグ、`master` への包含、clean worktree、ライセンスを確認し、同じ候補検証を通してから所有者の Environment 承認を待つ。所有者は管理権限が必要な immutable releases の設定を承認前に確認する。workflow は公開後に実際の immutable release を検証する。タグ push だけでは公開しない。
 
 ```mermaid
 flowchart LR
@@ -227,6 +227,8 @@ flowchart LR
 ```
 
 証明発行・公開の job は製品コードを実行せず、書き込み権限をその担当工程に限定する。候補検証は由来と実行を、公開後の導入試験は immutable release と公開資産の結び付きを確認する。証明はコードの無害性や在庫の網羅性を保証するものではない。
+
+公開済みの版は `verify-install` で3対象の導入試験を再実行できる。製品のタグと commit を指定し、ビルド・証明発行・公開は行わない。
 
 ### 導入と保守
 

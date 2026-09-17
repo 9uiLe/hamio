@@ -214,7 +214,7 @@ Actions の `verification-<対象>` artifact には commit、入力・資産の 
 2. 本体・同梱部品の許諾、Bun・native 依存の advisory、対応環境、性能の実測範囲を確認する。確認先、固定 revision、結果をリリース評価へ記録する。
 3. レビュー済みの `master` commit に `vX.Y.Z` タグを作成して push する。タグは作成後に更新・削除できないため、対象 commit と版を事前に照合する。タグ push では workflow は起動しない。
 4. そのタグに `mode=publish` を明示して Release workflow を実行する。タグのソースで候補の全検証を実施する。
-5. `release` Environment の承認画面で対象 commit、3環境の検証結果、許諾・advisory の記録を確認し、所有者が公開を承認する。
+5. 所有者が immutable releases の有効化を確認し、`release` Environment の承認画面で対象 commit、3環境の検証結果、許諾・advisory の記録を照合して公開を承認する。
 6. 公開後の3環境での取得・immutable release 検証・導入、利用側 Action、非対話フォームの試験結果を確認する。
 
 ```sh
@@ -225,6 +225,16 @@ gh workflow run release.yml --ref vX.Y.Z -f mode=publish
 ```
 
 preflight は公開元、明示した実行モード、clean worktree、LICENSE とライセンス識別子を確認する。公開モードでは完全な版タグと package の一致、`master` への包含も必須とする。`vX.Y.Z-rc.N` などの接尾辞は受け付けない。
+
+### 公開物の導入試験
+
+公開後の `verify-install` は自動で実行する。既存の公開版を再検証する場合は、所有者が完全な版を指定する。
+
+```sh
+gh workflow run release.yml --ref master -f mode=verify-install -f version=vX.Y.Z
+```
+
+このモードはビルド、証明発行、公開を行わず、3対象の導入試験だけを実行する。指定版の immutable release を検証し、そのタグの commit へ固定したインストーラーと利用側 Action を使う。検証 workflow の ref と、検証する製品のタグ・commit は別に記録する。
 
 ### 権限と公開順序
 
@@ -240,7 +250,13 @@ preflight は公開元、明示した実行モード、clean worktree、LICENSE 
 
 `release` Environment の承認者は所有者のみ、対象は `v*` タグのみとし、管理者による承認の bypass を無効にする。単独保守のため起動者自身による承認を許可する。設定値と保護対象は[開発手順](development.md#リポジトリの保護設定)に定める。
 
-公開前に immutable releases が有効であることを確認し、全資産を draft に添付してから公開する。同じ版のリリースが存在する場合は停止する。draft が残っている場合は内容を調査し、不要な draft だけを削除して再実行する。公開済みタグ・資産は差し替えない。
+immutable releases の設定照会には repository の `Administration: read` が必要であり、標準の `GITHUB_TOKEN` では取得できない。所有者は Environment の承認前に次を実行し、結果が `true` でなければ公開しない。[設定照会 API](https://docs.github.com/en/rest/repos/repos#check-if-immutable-releases-are-enabled-for-a-repository)
+
+```sh
+gh api repos/9uiLe/hamio/immutable-releases --jq .enabled
+```
+
+workflow は `contents: write` で全資産を draft に添付してから公開し、`gh release verify` で実際の immutable release を検証する。同じ版のリリースが存在する場合は停止する。draft が残っている場合は内容を調査し、不要な draft だけを削除して再実行する。公開済みタグ・資産は差し替えない。
 
 公開前の候補検証では immutable release と資産の結び付きを検証できない。公開後の導入試験が失敗した場合は、影響環境をリリースノートへ記載し、その版の推奨を止め、修正版を新しい版で発行する。取得先や証明サービスの障害でも検証を省略しない。影響調査と修正は[セキュリティ方針](../SECURITY.md)に従う。
 

@@ -147,6 +147,8 @@ hooks 自体は一時 Git リポジトリで正常系、不正な commit・push 
 | Quality の手動検査                                     | 所有者が ref と runner を選ぶ `workflow_dispatch`                                                | Ubuntu 24.04 または macOS 15                                                |
 | [Release](../.github/workflows/release.yml)            | 所有者が ref と mode を選ぶ `workflow_dispatch`                                                  | macOS arm64、Linux x64/arm64 の候補検証。公開は版タグ・明示指定・承認が必要 |
 
+Release の `verify-install` モードは指定した公開版の導入を3対象で再検証する。設定や操作は[配布手順](distribution.md#公開物の導入試験)に従う。
+
 branch push、PR close、タグ push は起動条件に含めない。通常の PR は共通検査を一度実行し、対象環境ごとの配布検証は Release workflow で行う。
 
 ### PR の検査と権限
