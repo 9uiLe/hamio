@@ -3,15 +3,21 @@ name: Quality
 on:
   pull_request:
     branches: [master]
-  push:
-    branches: [master]
+    types: [opened, synchronize, reopened]
   workflow_dispatch:
+    inputs:
+      runner:
+        description: Environment to validate
+        type: choice
+        options: [ubuntu-24.04, macos-15]
+        default: ubuntu-24.04
+        required: true
 
 permissions:
   contents: read
 
 concurrency:
-  group: quality-${{ github.workflow }}-${{ github.ref }}
+  group: quality-${{ github.event_name }}-${{ github.ref }}-${{ inputs.runner || 'ubuntu-24.04' }}
   cancel-in-progress: true
 
 jobs:
@@ -20,11 +26,7 @@ jobs:
       github.actor == github.repository_owner &&
       (github.event_name != 'pull_request' ||
       github.event.pull_request.head.repo.full_name == github.repository)
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-24.04, macos-15]
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ github.event_name == 'workflow_dispatch' && inputs.runner || 'ubuntu-24.04' }}
     timeout-minutes: 20
     env:
       HUSKY: "0"
@@ -40,9 +42,11 @@ jobs:
           diagnostic-endpoint: ""
       - name: Validate Nix definitions
         run: nix flake check --all-systems --no-build --no-write-lock-file
-      - name: Install locked development dependencies
-        run: nix develop --no-write-lock-file --command bun install --frozen-lockfile --ignore-scripts
-      - name: Lint, format, typecheck, and test
-        run: nix develop --no-write-lock-file --command bun run check
+      - name: Install dependencies and run checks
+        run: |
+          nix develop --no-write-lock-file --command sh -eu -c '
+            bun install --frozen-lockfile --ignore-scripts
+            bun run check
+          '
       - name: Verify checks leave files unchanged
         run: git diff --exit-code

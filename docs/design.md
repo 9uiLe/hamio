@@ -226,9 +226,11 @@ hamio は利用者と同じ OS 権限で動作する。独立プロセスとラ�
 | 編集      | Biome / Prettier による保存時 format と、TypeScript の型診断を利用する                             |
 | commit 前 | Husky と lint-staged でステージ済みの対象を検査する。部分ステージを保持し、同時タスクを2に制限する |
 | push 前   | 作業ツリー全体の Lint、format、型検査、テストを `bun run check` で実行する                         |
-| PR        | macOS / Linux で同じ全体検査を行い、Nix 定義の評価と検査前後の差分も確認する                       |
+| PR        | Linux の1ジョブで全体検査を行い、Nix 定義の評価と検査前後の差分も確認する                          |
 
 TS・JS・JSON は Biome、Markdown・YAML は Prettier、Nix は nixfmt、Shell は shfmt で format を統一する。ShellCheck と actionlint で Shell と workflow を検査する。TypeScript は strict 設定を使い、宣言ファイルも型検査の対象に含める。
+
+品質検査の自動実行は PR の作成・更新・再開に限定し、マージ時の push では実行しない。静的検査は Linux に集約し、macOS は手動実行で同じ検査を利用する。Bun・Nix・hooks・OS に関わる依存の変更時は macOS の確認も行う。製品の端末 I/O、プロセス管理、配布物を実装する段階で、両 OS の実行テストを自動化する範囲を定める。Nix 定義の評価は各 OS での動作試験とは区別する。
 
 検査コマンドと Git hooks はソースを自動修正しない。修正用コマンドを明示的に実行し、差分を確認してからステージする。pre-push は未コミットの修正も含む作業ツリーを、PR の CI は checkout したマージ候補を検証する。ローカル hooks による検査と GitHub のマージ制限は別の仕組みである。
 
