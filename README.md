@@ -2,9 +2,17 @@
 
 hamio は、開発用スクリプトの質問、進捗、表、結果を統一するターミナル UI ツールです。Shell、Python、Go、TypeScript などからコマンドラインと JSON で呼び出します。
 
-利用側が業務処理の順序、並列数、権限、再試行を管理し、hamio が質問の表示、回答の検証、状態と結果の表示を担当します。本体・製品依存・Bun を含む単一実行ファイルを使うため、UI の利用に Bun・Node.js・Nix の導入は不要です。業務処理に必要な言語ランタイムは利用側で用意します。
+利用側は業務処理の順序、並列数、権限、再試行を管理し、hamio は質問の表示、回答の検証、状態と結果の表示を担当します。本体・製品依存・Bun を含む単一実行ファイルで動作するため、UI の利用に Bun・Node.js・Nix の導入は不要です。業務処理のランタイムと依存は利用側で用意します。
 
-## スクリプトとの接続
+## 導入
+
+配布対象は macOS arm64 と Linux x64 / arm64（glibc）です。macOS 15、Ubuntu 24.04 の各 CPU に対応した環境で配布物を検証します。
+
+[導入・更新手順](docs/distribution.md)に従い、採用する公開版を `.hamio-version` に完全な `vX.Y.Z` で固定してください。GitHub CLI でインストーラーと資産の証明を検証し、プロジェクト内の `.tools/bin/hamio` へ配置します。更新とロールバックも同じ検証経路を使います。通常の起動で通信や更新確認は行いません。
+
+公開版 [v0.1.0](https://github.com/9uiLe/hamio/releases/tag/v0.1.0) は、3環境で配布候補の再現性・動作・証明と、公開後のインストーラー・GitHub Action・独立プロジェクトからの実行を確認しています。製品と検証用 workflow の識別情報、工程別結果、実測値、未検証範囲は[リリース評価](docs/release-readiness.md)を参照してください。
+
+## スクリプトから使う
 
 | コマンド       | 用途                                               |
 | -------------- | -------------------------------------------------- |
@@ -13,21 +21,15 @@ hamio は、開発用スクリプトの質問、進捗、表、結果を統一�
 | `stream`       | 改行区切りの JSON で受け取った業務の状態を表示     |
 | `capabilities` | 契約版、製品版、対応機能、資源上限を照会           |
 
-人向け UI は stderr、回答と機械向けの結果は stdout へ出します。対話フォームの回答も JSON なので、スクリプトが捕捉して業務処理に使えます。
+人向け UI は stderr、回答と機械向けの結果は stdout に出力します。対話フォームの回答も JSON なので、スクリプトが捕捉して業務処理に使えます。業務の成否と UI 操作の終了コードは別に判断します。
 
-AI エージェントと CI は `form --interactive never` または `render / stream --format json` を指定します。対話待ちと装飾を使わず、連続表示は既定で最終結果だけを返します。形式と終了コードは [API 契約](docs/api.md)、接続例は [examples/](examples/)を参照してください。
+AI エージェントと CI は `form --interactive never` または `render / stream --format json` を指定します。対話待ちと装飾を使わず、stream は既定で最終応答一つを返します。全 event の応答が必要な場合は `--events` を指定します。
 
-## 導入と対応環境
+データ形式と終了コードは [API 契約](docs/api.md)、呼び出し方は [Shell](examples/form.sh)・[Python](examples/form.py)、CI への導入は [GitHub Actions の手順](docs/distribution.md#github-actions-で使う)を参照してください。
 
-配布対象は macOS arm64 と Linux x64/arm64（glibc）です。配布物は macOS 15、Ubuntu 24.04 の各 CPU に対応した環境で検証します。
+## 開発する
 
-[公開リリース](https://github.com/9uiLe/hamio/releases)から採用する版を選び、`.hamio-version` に完全な `vX.Y.Z` を記録します。GitHub CLI でインストーラーと資産の証明を検証し、プロジェクト内の `.tools/bin/hamio` から実行します。更新とロールバックも同じ検証経路を使います。[導入・更新手順](docs/distribution.md)
-
-初回版 [v0.1.0](https://github.com/9uiLe/hamio/releases/tag/v0.1.0) を公開しています。3環境で配布候補の再現性、API・端末試験、証明を確認し、公開後のインストーラー・GitHub Action・独立プロジェクトからの実行も検証済みです。対象 commit、実測値、確認範囲は[リリース評価](docs/release-readiness.md)に記録しています。
-
-## ソースからビルドする
-
-開発・ビルドには `nix-command` と `flakes` が有効な Nix を使います。hamio のリポジトリ直下で実行してください。
+`nix-command` と `flakes` が有効な Nix を用意し、hamio のリポジトリ直下で実行します。
 
 ```sh
 ./scripts/dev.sh bun run setup
@@ -36,38 +38,46 @@ AI エージェントと CI は `form --interactive never` または `render / s
 sh examples/form.sh
 ```
 
-setup は固定依存の取得と、この clone の Git hooks 導入を行います。build はホスト向けの `dist/hamio` を生成します。同じ OS・CPU の別リポジトリでも[ローカルビルドの手順](docs/distribution.md#手元でビルドした実行ファイル)で利用できます。
+setup は固定依存の取得と、この clone の Git hooks 導入を行います。build はホスト向けの `dist/hamio` を生成します。同じ OS・CPU の別リポジトリへ配置する場合は[ローカルビルドの手順](docs/distribution.md#手元でビルドした実行ファイル)に従います。
 
-## 開発と品質確認
-
-日常作業は `nix develop` で行い、shell 外では `./scripts/dev.sh` から固定環境を呼び出します。
+日常作業は `nix develop` 内で行い、shell 外では `./scripts/dev.sh` から固定環境を呼び出します。
 
 ```sh
 ./scripts/dev.sh bun run format
 ./scripts/dev.sh bun run check
 ```
 
-型診断、Git hooks、PR の CI で Lint、format、型、テスト、プレビュー照合を実行します。UI を変更した場合は `./scripts/preview.sh` の PNG と、`./scripts/preview.sh --recording` の操作過程を確認します。[製品プレビュー](docs/previews/README.md)
+型診断、Git hooks、PR の Quality workflow で変更を検査します。UI を変更したら `./scripts/preview.sh` の PNG と `./scripts/preview.sh --recording` の操作過程を開いて確認します。手順は[開発手順](docs/development.md)、画像は[製品プレビュー](docs/previews/README.md)にあります。
 
-配布候補は `./scripts/dev.sh bun run release:verify` で独立した二回の生成と展開後の動作を検証します。GitHub の Release workflow は3環境で候補と証明を検証し、正式公開には版タグの指定と所有者の承認を必要とします。
+## 配布を保守する
+
+配布候補は `./scripts/dev.sh bun run release:verify` で独立した二回の生成と展開後の動作を検証します。GitHub の Release workflow は所有者が目的を指定して実行します。
+
+| モード           | 用途                                                              |
+| ---------------- | ----------------------------------------------------------------- |
+| `verify`         | 3環境の候補生成、実際の証明発行と検証                             |
+| `publish`        | 版タグの候補を検証し、所有者の Environment 承認後に公開、導入試験 |
+| `verify-install` | 指定した公開版のインストーラーと利用側 Action を3環境で試験       |
+
+公開は immutable release とし、タグと資産を差し替えません。権限、承認条件、更新・障害対応は[配布手順](docs/distribution.md#保守者のリリース工程)に定めます。
 
 ## 文書案内
 
 | 文書                                      | 読む目的                                                         |
 | ----------------------------------------- | ---------------------------------------------------------------- |
-| [基本設計](docs/design.md)                | 目的、責務、構成、性能・安全性、リリースの判断基準を理解する     |
+| [基本設計](docs/design.md)                | 目的、責務、構成、性能・安全性、配布と保守の方針を理解する       |
 | [API 契約](docs/api.md)                   | コマンド、JSON、状態、終了コード、上限に合わせて利用側を実装する |
-| [実装設計](docs/implementation.md)        | モジュール、依存方向、処理の流れ、副作用と資源の所有者を理解する |
+| [実装設計](docs/implementation.md)        | 依存方向、処理の流れ、副作用と資源の所有者を理解する             |
 | [開発手順](docs/development.md)           | Nix、検査、hooks、CI、プレビュー、性能測定を実行する             |
-| [配布手順](docs/distribution.md)          | 導入、更新、ロールバック、候補検証、公開、障害対応を行う         |
-| [リリース評価](docs/release-readiness.md) | 対象 commit の検証結果、実測値、未検証範囲を確認する             |
-| [セキュリティ方針](SECURITY.md)           | 脆弱性を非公開で報告し、サポートと修正版の提供方針を確認する     |
+| [配布手順](docs/distribution.md)          | 導入、更新、候補検証、公開、公開物の導入試験を行う               |
+| [リリース評価](docs/release-readiness.md) | 公開製品の検証結果、実測値、未検証範囲を確認する                 |
+| [セキュリティ方針](SECURITY.md)           | 脆弱性の非公開報告、サポート、修正版の提供方針を確認する         |
 | [AGENTS.md](AGENTS.md)                    | AI エージェントの作業規則と領域別スキルを確認する                |
 
-性能値は対象ソースと測定条件に結び付けて扱います。設計上の目標と、配布版で保証する範囲は[リリース評価](docs/release-readiness.md)で確認してください。一次情報と測定資料は基本設計の[根拠資料](docs/design.md#根拠資料)から参照できます。
+設計目標と実測結果は分けて扱います。一次情報と測定資料は基本設計の[根拠資料](docs/design.md#根拠資料)から参照できます。
 
 ## ライセンス
 
 hamio 本体は [MIT License](LICENSE)、著作権表記は `Copyright (c) 2026 9uiLe` です。第三者のコードには各部品のライセンスが適用されます。
 
-配布物には許諾情報と同梱部品の在庫である SBOM を含めます。Bun 内部の native 部品は一つのランタイムとして記録し、個別部品を網羅した SBOM とは区別します。[在庫と許諾の範囲](docs/distribution.md#配布物と在庫情報)
+配布物には許諾情報と同梱部品の在庫である SBOM を含めます。Bun 内部の native 部品は一つのランタイムとして記録し、個別部品を網羅した在庫とは区別します。[在庫と許諾の範囲](docs/distribution.md#配布物と在庫情報)
