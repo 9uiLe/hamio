@@ -1,0 +1,23 @@
+{
+  "apiVersion": 1,
+  "blocks": [
+    { "kind": "message", "level": "info", "text": "hamio / 検証結果" },
+    {
+      "kind": "key-value",
+      "items": [
+        { "label": "プロジェクト", "value": "demo" },
+        { "label": "アクセストークン", "value": "dummy-preview-token", "secret": true }
+      ]
+    },
+    {
+      "kind": "table",
+      "columns": [{ "id": "name", "label": "項目" }, { "id": "status", "label": "状態" }],
+      "rows": [
+        { "name": "入力検証", "status": "成功" },
+        { "name": "進捗表示", "status": "成功" },
+        { "name": "秘密値の非表示", "status": "成功" }
+      ]
+    },
+    { "kind": "result", "success": true, "message": "製品プレビュー完了" }
+  ]
+}

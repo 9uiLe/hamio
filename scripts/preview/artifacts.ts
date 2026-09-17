@@ -23,6 +23,7 @@ export async function sourceHashes(root = ".") {
     "scripts/preview/**/*.ts",
     "scripts/preview*.sh",
     "src/**/*",
+    "examples/**/*.json",
     "flake.nix",
     "flake.lock",
     "package.json",

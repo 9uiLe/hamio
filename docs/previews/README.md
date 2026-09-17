@@ -1,31 +1,27 @@
-# ターミナルプレビュー
+# ターミナル UI のプレビュー
 
-端末プレビューは、実際の疑似端末出力を固定したフォントと端末サイズで描画した画像です。PR とチャットに掲載し、日本語、余白、色、カーソル更新を確認します。コマンドと共有方法は[開発手順](../development.md#8-ターミナル-ui-のプレビュー)に記載しています。
+このディレクトリには、実際の疑似端末出力を固定したフォントと端末サイズで描画した PNG を置きます。PR とチャットで日本語、余白、色、カーソル更新を確認するための資料です。生成と共有のコマンドは[開発手順](../development.md#8-ターミナル-ui-のプレビュー)を参照してください。
 
-## シナリオ
+## 製品 CLI: product
 
-`fixture` は録画基盤の検証用プログラムです。80列・20行の端末に日本語と選択肢を表示し、Enter の入力に応じて進捗と結果表を出力します。hamio の製品 UI・公開 API、外部接続、業務処理は含みません。
+80列・28行の端末で製品の `form`、`stream`、`render` を実行します。環境の選択、確認入力、進捗更新、秘密値の非表示、結果表をダミーデータで確認します。シナリオ内で実際のデプロイや外部接続は行いません。
 
-実行コマンドと撮影位置は [scenarios.ts](../../scripts/preview/scenarios.ts)、表示内容は [fixture.ts](../../scripts/preview/fixture.ts) に定義しています。
+![製品の入力画面](product-input.png)
 
-## 代表画像
+![製品の結果画面](product-result.png)
 
-### 入力待ち
+## 録画基盤: fixture
 
-日本語と選択肢を表示し、Enter の入力を待つ状態です。
+80列・20行の端末で録画基盤の検証用プログラムを実行します。日本語と選択肢を表示し、Enter に応じて進捗と結果表を出力します。製品 API の確認は product、記録と描画の基盤の確認は fixture が担当します。
 
-![入力待ちのサンプル](fixture-input.png)
+![録画基盤の入力待ち](fixture-input.png)
 
-### 結果
+![録画基盤の結果](fixture-result.png)
 
-進捗行を置き換え、結果表を表示した状態です。
+## 生成元と確認範囲
 
-![結果のサンプル](fixture-result.png)
+実行対象、入力、撮影位置は [scenarios.ts](../../scripts/preview/scenarios.ts)に定義します。`./scripts/preview.sh` は生成元と PNG の SHA-256 を [manifest.json](manifest.json) と照合し、不足・変更・破損があれば生成します。`--force` を指定すると必ず端末を再実行します。
 
-## 画像と録画の確認
+操作途中は `./scripts/preview.sh --recording` で生成する `dist/preview/product.gif` と `dist/preview/fixture.gif` を確認します。録画はローカル専用の manifest で生成元、GIF、端末出力の記録を照合します。
 
-`./scripts/preview.sh` は生成元と PNG の SHA-256 を [manifest.json](manifest.json) と照合し、最新の画像を用意します。一致する画像は再利用します。`--force` は端末からの生成を必ず実行する指定です。
-
-操作途中を確認する場合は `./scripts/preview.sh --recording` を実行し、`dist/preview/fixture.gif` を開きます。録画はローカル専用の manifest で生成元・GIF・端末出力の記録を照合します。
-
-内容の照合は更新漏れの検出に使い、表示の正しさは画像と録画を開いて確認します。固定した端末エミュレーターによる描画なので、各 OS の実端末、画面読み上げ、製品性能は専用の試験で評価します。
+内容の照合で更新漏れを検出し、画像と録画の目視で表示を確認します。各 OS の実端末、画面読み上げ、製品性能は専用の試験で評価します。

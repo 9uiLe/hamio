@@ -9,7 +9,7 @@ const line = (value = "") => process.stderr.write(`${value}\r\n`);
 const clear = () => process.stderr.write("\u001b[2J\u001b[H\u001b[?25l");
 const title = () => {
   line(color(36, "  hamio / terminal preview"));
-  line(color(90, "  録画基盤のサンプル · 製品 UI は未実装"));
+  line(color(90, "  録画基盤のサンプル · 製品 UI とは別"));
   line();
 };
 

@@ -2,6 +2,9 @@
   "*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc}": "biome check --error-on-warnings --no-errors-on-unmatched",
   "*.{md,yml,yaml}": "prettier --check",
   "*.nix": "nixfmt --check",
-  "{scripts/*.sh,.husky/pre-commit,.husky/pre-push}": ["shfmt -d", "shellcheck --shell=sh"],
-  ".github/workflows/*.{yml,yaml}": "actionlint"
+  ".github/workflows/*.{yml,yaml}": "actionlint",
+  "{scripts/*.sh,examples/*.sh,.husky/pre-commit,.husky/pre-push}": [
+    "shfmt -d",
+    "shellcheck --shell=sh"
+  ]
 }

@@ -1,0 +1,26 @@
+{
+  "apiVersion": 1,
+  "id": "setup",
+  "title": "hamio / プロジェクト設定",
+  "fields": [
+    {
+      "id": "environment",
+      "kind": "select",
+      "label": "確認する環境を選択",
+      "options": [
+        { "value": "local", "label": "開発環境" },
+        { "value": "staging", "label": "ステージング" }
+      ]
+    },
+    {
+      "id": "project",
+      "kind": "text",
+      "label": "プロジェクト名",
+      "default": "demo",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    { "id": "approved", "kind": "confirm", "label": "この設定で続行しますか？" },
+    { "id": "token", "kind": "secret", "label": "アクセストークン", "required": false }
+  ]
+}

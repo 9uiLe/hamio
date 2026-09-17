@@ -18,6 +18,18 @@
         system:
         let
           pkgs = import nixpkgs { inherit system; };
+          # Embed the hash-pinned upstream runtime, before Nix-specific loader patches.
+          runtime =
+            pkgs.runCommand "hamio-bun-runtime-${pkgs.bun.version}"
+              {
+                nativeBuildInputs = [ pkgs.unzip ];
+              }
+              ''
+                unzip -q ${pkgs.bun.src} -d unpacked
+                mkdir -p "$out"
+                cp unpacked/*/bun "$out/bun"
+                chmod 755 "$out/bun"
+              '';
         in
         rec {
           default = pkgs.mkShellNoCC {
@@ -31,6 +43,7 @@
               actionlint
             ];
             HAMIO_DEV_SHELL = "1";
+            HAMIO_BUN_RUNTIME = "${runtime}/bun";
           };
           preview = pkgs.mkShellNoCC {
             inputsFrom = [ default ];

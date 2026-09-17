@@ -14,14 +14,16 @@
     "preview": "./scripts/preview.sh",
     "preview:check": "bun scripts/preview/check.ts",
     "check:staged": "lint-staged --concurrent 2",
-    "lint": "biome lint --error-on-warnings . && shellcheck scripts/*.sh .husky/pre-commit .husky/pre-push && actionlint",
+    "lint": "biome lint --error-on-warnings . && shellcheck scripts/*.sh examples/*.sh .husky/pre-commit .husky/pre-push && actionlint",
     "lint:fix": "biome lint --write .",
-    "format": "biome format --write . && prettier --write '**/*.{md,yml,yaml}' && nixfmt flake.nix && shfmt -w scripts/*.sh .husky/pre-commit .husky/pre-push",
-    "format:check": "biome format . && prettier --check '**/*.{md,yml,yaml}' && nixfmt --check flake.nix && shfmt -d scripts/*.sh .husky/pre-commit .husky/pre-push",
+    "format": "biome format --write . && prettier --write '**/*.{md,yml,yaml}' && nixfmt flake.nix && shfmt -w scripts/*.sh examples/*.sh .husky/pre-commit .husky/pre-push",
+    "format:check": "biome format . && prettier --check '**/*.{md,yml,yaml}' && nixfmt --check flake.nix && shfmt -d scripts/*.sh examples/*.sh .husky/pre-commit .husky/pre-push",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
     "test": "bun test",
-    "test:watch": "bun test --watch"
+    "test:watch": "bun test --watch",
+    "build": "bun scripts/build.ts",
+    "hamio": "bun --no-env-file --no-install src/cli.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.14",
@@ -34,5 +36,9 @@
   "overrides": {
     "@types/node": "26.6.1"
   },
-  "trustedDependencies": []
+  "trustedDependencies": [],
+  "dependencies": {
+    "@clack/prompts": "1.8.1"
+  },
+  "version": "0.1.0"
 }

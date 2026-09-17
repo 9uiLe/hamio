@@ -1,0 +1,1396 @@
+{
+  "timestamp": "2026-09-17T04:10:54.200Z",
+  "commit": "28b9b6d51f739b7fa00c9b6c167b216901aa3705",
+  "sources": {
+    "bun.lock": "16148cc800b4ecda0397208a4c40db2f8732835e9695200c8f10e013777be3fc",
+    "examples/display.json": "c29edab39f4003e8a0db9367edc8670d437600c72d83680d02504d0bf333cbe6",
+    "examples/form.json": "64e0832b9b1b4ed866c8befff73e81020923f528b7e66e5cdc2eac62bec5807d",
+    "flake.lock": "b8ca102a5e7a2a73a804dd6b116fd29ee04a83b959b0f11befa886bdbd2965dd",
+    "flake.nix": "7d8e80cb40ba3e2cf31c356cb8d9f8eaddc92f612de868ca542b8afb5897f161",
+    "package.json": "e1f82d2678da3dfdd41f0586b196e1b2b99daec6e56ce6fd1b162ca2b4cd374b",
+    "scripts/preview-env.sh": "66182da4d523a034ba0a1140592ce404fa1033db33268853216bdea2863e6f92",
+    "scripts/preview.sh": "13f1763eea91b877ea201aea6bf6b999ee40f44a617421fa45e6a2e83a291381",
+    "scripts/preview/artifacts.ts": "9aaedc3f6d545e5a0ec5e31be741b4167429dd9bb6d827a088eff70192e192a4",
+    "scripts/preview/capture.ts": "beef24cd9f7a756e080cfc81521ff5a039edf223a3fa9131004238bf10319153",
+    "scripts/preview/check.ts": "45309ebfc2b84b9ea5853ab0a6599ee4d0add4f18a83884552e3ba3ae1ccadf7",
+    "scripts/preview/fixture.ts": "66506e4e597d8e215f70a3b37c782b2b835705575bb405ecc1a0f23a52577074",
+    "scripts/preview/generate.ts": "4ed028f0fc2654ddca1e8950bca5019a60b41ea022e5c19dd9b2779222d9c87d",
+    "scripts/preview/product.ts": "60d0b653803a670a3b0f20b1477ad4e4e546b1ec55e8705bd2bdb5d1907ee9a6",
+    "scripts/preview/render.ts": "7a964aadd008277f5955636596b980f1fd31b9637d28d7beffa29730a58682ad",
+    "scripts/preview/scenarios.ts": "b75b19d02a3eb97193c5d2268d1b53b62f7623f76b2f5824b2c505557b7c965c",
+    "src/cli.ts": "6a993fa6c5085b669e758f49a58cd89424f72b96603c1d0464ee9f2c742b91d3",
+    "src/contract.ts": "7ea9f1d2c8526b59792da1af5bee070663d0a16796cbd0fbf6dc3ef38ca7f9b0",
+    "src/display.ts": "f422699fe41de49633fae30cf034b7c0b0ae5bdedabc3671aa0d0f1e49d45743",
+    "src/form.ts": "f04292becbdf17bf5ecc85ca1ff8bd17032d850001c7b6c317da334e49d36e75",
+    "src/io.ts": "a98e5997f7bd017548d4321cdf96247fe384a7377909fb237e38ed616598daa6",
+    "src/prompts.ts": "a219895016d2e9125298f750a4f1a962c69aa1e9fa7ed06bb09db1d8de3ff057",
+    "src/session.ts": "46d5e1066e2171f5b4e4debed85bd8f67da495ebec373b9dd9d5c49a96f6931d",
+    "src/validation.ts": "48076009cbe3958a6a99b373f9cd8fc85fb2154cd1ab1c6afad381901138ee57",
+    "scripts/build.ts": "249a2053de228d97fb3d5492774ad27110390c6ae9921a3ba7b4442c57f8ba72",
+    "scripts/benchmark-api.ts": "f7631f3f53e707ed7ad20456f4bb6cabf5fc994c976aaa0c3f02b0c78223e6d0"
+  },
+  "binarySha256": "3602a623dcb83c1f3256a8bb2c0b3ca99e5c56cc26f878c9f2091eae605bbaed",
+  "bun": "1.4.2",
+  "platform": "darwin",
+  "arch": "arm64",
+  "osRelease": "25.2.0",
+  "cpu": "Apple M1 Pro",
+  "cores": 10,
+  "ramBytes": 17179869184,
+  "warmup": 2,
+  "count": 30,
+  "cases": [
+    {
+      "name": "capabilities",
+      "args": ["capabilities"],
+      "inputBytes": 0,
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "medianMs": 17.241332999999997,
+      "p95Ms": 18.17004200000008,
+      "medianCpuMs": 16.722,
+      "medianMaxRssBytes": 21938176,
+      "stdoutBytes": 88,
+      "stderrBytes": 0,
+      "samples": [
+        {
+          "wallMs": 16.964332999999996,
+          "cpuMs": 16.509,
+          "maxRssBytes": 21151744,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 16.782791000000003,
+          "cpuMs": 16.314,
+          "maxRssBytes": 21282816,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 16.891082999999995,
+          "cpuMs": 16.613,
+          "maxRssBytes": 21577728,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.773834000000022,
+          "cpuMs": 17.561,
+          "maxRssBytes": 21839872,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 16.929709000000003,
+          "cpuMs": 16.551,
+          "maxRssBytes": 21938176,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.098417000000012,
+          "cpuMs": 16.753,
+          "maxRssBytes": 21938176,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 16.892459000000002,
+          "cpuMs": 16.54,
+          "maxRssBytes": 21954560,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.17670800000002,
+          "cpuMs": 16.763,
+          "maxRssBytes": 21970944,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.25554199999999,
+          "cpuMs": 16.722,
+          "maxRssBytes": 21938176,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.479708000000016,
+          "cpuMs": 17.06,
+          "maxRssBytes": 21954560,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.43741700000004,
+          "cpuMs": 16.938,
+          "maxRssBytes": 21954560,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 16.438750000000027,
+          "cpuMs": 15.986,
+          "maxRssBytes": 21938176,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 16.43629199999998,
+          "cpuMs": 15.987,
+          "maxRssBytes": 21938176,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 16.761791999999957,
+          "cpuMs": 16.212,
+          "maxRssBytes": 21954560,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.155708000000004,
+          "cpuMs": 16.483,
+          "maxRssBytes": 21561344,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 16.811082999999996,
+          "cpuMs": 16.204,
+          "maxRssBytes": 21938176,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 16.627542000000005,
+          "cpuMs": 16.32,
+          "maxRssBytes": 21954560,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.026250000000005,
+          "cpuMs": 16.871,
+          "maxRssBytes": 21561344,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.756124999999997,
+          "cpuMs": 17.139,
+          "maxRssBytes": 21954560,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.241332999999997,
+          "cpuMs": 16.443,
+          "maxRssBytes": 21938176,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.783792000000005,
+          "cpuMs": 16.891,
+          "maxRssBytes": 21577728,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 18.11416700000001,
+          "cpuMs": 17.188,
+          "maxRssBytes": 21544960,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.780542000000025,
+          "cpuMs": 17.147,
+          "maxRssBytes": 21938176,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 18.02966699999996,
+          "cpuMs": 17.521,
+          "maxRssBytes": 21938176,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.349583000000052,
+          "cpuMs": 16.653,
+          "maxRssBytes": 21561344,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 18.284291000000053,
+          "cpuMs": 17.199,
+          "maxRssBytes": 21544960,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 17.27216599999997,
+          "cpuMs": 16.46,
+          "maxRssBytes": 21561344,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 18.11633400000005,
+          "cpuMs": 17.214,
+          "maxRssBytes": 21577728,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 18.098041999999964,
+          "cpuMs": 17.006,
+          "maxRssBytes": 21561344,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 18.17004200000008,
+          "cpuMs": 17.325,
+          "maxRssBytes": 21561344,
+          "stdoutBytes": 88,
+          "stderrBytes": 0
+        }
+      ]
+    },
+    {
+      "name": "form",
+      "args": [
+        "form",
+        "--definition",
+        "examples/form.json",
+        "--values",
+        "-",
+        "--interactive",
+        "never"
+      ],
+      "inputBytes": 40,
+      "inputSha256": "981bccda10e12d77d1f1e4a6db90b65732d6a031ffe3cb8478d2efb458acc0a2",
+      "medianMs": 20.794624999999996,
+      "p95Ms": 21.966083000000026,
+      "medianCpuMs": 20.251,
+      "medianMaxRssBytes": 24559616,
+      "stdoutBytes": 111,
+      "stderrBytes": 0,
+      "samples": [
+        {
+          "wallMs": 19.99116600000002,
+          "cpuMs": 19.623,
+          "maxRssBytes": 24543232,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.435583000000065,
+          "cpuMs": 20.511,
+          "maxRssBytes": 24887296,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.33116700000005,
+          "cpuMs": 20.211,
+          "maxRssBytes": 24543232,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.169708000000014,
+          "cpuMs": 20.35,
+          "maxRssBytes": 24559616,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.93512499999997,
+          "cpuMs": 20.569,
+          "maxRssBytes": 24559616,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.63383299999998,
+          "cpuMs": 20.765,
+          "maxRssBytes": 24576000,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 19.921959000000015,
+          "cpuMs": 19.573,
+          "maxRssBytes": 24559616,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 19.905250000000024,
+          "cpuMs": 19.517,
+          "maxRssBytes": 24576000,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.936916999999994,
+          "cpuMs": 20.689,
+          "maxRssBytes": 24870912,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.801458000000025,
+          "cpuMs": 20.327,
+          "maxRssBytes": 24887296,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 19.37308299999995,
+          "cpuMs": 18.907,
+          "maxRssBytes": 24543232,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.588584000000083,
+          "cpuMs": 20.099,
+          "maxRssBytes": 24559616,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.56033400000001,
+          "cpuMs": 19.999,
+          "maxRssBytes": 24559616,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.788542000000007,
+          "cpuMs": 20.05,
+          "maxRssBytes": 24543232,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 19.85895800000003,
+          "cpuMs": 19.242,
+          "maxRssBytes": 24543232,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.277208000000087,
+          "cpuMs": 20.816,
+          "maxRssBytes": 24576000,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.992042000000083,
+          "cpuMs": 20.8,
+          "maxRssBytes": 24870912,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.59658300000001,
+          "cpuMs": 19.979,
+          "maxRssBytes": 24543232,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.052249999999958,
+          "cpuMs": 20.472,
+          "maxRssBytes": 24576000,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.794624999999996,
+          "cpuMs": 20.74,
+          "maxRssBytes": 24576000,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.314499999999953,
+          "cpuMs": 20.849,
+          "maxRssBytes": 24526848,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.966083000000026,
+          "cpuMs": 21.413,
+          "maxRssBytes": 24887296,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 19.702291999999943,
+          "cpuMs": 19.591,
+          "maxRssBytes": 24559616,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.79950000000008,
+          "cpuMs": 20.153,
+          "maxRssBytes": 24559616,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.543541000000005,
+          "cpuMs": 20.505,
+          "maxRssBytes": 24903680,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.567874999999958,
+          "cpuMs": 20.728,
+          "maxRssBytes": 24559616,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 19.880916999999954,
+          "cpuMs": 19.582,
+          "maxRssBytes": 24887296,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.665042000000085,
+          "cpuMs": 20.198,
+          "maxRssBytes": 24576000,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.814333999999917,
+          "cpuMs": 20.251,
+          "maxRssBytes": 24576000,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.32904099999996,
+          "cpuMs": 20.402,
+          "maxRssBytes": 24576000,
+          "stdoutBytes": 111,
+          "stderrBytes": 0
+        }
+      ]
+    },
+    {
+      "name": "render",
+      "args": ["render", "--format", "json", "--input", "examples/display.json"],
+      "inputBytes": 0,
+      "inputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "medianMs": 21.769207999999935,
+      "p95Ms": 27.50258299999996,
+      "medianCpuMs": 21.221,
+      "medianMaxRssBytes": 25051136,
+      "stdoutBytes": 610,
+      "stderrBytes": 0,
+      "samples": [
+        {
+          "wallMs": 22.120582999999897,
+          "cpuMs": 21.36,
+          "maxRssBytes": 25362432,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.86550000000011,
+          "cpuMs": 21.261,
+          "maxRssBytes": 25034752,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.78183399999989,
+          "cpuMs": 19.998,
+          "maxRssBytes": 25083904,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.94683400000008,
+          "cpuMs": 21.535,
+          "maxRssBytes": 25018368,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.764916000000085,
+          "cpuMs": 21.196,
+          "maxRssBytes": 25362432,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.69404099999997,
+          "cpuMs": 21.39,
+          "maxRssBytes": 25034752,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.892957999999908,
+          "cpuMs": 21.4,
+          "maxRssBytes": 25051136,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.422166999999945,
+          "cpuMs": 21.978,
+          "maxRssBytes": 25051136,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.78970800000002,
+          "cpuMs": 21.336,
+          "maxRssBytes": 25346048,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 24.341874999999845,
+          "cpuMs": 24.036,
+          "maxRssBytes": 25067520,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 27.50258299999996,
+          "cpuMs": 24.808,
+          "maxRssBytes": 25067520,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 30.437417000000096,
+          "cpuMs": 28.915,
+          "maxRssBytes": 24690688,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 23.362416000000167,
+          "cpuMs": 22.642,
+          "maxRssBytes": 25378816,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.318750000000136,
+          "cpuMs": 21.658,
+          "maxRssBytes": 25051136,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.431332999999995,
+          "cpuMs": 21.734,
+          "maxRssBytes": 25378816,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.38366599999995,
+          "cpuMs": 20.919,
+          "maxRssBytes": 25362432,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.01254199999994,
+          "cpuMs": 21.221,
+          "maxRssBytes": 25051136,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.87324999999987,
+          "cpuMs": 21.46,
+          "maxRssBytes": 25034752,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.154166000000032,
+          "cpuMs": 20.686,
+          "maxRssBytes": 25067520,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.430166999999983,
+          "cpuMs": 20.574,
+          "maxRssBytes": 25083904,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.483167000000094,
+          "cpuMs": 20.911,
+          "maxRssBytes": 25051136,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.404125000000022,
+          "cpuMs": 19.832,
+          "maxRssBytes": 25034752,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.153290999999854,
+          "cpuMs": 20.44,
+          "maxRssBytes": 25018368,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.21312499999999,
+          "cpuMs": 21.501,
+          "maxRssBytes": 25346048,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.769207999999935,
+          "cpuMs": 21.135,
+          "maxRssBytes": 25034752,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.594749999999976,
+          "cpuMs": 20.564,
+          "maxRssBytes": 25034752,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.573458000000073,
+          "cpuMs": 20.734,
+          "maxRssBytes": 25083904,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.14820799999984,
+          "cpuMs": 20.448,
+          "maxRssBytes": 25133056,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.981708000000026,
+          "cpuMs": 20.328,
+          "maxRssBytes": 25018368,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.00895800000012,
+          "cpuMs": 20.198,
+          "maxRssBytes": 25001984,
+          "stdoutBytes": 610,
+          "stderrBytes": 0
+        }
+      ]
+    },
+    {
+      "name": "stream-100-tasks",
+      "args": ["stream", "--format", "json"],
+      "inputBytes": 19341,
+      "inputSha256": "363ec17a879ea1acfa45cd826558b4f3a9309e70ee66cb7c944ae1f7248f8c37",
+      "medianMs": 21.795334000000366,
+      "p95Ms": 22.54037500000004,
+      "medianCpuMs": 24.585,
+      "medianMaxRssBytes": 29048832,
+      "stdoutBytes": 124,
+      "stderrBytes": 0,
+      "samples": [
+        {
+          "wallMs": 21.218999999999824,
+          "cpuMs": 24.528,
+          "maxRssBytes": 28278784,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.795334000000366,
+          "cpuMs": 24.631,
+          "maxRssBytes": 28704768,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.412958000000344,
+          "cpuMs": 24.944,
+          "maxRssBytes": 28950528,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.09633299999996,
+          "cpuMs": 24.968,
+          "maxRssBytes": 28917760,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.61462500000016,
+          "cpuMs": 24.419,
+          "maxRssBytes": 29048832,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.58895799999982,
+          "cpuMs": 24.498,
+          "maxRssBytes": 29179904,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.060500000000047,
+          "cpuMs": 24.675,
+          "maxRssBytes": 29163520,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.7482500000001,
+          "cpuMs": 23.991,
+          "maxRssBytes": 28459008,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.157416000000012,
+          "cpuMs": 24.428,
+          "maxRssBytes": 29065216,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.69216600000027,
+          "cpuMs": 24.316,
+          "maxRssBytes": 29179904,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.623207999999977,
+          "cpuMs": 23.917,
+          "maxRssBytes": 28114944,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.272249999999985,
+          "cpuMs": 25.048,
+          "maxRssBytes": 28917760,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.131958999999824,
+          "cpuMs": 24.982,
+          "maxRssBytes": 29179904,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.220332999999755,
+          "cpuMs": 24.513,
+          "maxRssBytes": 28033024,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.572042000000238,
+          "cpuMs": 25.03,
+          "maxRssBytes": 29147136,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.166208000000097,
+          "cpuMs": 23.797,
+          "maxRssBytes": 29147136,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.52404200000001,
+          "cpuMs": 24.274,
+          "maxRssBytes": 29048832,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.233374999999796,
+          "cpuMs": 25.041,
+          "maxRssBytes": 28983296,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.44399999999996,
+          "cpuMs": 24.065,
+          "maxRssBytes": 28262400,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.08141599999999,
+          "cpuMs": 25.13,
+          "maxRssBytes": 28753920,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.45425000000023,
+          "cpuMs": 24.218,
+          "maxRssBytes": 27967488,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.04791699999987,
+          "cpuMs": 25.174,
+          "maxRssBytes": 29196288,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.90279099999998,
+          "cpuMs": 24.94,
+          "maxRssBytes": 29245440,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.213332999999693,
+          "cpuMs": 24.948,
+          "maxRssBytes": 28147712,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.842667000000347,
+          "cpuMs": 24.398,
+          "maxRssBytes": 29196288,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 21.26104200000009,
+          "cpuMs": 24.585,
+          "maxRssBytes": 29196288,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.54037500000004,
+          "cpuMs": 24.602,
+          "maxRssBytes": 28147712,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.020042000000103,
+          "cpuMs": 24.953,
+          "maxRssBytes": 29065216,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 20.730791999999838,
+          "cpuMs": 23.912,
+          "maxRssBytes": 29229056,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 22.335957999999664,
+          "cpuMs": 25.168,
+          "maxRssBytes": 29179904,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        }
+      ]
+    },
+    {
+      "name": "stream-2000-progress",
+      "args": ["stream", "--format", "json"],
+      "inputBytes": 229443,
+      "inputSha256": "d32edacf2e8cc0e4035a32737aea08b134e70fb4280a9cc9960751f44e8ad52f",
+      "medianMs": 28.91345799999999,
+      "p95Ms": 30.441874999999982,
+      "medianCpuMs": 42.252,
+      "medianMaxRssBytes": 43843584,
+      "stdoutBytes": 124,
+      "stderrBytes": 0,
+      "samples": [
+        {
+          "wallMs": 28.207334000000174,
+          "cpuMs": 43.012,
+          "maxRssBytes": 44564480,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.48233399999981,
+          "cpuMs": 42.252,
+          "maxRssBytes": 44138496,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 27.35216700000001,
+          "cpuMs": 40.79,
+          "maxRssBytes": 43778048,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.65237500000012,
+          "cpuMs": 43.025,
+          "maxRssBytes": 44367872,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.443166999999903,
+          "cpuMs": 42.299,
+          "maxRssBytes": 43565056,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.671291999999994,
+          "cpuMs": 42.665,
+          "maxRssBytes": 44269568,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.07358299999987,
+          "cpuMs": 40.03,
+          "maxRssBytes": 43614208,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 27.88804200000004,
+          "cpuMs": 40.557,
+          "maxRssBytes": 42876928,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.002833999999893,
+          "cpuMs": 43.197,
+          "maxRssBytes": 43663360,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.715958000000228,
+          "cpuMs": 42.094,
+          "maxRssBytes": 44171264,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.84762499999988,
+          "cpuMs": 42.221,
+          "maxRssBytes": 44236800,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 32.27933400000029,
+          "cpuMs": 44.618,
+          "maxRssBytes": 44138496,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.74912499999982,
+          "cpuMs": 41.86,
+          "maxRssBytes": 43335680,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.367791000000125,
+          "cpuMs": 41.754,
+          "maxRssBytes": 43270144,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.162583000000268,
+          "cpuMs": 42.019,
+          "maxRssBytes": 44007424,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.499374999999873,
+          "cpuMs": 42.703,
+          "maxRssBytes": 43417600,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.871083,
+          "cpuMs": 41.884,
+          "maxRssBytes": 43630592,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.1206659999998,
+          "cpuMs": 42.558,
+          "maxRssBytes": 44122112,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.301166000000194,
+          "cpuMs": 40.783,
+          "maxRssBytes": 44072960,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.333250000000135,
+          "cpuMs": 42.377,
+          "maxRssBytes": 43876352,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.93633299999965,
+          "cpuMs": 42.881,
+          "maxRssBytes": 43614208,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.963083000000097,
+          "cpuMs": 41.969,
+          "maxRssBytes": 43843584,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.197208000000046,
+          "cpuMs": 42.455,
+          "maxRssBytes": 44204032,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.077499999999873,
+          "cpuMs": 42.06,
+          "maxRssBytes": 44187648,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.062749999999596,
+          "cpuMs": 43.052,
+          "maxRssBytes": 43778048,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.01633300000003,
+          "cpuMs": 41.196,
+          "maxRssBytes": 43614208,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 29.714124999999967,
+          "cpuMs": 43.954,
+          "maxRssBytes": 43433984,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 28.91345799999999,
+          "cpuMs": 42.252,
+          "maxRssBytes": 43728896,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 30.441874999999982,
+          "cpuMs": 44.665,
+          "maxRssBytes": 44515328,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 27.630375000000186,
+          "cpuMs": 41.731,
+          "maxRssBytes": 43958272,
+          "stdoutBytes": 124,
+          "stderrBytes": 0
+        }
+      ]
+    },
+    {
+      "name": "stream-2000-events",
+      "args": ["stream", "--format", "json", "--events"],
+      "inputBytes": 229443,
+      "inputSha256": "d32edacf2e8cc0e4035a32737aea08b134e70fb4280a9cc9960751f44e8ad52f",
+      "medianMs": 33.97416700000031,
+      "p95Ms": 35.01770800000031,
+      "medianCpuMs": 51.75,
+      "medianMaxRssBytes": 45416448,
+      "stdoutBytes": 317647,
+      "stderrBytes": 0,
+      "samples": [
+        {
+          "wallMs": 33.93395899999996,
+          "cpuMs": 51.297,
+          "maxRssBytes": 45203456,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 35.01770800000031,
+          "cpuMs": 52.697,
+          "maxRssBytes": 45514752,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.153291999999965,
+          "cpuMs": 50.359,
+          "maxRssBytes": 45416448,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.02254200000016,
+          "cpuMs": 52.016,
+          "maxRssBytes": 45596672,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.300166999999874,
+          "cpuMs": 51.803,
+          "maxRssBytes": 45400064,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.48345900000004,
+          "cpuMs": 52.094,
+          "maxRssBytes": 45793280,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.29879200000005,
+          "cpuMs": 51.518,
+          "maxRssBytes": 45367296,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 32.40820799999983,
+          "cpuMs": 50.563,
+          "maxRssBytes": 45481984,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 31.874459000000115,
+          "cpuMs": 50.517,
+          "maxRssBytes": 45580288,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.335209000000305,
+          "cpuMs": 52.945,
+          "maxRssBytes": 45334528,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.09920800000009,
+          "cpuMs": 50.591,
+          "maxRssBytes": 45416448,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.8007090000001,
+          "cpuMs": 51.271,
+          "maxRssBytes": 45580288,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.858124999999745,
+          "cpuMs": 51.947,
+          "maxRssBytes": 45662208,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.52179199999955,
+          "cpuMs": 50.825,
+          "maxRssBytes": 45383680,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.17274999999972,
+          "cpuMs": 52.078,
+          "maxRssBytes": 45285376,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.437417000000096,
+          "cpuMs": 51.75,
+          "maxRssBytes": 45367296,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.11816699999963,
+          "cpuMs": 52.564,
+          "maxRssBytes": 45350912,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.28529200000048,
+          "cpuMs": 51.569,
+          "maxRssBytes": 45432832,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.398708000000624,
+          "cpuMs": 51.376,
+          "maxRssBytes": 45629440,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.031834000000345,
+          "cpuMs": 51.745,
+          "maxRssBytes": 45367296,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.82375000000047,
+          "cpuMs": 52.992,
+          "maxRssBytes": 45383680,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.82708399999956,
+          "cpuMs": 51.683,
+          "maxRssBytes": 45088768,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.32183299999997,
+          "cpuMs": 52.478,
+          "maxRssBytes": 45875200,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.113250000000335,
+          "cpuMs": 51.366,
+          "maxRssBytes": 45170688,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 33.97416700000031,
+          "cpuMs": 51.397,
+          "maxRssBytes": 45531136,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.83145799999966,
+          "cpuMs": 52.053,
+          "maxRssBytes": 45432832,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 36.97987499999999,
+          "cpuMs": 52.521,
+          "maxRssBytes": 45727744,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.59595799999988,
+          "cpuMs": 51.97,
+          "maxRssBytes": 45416448,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.69554200000039,
+          "cpuMs": 52.081,
+          "maxRssBytes": 45531136,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        },
+        {
+          "wallMs": 34.73570799999925,
+          "cpuMs": 52.98,
+          "maxRssBytes": 46137344,
+          "stdoutBytes": 317647,
+          "stderrBytes": 0
+        }
+      ]
+    }
+  ]
+}
