@@ -1,11 +1,4 @@
-import {
-  type Answers,
-  type Field,
-  type FormDefinition,
-  type FormResponse,
-  type Issue,
-  limits,
-} from "./contract.ts";
+import { type Answers, type Field, type FormDefinition, type Issue, limits } from "./contract.ts";
 
 export function answerIssue(field: Field, value: unknown): Issue | undefined {
   const issue = (code: Issue["code"], message: string): Issue => ({
@@ -47,7 +40,14 @@ export function answerIssue(field: Field, value: unknown): Issue | undefined {
   }
 }
 
-export function resolveForm(form: FormDefinition, supplied: Record<string, unknown>) {
+export type FormResolution =
+  | { status: "invalid_values"; issues: Issue[] }
+  | { status: "ready"; values: Answers; missing: Field[] };
+
+export function resolveForm(
+  form: FormDefinition,
+  supplied: Record<string, unknown>,
+): FormResolution {
   const values: Answers = {};
   const missing: Field[] = [];
   const issues: Issue[] = [];
@@ -70,21 +70,7 @@ export function resolveForm(form: FormDefinition, supplied: Record<string, unkno
     )
       values[field.id] = value;
   }
-  return { values, missing, issues };
-}
-
-export function formResponse(
-  form: FormDefinition,
-  supplied: Record<string, unknown>,
-): FormResponse {
-  const { values, missing, issues } = resolveForm(form, supplied);
-  if (issues.length) return { apiVersion: 1, status: "invalid_values", id: form.id, issues };
-  if (missing.length)
-    return {
-      apiVersion: 1,
-      status: "needs_input",
-      id: form.id,
-      missing: missing.map((field) => field.id),
-    };
-  return { apiVersion: 1, status: "ok", id: form.id, values };
+  return issues.length
+    ? { status: "invalid_values", issues }
+    : { status: "ready", values, missing };
 }

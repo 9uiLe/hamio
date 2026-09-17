@@ -7,12 +7,12 @@
     "bun": "1.4.2"
   },
   "sources": {
-    "bun.lock": "16148cc800b4ecda0397208a4c40db2f8732835e9695200c8f10e013777be3fc",
+    "bun.lock": "e39bb624965864e024cf1f5832800284e45c6e5c7d5ef0b886c2b6408bea5e76",
     "examples/display.json": "c29edab39f4003e8a0db9367edc8670d437600c72d83680d02504d0bf333cbe6",
     "examples/form.json": "64e0832b9b1b4ed866c8befff73e81020923f528b7e66e5cdc2eac62bec5807d",
     "flake.lock": "b8ca102a5e7a2a73a804dd6b116fd29ee04a83b959b0f11befa886bdbd2965dd",
     "flake.nix": "7d8e80cb40ba3e2cf31c356cb8d9f8eaddc92f612de868ca542b8afb5897f161",
-    "package.json": "e1f82d2678da3dfdd41f0586b196e1b2b99daec6e56ce6fd1b162ca2b4cd374b",
+    "package.json": "e0a14f19658fd02e3a9147518c4df19fc1edacf45157e3a9c6eedbb7cf57d008",
     "scripts/preview-env.sh": "66182da4d523a034ba0a1140592ce404fa1033db33268853216bdea2863e6f92",
     "scripts/preview.sh": "13f1763eea91b877ea201aea6bf6b999ee40f44a617421fa45e6a2e83a291381",
     "scripts/preview/artifacts.ts": "9aaedc3f6d545e5a0ec5e31be741b4167429dd9bb6d827a088eff70192e192a4",
@@ -23,19 +23,27 @@
     "scripts/preview/product.ts": "60d0b653803a670a3b0f20b1477ad4e4e546b1ec55e8705bd2bdb5d1907ee9a6",
     "scripts/preview/render.ts": "7a964aadd008277f5955636596b980f1fd31b9637d28d7beffa29730a58682ad",
     "scripts/preview/scenarios.ts": "b75b19d02a3eb97193c5d2268d1b53b62f7623f76b2f5824b2c505557b7c965c",
-    "src/cli.ts": "6a993fa6c5085b669e758f49a58cd89424f72b96603c1d0464ee9f2c742b91d3",
-    "src/contract.ts": "7ea9f1d2c8526b59792da1af5bee070663d0a16796cbd0fbf6dc3ef38ca7f9b0",
-    "src/display.ts": "f422699fe41de49633fae30cf034b7c0b0ae5bdedabc3671aa0d0f1e49d45743",
-    "src/form.ts": "f04292becbdf17bf5ecc85ca1ff8bd17032d850001c7b6c317da334e49d36e75",
-    "src/io.ts": "a98e5997f7bd017548d4321cdf96247fe384a7377909fb237e38ed616598daa6",
-    "src/prompts.ts": "a219895016d2e9125298f750a4f1a962c69aa1e9fa7ed06bb09db1d8de3ff057",
-    "src/session.ts": "46d5e1066e2171f5b4e4debed85bd8f67da495ebec373b9dd9d5c49a96f6931d",
-    "src/validation.ts": "48076009cbe3958a6a99b373f9cd8fc85fb2154cd1ab1c6afad381901138ee57"
+    "src/adapters/input.ts": "b672edfdbac49838de1d2555b09065a3dab6b75fe2ee3d8e868b8b363cc2a34f",
+    "src/adapters/output.ts": "cece6b6daaea0adb17a1ea8dda3edcbe19ea9b9ac88044c7d57a98ff835ff2ba",
+    "src/adapters/prompts.ts": "8e79e0f689f2d3bc2145be3e06f8ac4e138c4188e0a5d880a075f00d9344fba7",
+    "src/adapters/terminal.ts": "ce5e7fc4c8acd989c06a0901bc40d5319b90943d87b42f114ef6300c1eb15102",
+    "src/application/command.ts": "c9c32fa94b250eb80dd278ae800deb47cfa1a62ca00a8be7ead2f6e2fd69aef9",
+    "src/application/ports.ts": "28e882d43c41b3dc4058ee2df9d5e8bbf690e046ccd858060273f113328669a2",
+    "src/application/run.ts": "6e35746d6e4c79e9506be2ebe02cfc2cba93c250a225670930cf415edbd44c9e",
+    "src/cli.ts": "2c6cdd0df7577272d124b1d088c441e78005a909c699af2507da14851dc6f277",
+    "src/core/contract.ts": "7ea9f1d2c8526b59792da1af5bee070663d0a16796cbd0fbf6dc3ef38ca7f9b0",
+    "src/core/form.ts": "4d0000f87fa751b792be768f4e6e78332787343034e95a67549f33e32737ad3b",
+    "src/core/redaction.ts": "0ea63bcc39486359c9cd18c085972d67edb93b2353248c1bb865afae3a4de44b",
+    "src/core/session.ts": "f4c9d6f3c7253240eb1e926a6cf8323a0d71147cbd0ee23ca8f694a6dee6d1d0",
+    "src/core/validation.ts": "e39e1709db2dd69851eb2bcba16fe28874383492fa8d16fdd80ebacf8ff9007a",
+    "src/terminal/format.ts": "c401325bb41d0c50bae4f659d43db4e16be0b741b90e0c2372e4087396117cfc",
+    "src/terminal/prompt-view.ts": "f2104ff249dffe3efe35dbc0b960f5212dc8d58ce9b1f2141582d0038592cc61",
+    "src/terminal/text.ts": "f3fe712700a99b9712ebbf96dc6bf06bbc8ecbe6738f823de4fadcbcc7d3b1f3"
   },
   "images": {
     "fixture-input.png": "798e655eaa2a3d83808769c4f176760c8e03a23524904809ce79ec51d13d7ab0",
     "fixture-result.png": "e52eb04a07842c9b299f5470f4167c0f70437edabd1cba3ad32d42e632a491fd",
-    "product-input.png": "cc67ed26b68d8042d16aa2dd84fed69c72ee039f88cc0d2f1adce070c8a82893",
-    "product-result.png": "f280354f5d17a4210359e178ceacff7a2a7968bedc19ef3c06c9178bf9b918d0"
+    "product-input.png": "c0ac5ef1c28425b61608b78584cf62f1aaabc32f5d9f4d102c352f04cd81b6fc",
+    "product-result.png": "511e295146707c8823734fc6381ad94c164805da6a8f974b9081d6a76697c491"
   }
 }

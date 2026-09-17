@@ -56,6 +56,8 @@ sh examples/form.sh
 
 `build` はホストの OS・CPU 向けに `dist/hamio` を生成する。Nix shell が同梱用ランタイムを `HAMIO_BUN_RUNTIME` へ設定し、ビルドへ渡す。生成後の UI 利用に Bun・Node.js・Nix は不要である。公開リリースや署名はこのコマンドで行わない。
 
+圧縮した配布候補は `bun run package` でビルドし、`dist/hamio.gz` に保存する。受け取り側は `gzip -dc hamio.gz > hamio` と `chmod +x hamio` で展開する。圧縮は転送量を減らすための工程で、通常の build・check には含めない。
+
 Python の例は利用側の Python 環境で `python3 examples/form.py` を実行する。hamio は利用側の言語ランタイムを提供しない。
 
 ### 編集から全体検査まで
@@ -110,16 +112,36 @@ nix flake check --all-systems --no-build --no-write-lock-file
 
 ### 製品試験と性能測定
 
-`bun test` は契約、実際の CLI、疑似端末である PTY、同梱実行ファイルを検証する。ビルド試験は `dist/hamio` を生成し、Bun のない PATH と、暗黙設定ファイルのあるディレクトリで実行する。
+`bun test` は契約、実際の CLI、疑似端末である PTY、同梱実行ファイルを検証する。ビルド試験は `dist/hamio` を生成し、Bun のない PATH と暗黙設定ファイルのあるディレクトリで実行する。[runtime.test.ts](../tests/runtime.test.ts) は入出力を差し替え、同時呼び出し、event の順序・排出、遅い出力、描画の寿命を検証する。試験と各層の関係は[実装設計](implementation.md#10-検証の構成)に定める。
 
-性能測定は製品ビルドの後、専用コマンドで行う。
+性能は配布候補をビルドしてから測る。開発用 TS の直接実行、プレビュー生成、製品の起動・処理は別の測定対象とする。
+
+| 測定               | スクリプト                      | 対象                                                                 |
+| ------------------ | ------------------------------- | -------------------------------------------------------------------- |
+| 一つの実行ファイル | `scripts/benchmark-api.ts`      | 機械向けコマンドの起動、CPU、maxRSS、出力量                          |
+| 二つの実行ファイル | `scripts/benchmark-refactor.ts` | 同一入力の交互実行による処理時間・資源使用量・サイズ・PTY 応答の比較 |
+
+一つの実行ファイルを測る場合は、次を実行する。
 
 ```sh
 bun run build
 bun scripts/benchmark-api.ts dist/benchmarks/api.json 30
 ```
 
-通常の check・hooks・PR の CI ではベンチマークを実行しない。測定条件、初期基準値、未検証の範囲は[製品 API の性能評価](research/api-performance.md)に記載する。異なるソースや環境の測定値を同一条件として扱わない。
+二つの実行ファイルを比較する場合は、対照を「基準版」、作業中の実装を「評価版」とする。基準版は対象 commit を別の作業ディレクトリでビルドし、実行ファイルを `dist/refactor/baseline-hamio` に保存する。比較には同じ Nix 入力とランタイム・ビルド設定を使い、依存の差は lockfile とともに記録する。
+
+評価版をビルドして次を実行する。最後の引数 `BASELINE_COMMIT_SHA` は基準版の完全な commit SHA に置き換える。
+
+```sh
+bun run build
+bun scripts/benchmark-refactor.ts dist/refactor/comparison.json dist/refactor/baseline-hamio dist/hamio 30 BASELINE_COMMIT_SHA
+```
+
+各条件・各版で2回ずつ warmup し、30組の測定で実行順を交互に切り替える。ソースや実行ファイルが測定中に変わった場合、または pipe の出力が版・試行間で異なる場合は失敗する。この比較は同じ出力契約を持つ版に使う。
+
+計測中は別の build・テスト・ベンチマークを走らせない。条件、入力 hash、ソースと生成物の hash、生データを保存する。OS・CPU・RAM・Bun 版・測定 API・単位を添え、中央値と p95、改善と悪化、未測定の範囲を記録する。通常の check・hooks・PR の CI ではベンチマークを実行しない。
+
+測定記録の例は[製品 API の性能評価](research/api-performance.md)と[実行基盤の性能比較](research/refactor-performance.md)を参照する。異なるソースや環境の値を同一条件として扱わず、試験成功だけで全性能予算の達成を判断しない。
 
 ## 4. Git hooks
 
