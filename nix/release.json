@@ -1,0 +1,30 @@
+{
+  "version": "0.1.0",
+  "sourceCommit": "1c266341fd4d62c9314f6654abda00cd223941fa",
+  "sources": {
+    "aarch64-darwin": {
+      "target": "darwin-arm64",
+      "archive": "7e61f5862973acb191ec486a36bb19815bf7a9264678fd7488aeebb5e3cf989a",
+      "binary": "dd45f29f67ba6687a186a9004c616159f675d1409fe690edd7d6ceae284c4c82",
+      "checksum": "de4bfd615501b50a75c9e3d5d0b2d0f6d044994fbb3a04b9531b36cc80e60cd1",
+      "sbom": "e8bfe95da32a03b74be808d048fc4365283660d64aaa22b38d21f7e9bc5f643c",
+      "notices": "c104a6a7276c98ce245816b9d77974d556b3852113139ed38f2e0081948eef09"
+    },
+    "aarch64-linux": {
+      "target": "linux-arm64",
+      "archive": "b88ad1dfbd47393bdfacef6e0a4343f4928cc19d216a89cae26664e186694c99",
+      "binary": "47aa893d9a3aa672f54ab0234b83cc49cd7a914f69ea2f6e4bbd10c8d006d884",
+      "checksum": "f0fd1a5e90c3356704c228f3ec3e8813919de8ba8376848e3db3d687d09590cc",
+      "sbom": "f40f1f68978a29fc83219ea311267d9dfcec46718b38222848e355e06d10063e",
+      "notices": "c104a6a7276c98ce245816b9d77974d556b3852113139ed38f2e0081948eef09"
+    },
+    "x86_64-linux": {
+      "target": "linux-x64",
+      "archive": "33a94ff8e2995dbcb32609ef656188dcadbfc8062c379da5a1489de0116cc191",
+      "binary": "6ea92523b8fa7d810002d988e536ec96113a3b71a0ff693caf99ce171918c478",
+      "checksum": "c72a740181363f4c8b9d3cc1f95eb8bd5fc6c6c250925e74920e86fa690e06e1",
+      "sbom": "73b885ff33fea2c2f2766a93724ccdf8963307e98a857aa2c8c53f886ed2a1f6",
+      "notices": "c104a6a7276c98ce245816b9d77974d556b3852113139ed38f2e0081948eef09"
+    }
+  }
+}

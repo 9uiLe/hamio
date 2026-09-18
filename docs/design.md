@@ -256,7 +256,11 @@ flowchart TD
 
 ### 導入・更新・障害対応
 
-利用側は `.hamio-version` に完全な `vX.Y.Z` を固定する。インストーラー自身と公開資産について、immutable release との結び付き、repository・workflow・タグ・commit・runner、圧縮前後の hash、実行ファイルの版を検証する。成功後に `.tools/bin/hamio` の symlink を切り替え、失敗時は使用中の版を保持する。管理対象外のファイルは上書きしない。
+POSIX インストーラーを使う利用側は `.hamio-version` に完全な `vX.Y.Z` を固定する。インストーラー自身と公開資産について、immutable release との結び付き、repository・workflow・タグ・commit・runner、圧縮前後の hash、実行ファイルの版を検証する。成功後に `.tools/bin/hamio` の symlink を切り替え、失敗時は使用中の版を保持する。管理対象外のファイルは上書きしない。
+
+Nix では公開済みの gzip、checksum、SBOM、notices を固定 hash で取得する package と、その実行用 app を提供する。保守者が固定情報の更新時に公開資産の署名付き証明を検証し、利用側は flake の commit・lockfile と Nix の取得検証を信頼する。採用する製品版は `nix/release.json` で管理し、開発ソースの版と区別する。
+
+Nix パッケージは展開後の hash を照合し、Linux では Nix の loader・共有ライブラリを参照するよう調整する。公開時の証明は調整前の入力資産に適用され、Nix の依存構成は flake と lockfile に固定する。製品の JavaScript を再ビルドせず、通常起動に launcher や開発ツールを追加しない。利用側は Nix の profile または開発 shell で版を管理する。
 
 更新とロールバックも同じ検証経路を使う。同梱 Bun の修正は新しい製品版で提供する。公開後の導入失敗や脆弱性には、影響範囲と回避策の告知、影響版の推奨停止、新しい版での修正で対応する。操作は[配布手順](distribution.md)、報告と修正の責任は[セキュリティ方針](../SECURITY.md)に定める。
 

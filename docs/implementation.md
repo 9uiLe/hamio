@@ -203,6 +203,14 @@ build は3対象の native runner で候補を生成する。attest は全資産
 
 候補検証は由来と実行を、公開物の導入試験は immutable release、資産への帰属、取得・配置、利用側 Action を確認する。実行のモード、workflow と製品の識別情報、各工程の結果を[リリース評価](release-readiness.md)に記録する。権限、承認、失敗時の操作は[配布手順](distribution.md#保守者のリリース工程)に定める。
 
+### Nix の取得・配置
+
+[nix/package.nix](../nix/package.nix) は [release.json](../nix/release.json) に固定した公開資産を `fetchurl` で取得する。各資産の hash と展開後の binary hash を照合し、実行ファイルと上流の在庫・通知を store へ配置する。Linux の loader・ライブラリ探索パスは `autoPatchelfHook` が調整する。strip は行わず、配置後の smoke test で埋め込まれた製品が実行されることを確認する。
+
+[update-nix-release.ts](../scripts/update-nix-release.ts) は保守時のネットワーク操作と固定情報の更新だけを担当し、製品コードと Nix の通常導入から呼ばれない。完全な版指定、固定した公開元、実際の証明検証を経て、確認した全対象の hash を一括保存する。失敗時は既存の固定情報を保持し、ダウンロードした実行ファイルは起動しない。
+
+flake の `packages`、`apps`、`checks` はこの package を参照する。`devShells` は開発環境として独立させ、Nix による製品導入で開発依存を要求しない。Nix 固有の Linux 調整と追加ライブラリは上流の SBOM・attestation の保証範囲に含めない。
+
 ## 10. 検証の構成
 
 試験は利用側が観測する回答、状態、終了コード、秘密の扱い、資源の寿命を確認する。純粋関数と実際の CLI・PTY・実行ファイルの試験を組み合わせる。

@@ -12,6 +12,15 @@ hamio は、開発用スクリプトの質問、進捗、表、結果を統一�
 
 公開版 [v0.1.0](https://github.com/9uiLe/hamio/releases/tag/v0.1.0) は、3環境で配布候補の再現性・動作・証明と、公開後のインストーラー・GitHub Action・独立プロジェクトからの実行を確認しています。製品と検証用 workflow の識別情報、工程別結果、実測値、未検証範囲は[リリース評価](docs/release-readiness.md)を参照してください。
 
+Nix を使う場合は、パッケージを実行・導入できます。
+
+```sh
+nix run github:9uiLe/hamio#hamio -- --version
+nix profile add github:9uiLe/hamio#hamio
+```
+
+利用側の flake input と `flake.lock` への組み込み、更新・ロールバックは [Nix の導入手順](docs/distribution.md#nix-で導入する)を参照してください。Nix は固定した公開版を導入します。製品版と、パッケージ定義を含む flake の commit は別に管理します。
+
 ## スクリプトから使う
 
 | コマンド       | 用途                                               |

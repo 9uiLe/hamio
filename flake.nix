@@ -1,10 +1,10 @@
 {
-  description = "hamio development tools";
+  description = "hamio terminal UI and development tools";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
 
   outputs =
-    { nixpkgs, ... }:
+    { self, nixpkgs, ... }:
     let
       systems = [
         "aarch64-darwin"
@@ -14,6 +14,33 @@
       forAllSystems = nixpkgs.lib.genAttrs systems;
     in
     {
+      packages = forAllSystems (
+        system:
+        let
+          hamio = nixpkgs.legacyPackages.${system}.callPackage ./nix/package.nix { };
+        in
+        {
+          inherit hamio;
+          default = hamio;
+        }
+      );
+      apps = forAllSystems (
+        system:
+        let
+          hamio = {
+            type = "app";
+            program = "${self.packages.${system}.hamio}/bin/hamio";
+            meta.description = "Shared terminal forms and output for development scripts";
+          };
+        in
+        {
+          inherit hamio;
+          default = hamio;
+        }
+      );
+      checks = forAllSystems (system: {
+        package = self.packages.${system}.hamio;
+      });
       devShells = forAllSystems (
         system:
         let
