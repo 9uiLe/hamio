@@ -101,7 +101,14 @@ VS Code の設定と推奨拡張は `.vscode/` に置く。Biome と Prettier �
 nix flake check --all-systems --no-build --no-write-lock-file
 ```
 
-この評価は各 OS での実行試験を代替しない。
+この評価は各 OS での実行試験を代替しない。Nix パッケージの変更では、ホスト向けの生成と導入試験も行う。
+
+```sh
+nix flake check --no-write-lock-file --print-build-logs
+nix run .#hamio -- --version
+```
+
+`nix build`・`nix run` は固定した公開版を対象とし、`bun run build` は作業中の製品ソースを対象とする。Nix の新規ファイルは Git にステージしてから評価する。Nix 定義と固定情報の更新は[配布手順](distribution.md#nix-パッケージの保守)に従う。
 
 ### 製品試験と性能測定
 
@@ -152,6 +159,8 @@ hooks 自体は一時 Git リポジトリで正常系、不正な commit・push 
 | Release の `verify-install`                             | 所有者が workflow ref と公開製品の `version` を指定する手動実行                                  | 指定した公開版の導入と利用側 Action を3対象で検証              |
 
 branch push、PR close、タグ push は起動条件に含めない。通常の PR は共通検査を一度実行し、配布物は macOS arm64、Linux x64 / arm64 の native runner で検証する。公開済みの製品を調べる `verify-install` では、workflow の ref と製品のタグを分けて記録する。Release の操作は[配布手順](distribution.md#保守者のリリース工程)に従う。
+
+[Nix package workflow](../.github/workflows/nix.yml) は `flake.nix`、`flake.lock`、`nix/**`、導入試験、workflow 自身の変更を含む PR と、所有者の手動実行を対象とする。macOS arm64、Linux x64 / arm64 の3ジョブで公開版の Nix 取得・配置・実行を確認する。Quality と同じ投稿元制限、読み取り権限、Actions の commit 固定を使い、通常の製品ソース・文書変更では追加の3ジョブを起動しない。Quality の手動実行では `nix-package=true` を明示した場合だけ、この3対象の検査を併用する。
 
 ### PR の検査と権限
 

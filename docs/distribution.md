@@ -2,7 +2,7 @@
 
 hamio は、製品コード・製品依存・Bun をまとめた実行ファイルを GitHub Releases で配布する。利用側は公開版を明示して導入し、スクリプトからその実行ファイルを直接呼び出す。通常実行には Bun・Node.js・Nix を必要としない。業務処理に使う言語ランタイムは利用側が用意する。
 
-利用者は[リポジトリへの導入](#リポジトリへの導入)、[GitHub Actions](#github-actions-で使う)、[更新とロールバック](#更新ロールバック削除)の手順に従う。保守者は[リリース工程](#保守者のリリース工程)に従い、配布候補、承認付き公開、公開版の導入試験を管理する。入力形式は [API 契約](api.md)、ビルド内部の責務は[実装設計](implementation.md#9-ビルドと配布の境界)、公開版の実施結果は[リリース評価](release-readiness.md)に定める。
+利用者は [Nix での導入](#nix-で導入する)、[リポジトリへの導入](#リポジトリへの導入)、[GitHub Actions](#github-actions-で使う)、[更新とロールバック](#更新ロールバック削除)の手順に従う。保守者は[リリース工程](#保守者のリリース工程)に従い、配布候補、承認付き公開、公開版の導入試験を管理する。入力形式は [API 契約](api.md)、ビルド内部の責務は[実装設計](implementation.md#9-ビルドと配布の境界)、公開版の実施結果は[リリース評価](release-readiness.md)に定める。
 
 ## 配布方式と対象環境
 
@@ -38,9 +38,9 @@ Bun には MIT の本体、LGPL の JavaScriptCore、他の native ライブラ�
 
 ## 導入時の前提と信頼条件
 
-取得・更新には GitHub への通信、GitHub CLI、POSIX shell、gzip、`sha256sum` または `shasum` が必要である。GitHub CLI は2.100.0で動作確認しており、`release verify`、`release verify-asset`、`attestation verify --source-digest` を使う。[公式の導入経路](https://cli.github.com/)で用意し、認証済み CLI または読み取り用 `GH_TOKEN` を使う。
+POSIX インストーラーによる取得・更新には GitHub への通信、GitHub CLI、POSIX shell、gzip、`sha256sum` または `shasum` が必要である。GitHub CLI は2.100.0で動作確認しており、`release verify`、`release verify-asset`、`attestation verify --source-digest` を使う。[公式の導入経路](https://cli.github.com/)で用意し、認証済み CLI または読み取り用 `GH_TOKEN` を使う。
 
-immutable release は公開後のタグと資産を固定する仕組み、provenance はソースとビルド工程の由来、attestation は情報に対する署名付き証明を指す。導入では次の条件をすべて検証する。
+immutable release は公開後のタグと資産を固定する仕組み、provenance はソースとビルド工程の由来、attestation は情報に対する署名付き証明を指す。POSIX インストーラーは導入ごとに次の条件をすべて検証する。Nix は保守者による公開資産の証明確認と、利用側による固定情報・hash の検証を分ける。
 
 | 検証対象            | 必須条件                                                                            |
 | ------------------- | ----------------------------------------------------------------------------------- |
@@ -52,6 +52,68 @@ immutable release は公開後のタグと資産を固定する仕組み、prove
 | 製品版              | 実行ファイルの `--version` が指定版と一致する                                       |
 
 検証に使う GitHub CLI と、信頼する公開元・workflow を導入の起点とする。インストーラー自身も実行前に検証する。配置先は信頼するユーザーだけが書き込めるディレクトリにし、root 権限を必要としない構成にする。通常起動では通信、版照会、補助プロセス、ランタイム取得を行わない。
+
+## Nix で導入する
+
+Nix の `nix-command` と `flakes` を有効にすると、GitHub CLI や Bun の導入なしで公開版を使える。出力は `packages.<system>.hamio` と `apps.<system>.hamio`、各 `default` はその別名とする。対応する system は `aarch64-darwin`、`aarch64-linux`、`x86_64-linux` である。
+
+```sh
+# 一回実行する
+nix run github:9uiLe/hamio#hamio -- --version
+
+# 一時的な shell に追加する
+nix shell github:9uiLe/hamio#hamio
+hamio capabilities
+
+# ユーザーの profile に追加する
+nix profile add github:9uiLe/hamio#hamio
+```
+
+flake が導入する製品版は [nix/release.json](../nix/release.json) の `version` で決まる。作業中の TypeScript をビルドする入口ではなく、固定した公開版を取得する入口である。公開版 v0.1.0 のタグには開発 shell のみがあり、Nix パッケージを使うにはパッケージ定義を含む flake の commit を選ぶ。
+
+再現可能な呼び出しには `github:9uiLe/hamio/COMMIT_SHA#hamio` の完全な commit SHA、または利用側の `flake.lock` を使う。製品の版と、Nix パッケージ定義を含むリポジトリの commit は別に固定される。Nix は `.hamio-version` を読み取らない。
+
+### 利用側の開発環境に組み込む
+
+利用側の `flake.nix` に hamio を input として追加する。次は macOS arm64 の例であり、Linux では `system` を対象の system に置き換える。
+
+```nix
+{
+  inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    hamio.url = "github:9uiLe/hamio";
+  };
+  outputs = { nixpkgs, hamio, ... }:
+    let
+      system = "aarch64-darwin";
+      pkgs = nixpkgs.legacyPackages.${system};
+    in {
+      devShells.${system}.default = pkgs.mkShellNoCC {
+        packages = [ hamio.packages.${system}.hamio ];
+      };
+    };
+}
+```
+
+`nix develop` で shell に入り、`hamio` を直接呼び出す。生成した `flake.lock` を利用側の Git に含める。hamio 自身の `nixpkgs` は提供元の固定版を使い、利用側の `nixpkgs` へ `follows` させない。これにより配布で確認した Nix の依存構成を維持する。
+
+NixOS の `environment.systemPackages`、Home Manager の `home.packages` にも同じ `hamio.packages.<system>.hamio` を渡せる。hamio 用の常駐サービスや専用 module は必要ない。
+
+### 更新とロールバック
+
+利用側の flake input は `nix flake update hamio` で更新する。`flake.lock` の差分、採用される製品版、対応環境を確認し、利用側のフォームと失敗処理を検査してから変更をマージする。戻す場合はレビュー済みの以前の lockfile を復元する。commit SHA を URL に固定している場合は、その SHA も明示的に変更する。
+
+profile は `nix profile list` で項目名を確認し、`nix profile upgrade hamio` で更新、`nix profile remove hamio` で削除する。実際の項目名が異なる場合は置き換える。`nix profile rollback` は profile 全体を前の世代へ戻すため、同時に変更した他のパッケージにも作用する。通常起動で自動更新は行わない。
+
+### 検証と信頼条件
+
+Nix パッケージは公式の gzip、checksum、SBOM、notices を固定 SHA-256 で取得する。展開後の実行ファイルの hash も照合してから配置する。取得と配置には Nix の store・sandbox・信頼済み binary cache を使い、リポジトリから追加の cache や署名鍵は登録しない。
+
+保守者は固定情報の更新時に実際の immutable release、各資産の帰属、provenance の repository・workflow・タグ・commit・GitHub-hosted runner を検証する。利用側の Nix は導入ごとに GitHub の証明 API を照会せず、レビューした flake・lockfile と固定 hash を信頼する。公開物の署名を導入のたびに確認する場合は POSIX インストーラーを使う。
+
+macOS は公開バイナリをそのまま配置する。Linux は公開バイナリの hash を確認した後、Nix の glibc と共有ライブラリを参照するよう ELF の loader・探索パスを調整する。Bun の埋め込みデータを壊さないよう strip は行わない。Linux の配置後の実行ファイルは公開資産とは異なるバイト列になり、公開時の attestation は調整前の入力資産を証明する。Nix の依存・調整工程は flake と lockfile で管理する。
+
+`$out/share/hamio/` に公開物の `upstream.sha256`、`upstream.spdx.json`、`notices.txt`、固定情報の `release.json` を保存する。上流の SBOM は Nix の glibc などを含む全 closure の在庫ではない。通常起動は `$out/bin/hamio` を直接実行し、Bun・Node.js・GitHub CLI を起動しない。
 
 ## リポジトリへの導入
 
@@ -287,16 +349,40 @@ gh workflow run release.yml --ref master -f mode=verify-install -f version=vX.Y.
 
 公開済みのタグ・資産は差し替えない。公開前の候補検証で確認できる由来と動作、公開後に確認する immutable release と資産の結び付きを区別する。影響調査、脆弱性の報告、修正版の提供は[セキュリティ方針](../SECURITY.md)に従う。
 
+## Nix パッケージの保守
+
+公開版の導入試験が完了してから、完全な版を指定して固定情報を生成する。認証済み GitHub CLI を用意し、hamio の clone で実行する。
+
+```sh
+./scripts/dev.sh bun scripts/update-nix-release.ts vX.Y.Z
+./scripts/dev.sh bun run format
+nix flake check --all-systems --no-build --no-write-lock-file
+nix flake check --no-write-lock-file --print-build-logs
+```
+
+更新スクリプトは3対象・12資産の証明を照合し、確認した版、製品ソース commit、各資産と展開後の実行ファイルの hash を `nix/release.json` に保存する。取得したコードは実行せず、途中で失敗した場合は固定情報を変更しない。競合する更新は lock で拒否し、成功時だけファイルを入れ替える。強制終了で `nix/release.json.lock` が残った場合は更新プロセスがないことを確認して削除する。
+
+公開版と固定情報の更新は別の PR・commit として扱う。公開前の版や `latest` から hash を生成せず、公開済みタグへ Nix 定義を後付けしない。`package.json` は開発ソースの版、`nix/release.json` は Nix で採用する公開版を表す。
+
+[Nix package workflow](../.github/workflows/nix.yml) は Nix 定義、lockfile、固定情報、導入試験に関係する変更で3対象を検査する。各 runner で Nix パッケージを生成し、開発ランタイムのない PATH から版・機能照会・非対話フォームを確認する。Nix の設定変更に関係しない PR と、マージ後の push では起動しない。ブランチの3対象を手動で確認する場合は Quality から呼び出せる。
+
+```sh
+# REVIEW_BRANCH を確認するブランチに置き換える。
+gh workflow run quality.yml --ref REVIEW_BRANCH -f runner=ubuntu-24.04 -f nix-package=true
+```
+
 ## 検証の範囲
 
-| 入口                                                  | 確認するもの                                                                            |
-| ----------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| [distribution.test.ts](../tests/distribution.test.ts) | GitHub CLI の代替実装による検証条件、失敗時の非実行、更新・復旧、lock、既存ファイル保護 |
-| [executable.test.ts](../tests/executable.test.ts)     | 本物の実行ファイルを使う Bun のない PATH、別ディレクトリ、暗黙設定、端末入力            |
-| [release.test.ts](../tests/release.test.ts)           | 独立ルートのビルド、入力の固定、資産配置と失敗時の復元                                  |
-| `release:verify`                                      | 独立した二候補の全資産と、梱包した実行ファイルの API・端末動作                          |
-| `verify-candidate`                                    | 実際の provenance、展開後の hash、独立した Git プロジェクトでの機能照会・フォーム       |
-| 公開後の導入試験                                      | 実際の GitHub 署名、公開資産との結び付き、対象環境への配置と起動                        |
+| 入口                                                  | 確認するもの                                                                              |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| [distribution.test.ts](../tests/distribution.test.ts) | GitHub CLI の代替実装による検証条件、失敗時の非実行、更新・復旧、lock、既存ファイル保護   |
+| [executable.test.ts](../tests/executable.test.ts)     | 本物の実行ファイルを使う Bun のない PATH、別ディレクトリ、暗黙設定、端末入力              |
+| [release.test.ts](../tests/release.test.ts)           | 独立ルートのビルド、入力の固定、資産配置と失敗時の復元                                    |
+| `release:verify`                                      | 独立した二候補の全資産と、梱包した実行ファイルの API・端末動作                            |
+| `verify-candidate`                                    | 実際の provenance、展開後の hash、独立した Git プロジェクトでの機能照会・フォーム         |
+| 公開後の導入試験                                      | 実際の GitHub 署名、公開資産との結び付き、対象環境への配置と起動                          |
+| [nix-release.test.ts](../tests/nix-release.test.ts)   | GitHub CLI の代替実装による固定情報の更新条件、失敗時の保持、競合拒否、取得コードの非実行 |
+| `nix flake check`                                     | 固定した公開資産の取得、展開後の hash、Nix の配置先からの独立プロジェクト試験             |
 
 各試験は対象と検証経路を明示して結果を記録する。代替実装による試験は実際の署名検証の成功を示さない。同一環境での二候補の一致は、別ホストでの一致や依存の無害性を証明するものではない。
 
@@ -308,3 +394,6 @@ gh workflow run release.yml --ref master -f mode=verify-install -f version=vX.Y.
 - [actions/attest](https://github.com/actions/attest/tree/1e69f48acb82d1966a394da916b4c1698aa569d6): provenance と SBOM の証明発行。
 - [SPDX 2.3](https://spdx.github.io/spdx-spec/v2.3/): 在庫の交換形式と `NOASSERTION`。
 - [SOURCE_DATE_EPOCH](https://reproducible-builds.org/docs/source-date-epoch/): ソースの時刻を使った再現可能な生成物。
+- [Nix flakes](https://nix.dev/concepts/flakes.html): packages・apps と lockfile による固定。
+- [Nix profile add](https://nix.dev/manual/nix/2.33/command-ref/new-cli/nix3-profile-add): ユーザー profile への導入。
+- [Nixpkgs autoPatchelfHook](https://nixos.org/manual/nixpkgs/unstable/#setup-hook-autopatchelfhook): Linux の loader・共有ライブラリの調整。

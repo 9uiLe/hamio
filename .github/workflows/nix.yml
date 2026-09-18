@@ -1,0 +1,49 @@
+name: Nix package
+
+on:
+  pull_request:
+    branches: [master]
+    types: [opened, synchronize, reopened]
+    paths:
+      - flake.nix
+      - flake.lock
+      - nix/**
+      - scripts/smoke-consumer.sh
+      - .github/workflows/nix.yml
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nix-package-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  package:
+    if: >-
+      (github.actor == github.repository_owner ||
+      (github.actor == 'dependabot[bot]' && github.event_name == 'pull_request')) &&
+      (github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository)
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-15, ubuntu-24.04, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: DeterminateSystems/determinate-nix-action@1d699fc25db3f9e079cd2f168ca007a4183389be # v3.15.1
+        with:
+          github-token: ""
+          diagnostic-endpoint: ""
+      - name: Build and test the native Nix package
+        run: |
+          nix flake check --no-write-lock-file --print-build-logs
+          nix run .#hamio -- --version
+          nix shell .#hamio --command hamio capabilities
+          git diff --exit-code

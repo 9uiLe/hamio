@@ -12,6 +12,11 @@ on:
         options: [ubuntu-24.04, macos-15]
         default: ubuntu-24.04
         required: true
+      nix-package:
+        description: Also verify the Nix package on all three native platforms
+        type: boolean
+        default: false
+        required: false
 
 permissions:
   contents: read
@@ -51,3 +56,7 @@ jobs:
           '
       - name: Verify checks leave files unchanged
         run: git diff --exit-code
+
+  nix-package:
+    if: github.event_name == 'workflow_dispatch' && inputs.nix-package && github.actor == github.repository_owner
+    uses: ./.github/workflows/nix.yml
