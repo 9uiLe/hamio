@@ -2,25 +2,13 @@
 
 hamio の編集、検査、ビルドは固定した Nix 環境で行う。エディタ、Git hooks、GitHub Actions は同じリポジトリ設定を使い、ローカルでも変更の問題を検出する。本書のコマンドは、特記がなければ hamio のリポジトリ直下で実行する。
 
-製品の責務は[基本設計](design.md)、利用側との形式は [API 契約](api.md)、コードの依存方向は[実装設計](implementation.md)、導入と公開は[配布手順](distribution.md)に定める。
+製品の責務と依存境界は[基本設計](design.md)、公開契約は [API 契約](api.md)、導入と公開は[配布手順](distribution.md)に定める。
 
 ## 1. 対応環境とツール
 
-| 開発環境 | CPU           | Nix system       |
-| -------- | ------------- | ---------------- |
-| macOS    | Apple Silicon | `aarch64-darwin` |
-| Linux    | ARM64         | `aarch64-linux`  |
-| Linux    | x86_64        | `x86_64-linux`   |
+開発 shell は `aarch64-darwin`、`aarch64-linux`、`x86_64-linux` に対応する。配布実行ファイルの対応環境は[配布手順](distribution.md#配布方式と対象環境)で別に評価する。Intel Mac の shell は固定 Nixpkgs の[プラットフォーム方針](https://nixos.org/manual/nixpkgs/unstable/release-notes#x86_64-darwin-26.11)に従い提供しない。
 
-開発 shell の対応と、配布実行ファイルの対応は別に評価する。製品は macOS 15 と Ubuntu 24.04 の対象 CPU で試験する。Intel Mac の shell は固定 Nixpkgs の[プラットフォーム方針](https://nixos.org/manual/nixpkgs/unstable/release-notes#x86_64-darwin-26.11)に従い提供しない。
-
-| 定義                       | 管理するもの                                                      |
-| -------------------------- | ----------------------------------------------------------------- |
-| `flake.nix`・`flake.lock`  | Bun、Node.js、Git、nixfmt、ShellCheck、shfmt、actionlint          |
-| `package.json`・`bun.lock` | TypeScript、Biome、Prettier、Husky、lint-staged、型定義、製品依存 |
-| Nix の preview shell       | agg、Python / Pillow、JetBrains Mono、Noto Sans CJK               |
-
-`devShells.default` は日常開発、`devShells.preview` は画像生成用とする。Bun・Node.js をホストへ別途導入する必要はない。同梱用 Bun は版と hash を固定した公式アーカイブから展開し、Nix 向け loader 修正を加えずに使う。
+日常開発は `devShells.default`、画像生成は `devShells.preview` を使う。Bun・Node.js をホストへ別途導入する必要はない。ツールは [flake.nix](../flake.nix)・`flake.lock`、JavaScript 依存は [package.json](../package.json)・`bun.lock` を正本とする。
 
 ## 2. 初回セットアップ
 
@@ -49,14 +37,7 @@ sh examples/form.sh
 
 `bun run hamio` は TypeScript のソース、`dist/hamio` はホスト向けの同梱実行ファイルを実行する。Python の接続例は利用側の Python で `python3 examples/form.py` を実行する。
 
-| コマンド                  | 用途と出力                                                                               |
-| ------------------------- | ---------------------------------------------------------------------------------------- |
-| `bun run build`           | 指定した同梱用 Bun で `dist/hamio` を生成                                                |
-| `bun run package`         | ビルドと圧縮を行い `dist/hamio.gz` を生成                                                |
-| `bun run release:package` | 独立した作業領域で依存取得・ビルド・梱包し、`dist/release/` に保存                       |
-| `bun run release:verify`  | 二候補を比較し、展開後の実行試験に合格した資産と `dist/release-verification.json` を保存 |
-
-試験と配布候補の生成は専用の一時領域を使い、共有の `dist/hamio` を読み書きしない。圧縮は梱包工程で行う。ローカルの配布コマンドは GitHub への公開・証明発行を行わない。
+`bun run package` はローカル実行ファイルを `dist/hamio.gz` に圧縮する。公開用の候補生成・検証には[配布コマンド](distribution.md#配布候補の生成と検証)を使う。試験と候補生成は専用の一時領域を使い、共有の `dist/hamio` を読み書きしない。
 
 ### 編集から完了まで
 
@@ -69,31 +50,15 @@ bun run preview
 bun run check
 ```
 
-| コマンド                                | 検査・操作                                             |
-| --------------------------------------- | ------------------------------------------------------ |
-| `bun run lint` / `lint:fix`             | Lint 検査 / Biome が安全と分類する修正                 |
-| `bun run format` / `format:check`       | format の適用 / 読み取り専用の照合                     |
-| `bun run typecheck` / `typecheck:watch` | strict 型検査 / 変更監視                               |
-| `bun run test` / `test:watch`           | テスト / 変更監視                                      |
-| `bun run check:staged`                  | ステージ済みファイルの検査                             |
-| `bun run preview` / `preview:check`     | PNG の生成・再利用 / 生成元と画像の照合                |
-| `bun run check`                         | Lint、format、型検査、テスト、プレビュー照合を順に実行 |
+`bun run check` は Lint、format、strict 型検査、テスト、プレビュー照合を順に実行する。個別検査や watch の入口は [package.json](../package.json) を参照する。
 
 shell 外では `./scripts/dev.sh bun run check` の形式で固定環境を呼び出す。引数なしの `./scripts/dev.sh` も全体検査を行う。hooks もこの入口を使うため、GUI の PATH に Bun・Node.js がなくても Nix があれば実行できる。
 
 全体検査と hooks は自動修正せず、最初の失敗で停止する。修正して差分を確認し、再検査する。検査を通すためにルール、型検査、hooks を無効化しない。
 
-### エディタとファイル種別
+### エディタと Nix の検査
 
-VS Code の設定と推奨拡張は `.vscode/` に置く。Biome と Prettier が保存時 format を、[TypeScript 7 拡張](https://marketplace.visualstudio.com/items?itemName=TypeScriptTeam.native-preview)が `node_modules/typescript` を使った診断を担当する。拡張は開発者が導入し、他のエディタでも同じ固定ツールを使う。
-
-| 対象           | 検査                                                     |
-| -------------- | -------------------------------------------------------- |
-| TS・JS・JSON   | Biome。TS は宣言ファイルを含む型検査                     |
-| Markdown・YAML | Prettier。workflow は actionlint。文章・リンクはレビュー |
-| Nix            | nixfmt と定義評価                                        |
-| Shell・hooks   | ShellCheck と shfmt                                      |
-| プレビュー     | 生成元・画像の照合と目視。manifest は Biome              |
+VS Code の保存時 format・型診断と推奨拡張は [.vscode/](../.vscode/) を参照する。拡張は開発者が導入し、他のエディタでも同じ固定ツールを使う。Markdown の文章・リンクは formatter では検証されないためレビューする。
 
 設定は [package.json](../package.json)、[.lintstagedrc.json](../.lintstagedrc.json)、[tsconfig.json](../tsconfig.json)、[biome.json](../biome.json)を参照する。Nix の変更では全 system の定義を評価する。
 
@@ -112,7 +77,20 @@ nix run .#hamio -- --version
 
 ### 製品試験と性能測定
 
-通常の `bun test` は API、CLI、PTY、同梱実行ファイル、配布の失敗処理、独立ビルド、開発基盤を検証する。`HAMIO_TEST_BINARY` を指定した API・実行ファイル試験は、渡された binary を再生成せずに使う。`release:verify` は二回の独立した依存取得・梱包と、gzip から展開した実行ファイルを検査する。[検証の構成](implementation.md#10-検証の構成)
+通常の `bun test` は API、CLI、PTY、実行ファイル、失敗処理、開発基盤を確認する。変更した境界に応じて次の検査を選ぶ。
+
+| 入口                                                                                                       | 検査の範囲                                                                     |
+| ---------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| [api.test.ts](../tests/api.test.ts)・[runtime.test.ts](../tests/runtime.test.ts)                           | 回答・終了・状態・上限・秘密、入出力の順序と資源解放、描画・背圧               |
+| [executable.test.ts](../tests/executable.test.ts)                                                          | 実行ファイル、開発ランタイムのない PATH、暗黙設定、Shell・PTY                  |
+| [distribution.test.ts](../tests/distribution.test.ts)・[nix-release.test.ts](../tests/nix-release.test.ts) | GitHub CLI の代替実装で検証条件、失敗時の非実行・保持、更新・復旧・lock を確認 |
+| [release.test.ts](../tests/release.test.ts)                                                                | 別ルートのビルド、入力の固定、資産の配置・復元、公開条件                       |
+| [hooks.test.ts](../tests/hooks.test.ts)・[preview.test.ts](../tests/preview.test.ts)                       | 検査の拒否・復元、録画・照合                                                   |
+| `release:verify`                                                                                           | 独立した二回の依存取得・梱包、全資産の一致、gzip から展開した製品の試験        |
+| Release workflow                                                                                           | 実際の provenance と候補の動作、公開後の署名・資産帰属・インストーラー・Action |
+| `nix flake check`                                                                                          | 固定した公開資産の取得・hash、Nix 配置後の独立プロジェクトからの実行           |
+
+`HAMIO_TEST_BINARY` を指定した API・実行ファイル試験は、渡された binary を再生成せずに使う。代替実装による試験を実際の署名検証の成功と扱わず、同一環境の二候補の一致を別ホストでの一致へ一般化しない。
 
 性能は本番と同じ設定の実行ファイルで測る。TypeScript の開発実行、画像生成の時間、製品の応答は別の測定とする。
 
@@ -131,7 +109,11 @@ bun scripts/benchmark-progress.ts dist/refactor/progress.json dist/refactor/base
 
 実行基盤の比較は各条件・各版2回 warmup し、30組で実行順を交代する。同じ出力契約を持つ版を使い、測定中のソース・binary の変更や pipe 出力の不一致を失敗とする。進捗の比較は PTY に150 ms間隔で同じ状態を10回送り、各版1回 warmup 後、5組で順序を交代する。送り手の待機を含む経過時間は描画遅延として扱わない。
 
-測定中は別の benchmark、build、test を実行しない。入力・ソース・生成物の hash、OS、CPU、RAM、Bun、端末、測定 API、単位、全サンプル、中央値、p95、改善と悪化を残す。通常の検査・hooks・CI は benchmark を実行しない。[API 評価](research/api-performance.md)、[実行基盤の比較](research/refactor-performance.md)、[配布基盤と実行経路の評価](research/reproducibility-performance.md)を記録例とする。
+測定中は別の benchmark、build、test を実行しない。入力・ソース・生成物の hash、OS、CPU、RAM、Bun、端末、測定 API、単位、全サンプル、中央値、p95、改善と悪化を残す。通常の検査・hooks・CI は benchmark を実行しない。比較対象のない現行版の実測値は[リリース評価](release-readiness.md#性能の実測範囲)にまとめる。
+
+測定スクリプトの wall time は親の `performance.now()` で起動から終了・出力取得までを測る。子の [resourceUsage()](https://bun.com/reference/bun/Subprocess/resourceUsage) は CPU を microseconds から ms、maxRSS を bytes から MiB に換算する。親プロセスの負荷は含まない。複数プロセスの peak RSS の合計は同時点の使用量ではなく、RSS・PSS・macOS footprint・JS heap も交換できない。
+
+warm な新規プロセスと cold start、通常実行と profiler・強制 GC を区別する。PTY 入力から成功 JSON までの時間は、各キーの画面描画や IME の遅延ではない。出力量は stdout と stderr の合計 bytes を残し、token を評価する場合は取得経路と tokenizer を特定する。[性能予算](design.md#性能予算)の業務負荷は、JSON 生成・転送・待機・補助プロセスも含めて hamio なし・ありを比較する。
 
 ## 4. Git hooks
 
@@ -144,31 +126,22 @@ Husky が hook を起動し、lint-staged がステージ済みファイルへ�
 
 失敗時は差分を修正して再ステージする。pre-push には未コミットの内容も含まれるため、送信 commit や PR のマージ候補と検査対象が一致するとは限らない。マージ候補の確認は Quality workflow が担当する。
 
-hooks 自体は一時 Git リポジトリで正常系、不正な commit・push の拒否、部分ステージの復元、既存設定の保護を試験する。必須のマージ条件は、ローカル hooks とは別に GitHub の ruleset で管理する。
+必須のマージ条件は、ローカル hooks とは別に GitHub の ruleset で管理する。
 
 ## 5. GitHub Actions
 
-共通の品質検査は Quality、OS・CPU ごとの配布検証と公開は Release が担当する。どのソースを検証するかは event と ref で決め、実行結果に対象 commit を記録する。
+| 確認したい変更                                     | 使う workflow                                                                                                |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| すべての PR（文書を含む）                          | [Quality](../.github/workflows/quality.yml)。マージ候補を Ubuntu の1ジョブで検査                             |
+| OS 依存の変更                                      | Quality を対象 ref・runner で手動実行。下記の OS ごとの確認に従う                                            |
+| 配布候補・公開・公開物の導入                       | [Release](../.github/workflows/release.yml)。[配布手順](distribution.md#保守者のリリース工程)の3モードを使う |
+| Nix パッケージの定義・lockfile・固定情報・導入試験 | [Nix package](../.github/workflows/nix.yml)。関連する PR と手動実行で3対象の取得・配置・実行を確認           |
 
-| workflow と入口                                         | 起動条件                                                                                         | 対象と役割                                                     |
-| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
-| [Quality](../.github/workflows/quality.yml) の PR 検査  | 所有者または Dependabot による同一リポジトリの `master` 向け PR。opened / synchronize / reopened | PR のマージ候補を Ubuntu 24.04 の1ジョブで検査                 |
-| Quality の手動検査                                      | 所有者が ref と runner を指定する `workflow_dispatch`                                            | 選択した ref を Ubuntu 24.04 または macOS 15 で検査            |
-| [Release](../.github/workflows/release.yml) の `verify` | 所有者が ref を指定する手動実行。既定のモード                                                    | 選択した ref から3対象の候補を生成し、再現性・動作・証明を検証 |
-| Release の `publish`                                    | 所有者が版タグとモードを指定する手動実行                                                         | 候補検証、Environment 承認、公開、3対象の導入試験              |
-| Release の `verify-install`                             | 所有者が workflow ref と公開製品の `version` を指定する手動実行                                  | 指定した公開版の導入と利用側 Action を3対象で検証              |
+通常の PR は共通検査を一度実行し、OS・CPU に依存する配布検証は明示的に選ぶ。Nix パッケージの関連変更だけは3対象の自動検査を追加する。CI の負荷を比較するときは検査本体だけでなく Nix の準備・cache 取得を含む総時間を見る。
 
-branch push、PR close、タグ push は起動条件に含めない。通常の PR は共通検査を一度実行し、配布物は macOS arm64、Linux x64 / arm64 の native runner で検証する。公開済みの製品を調べる `verify-install` では、workflow の ref と製品のタグを分けて記録する。Release の操作は[配布手順](distribution.md#保守者のリリース工程)に従う。
+Quality は所有者または Dependabot による同一リポジトリの `master` 向け PR と、所有者の手動実行に限る。branch push、PR close、タグ push では起動しない。外部 fork や `pull_request_target` で実行せず、token は読み取り専用、checkout に認証を残さず、Actions を完全な commit SHA で固定する。
 
-[Nix package workflow](../.github/workflows/nix.yml) は `flake.nix`、`flake.lock`、`nix/**`、導入試験、workflow 自身の変更を含む PR と、所有者の手動実行を対象とする。macOS arm64、Linux x64 / arm64 の3ジョブで公開版の Nix 取得・配置・実行を確認する。Quality と同じ投稿元制限、読み取り権限、Actions の commit 固定を使い、通常の製品ソース・文書変更では追加の3ジョブを起動しない。Quality の手動実行では `nix-package=true` を明示した場合だけ、この3対象の検査を併用する。
-
-### PR の検査と権限
-
-Quality は checkout、Nix 導入、全 system の Nix 定義評価、固定依存の取得、`bun run check`、`git diff --exit-code` を順に行う。文書のみの PR も検査する。プレビューは保存済み PNG と生成元を照合する。
-
-Actions は完全な commit SHA で固定する。Quality の token は `contents: read`、checkout は認証情報を保持しない。`pull_request_target` は使わず、外部 fork の PR では workflow を実行しない。CI は hooks を導入せず、検査コマンドを直接呼ぶ。
-
-同じ event・ref・runner の古い Quality 実行をキャンセルする。PR と手動検査、異なる OS は別の実行として扱う。上限は20分。`quality` の成功をマージの必須条件とする。[CI の構成と測定](research/ci.md)
+Quality は全 system の Nix 定義評価、固定依存の取得、`bun run check`、追跡ファイルの差分確認を行う。CI では hooks を導入せず検査を直接呼び、`quality` 成功をマージの必須条件とする。手動実行の ref は PR のマージ候補と異なり得るため結果に対象 commit を残す。Nix の3対象も併用する手動実行は[配布手順](distribution.md#nix-パッケージの保守)を参照する。
 
 ### リポジトリの保護設定
 
@@ -211,19 +184,11 @@ Linux の手動検査は `runner=ubuntu-24.04` を指定する。手動検査の
 
 ## 6. 開発用スキル
 
-AI エージェントは [AGENTS.md](../AGENTS.md)を入口とし、担当領域に必要なスキルを読む。
-
-| スキル                                                                    | 対象                                               |
-| ------------------------------------------------------------------------- | -------------------------------------------------- |
-| [hamio-software-design](../.agents/skills/hamio-software-design/SKILL.md) | 入出力、状態遷移、モジュール境界、業務と UI の責務 |
-| [hamio-typescript](../.agents/skills/hamio-typescript/SKILL.md)           | 外部入力、状態の型、非同期処理、strict 設定        |
-| [hamio-performance](../.agents/skills/hamio-performance/SKILL.md)         | 起動、CPU、メモリ、event 量、並列性、測定条件      |
-
-スキルの判断基準と機械的な検査を併用する。スキルは製品実装、外部投稿、公開などの作業範囲を広げる権限ではない。
+AI エージェントの作業規則と領域別スキルの選択は [AGENTS.md](../AGENTS.md) に従う。
 
 ## 7. 依存とツールの更新
 
-Dependabot は Bun ecosystem の依存、GitHub Actions、Nix の更新を週次に提案する。security updates も PR として検査し、所有者が取得元、差分、lifecycle scripts、lockfile を確認する。自動マージと通常実行時の `bunx` などによる取得は行わない。
+[Dependabot の設定](../.github/dependabot.yml)に従う更新と security updates は PR で検査し、所有者が取得元、差分、lifecycle scripts、lockfile を確認する。自動マージと通常実行時の `bunx` などによる取得は行わない。
 
 Bun の更新では Nix 入力、同梱ランタイム、`packageManager`、`engines`、型定義、配布 metadata と notices を揃える。Node.js は開発ツールの要求版を使う。`@types/node` は Bun の宣言が参照する依存として `overrides` で固定し、宣言ファイルも検査する。型定義の版を実行時 API の保証とはみなさない。
 
@@ -258,49 +223,25 @@ PTY の実際の出力を記録し、静止画 PNG と操作過程の GIF で確
 
 日常の Nix shell 内では、画像が最新なら描画ツールを取得しない。生成が必要な場合に preview shell を使う。shell 外の実行はその準備も含むため、繰り返し生成する場合は `nix develop .#preview` 内で `bun run preview` を使う。
 
-cast は出力と時刻を記録する asciicast、manifest は生成元・成果物の hash を記録する JSON である。
-
-| 成果物                         | 制限と保存                                         |
-| ------------------------------ | -------------------------------------------------- |
-| `docs/previews/*.png`          | 1枚512 KiB以下。ソースと同じ commit に含める       |
-| `docs/previews/manifest.json`  | PNG の生成元・画像 hash・環境。PNG と同時に commit |
-| `dist/preview/*.cast`・`*.gif` | 各16 MiB以下。ローカル専用                         |
-| `dist/preview/manifest.json`   | 録画と生成元の hash。ローカル専用                  |
-
-生成元は `scripts/preview/**/*.ts`、`scripts/preview*.sh`、`src/**/*`、`examples/**/*.json`、`flake.nix`、`flake.lock`、`package.json`、`bun.lock` とする。内容だけでなく追加・削除も照合する。PNG と録画の生成元が異なる場合は `--recording` で録画を生成する。CI はローカル録画を要求しない。
+`docs/previews/*.png` と `manifest.json` はソースと同じ commit に含める。`dist/preview/` の GIF・cast（端末出力と時刻）と録画用 manifest はローカル専用で、CI は要求しない。PNG と録画の生成元が異なる場合は `--recording` で更新する。
 
 ### 目視確認と共有
 
 PNG を画像として開き、日本語、余白、折り返し、色、カーソル更新の残骸を確認する。入力・状態遷移の変更では GIF の操作途中も確認し、ソース、PNG、manifest を一緒にステージする。[プレビュー一覧](previews/README.md)
 
-PR は[テンプレート](../.github/pull_request_template.md)に従い、対象 commit に固定した画像を埋め込む。`COMMIT_SHA` を commit・push 後の `git rev-parse HEAD` の完全な SHA に置換する。
-
-```md
-![入力画面](https://raw.githubusercontent.com/9uiLe/hamio/COMMIT_SHA/docs/previews/product-input.png)
-![結果画面](https://raw.githubusercontent.com/9uiLe/hamio/COMMIT_SHA/docs/previews/product-result.png)
-```
-
-PR 更新時は画像リンクも更新し、シナリオ、確認した状態、未確認の OS・端末を説明する。チャットでは確認済み PNG をローカル絶対パスでインライン表示する。GIF の公開は内容確認後に手動で行い、外部録画サービスへの自動送信や cast 全文の転記は行わない。
+PR は[テンプレート](../.github/pull_request_template.md)に従い、commit・push 後の完全な SHA に固定した画像を埋め込む。PR 更新時はリンクも更新し、シナリオ、確認した状態、未確認の OS・端末を説明する。チャットでは確認済み PNG をローカル絶対パスでインライン表示する。GIF の公開は内容確認後に手動で行い、外部録画サービスへの自動送信や cast 全文の転記は行わない。
 
 ### シナリオと実行の制限
 
-[scenarios.ts](../scripts/preview/scenarios.ts) はコマンド、端末サイズ、期待出力、送信キー、撮影位置を定義する。期待出力を待ってから入力し、外部入力ファイルも生成元へ含める。
+[scenarios.ts](../scripts/preview/scenarios.ts)でコマンド、端末サイズ、期待出力、送信キー、撮影位置を定義する。期待出力を待ってから入力し、外部入力ファイルも生成元へ含める。実際の製品出力を記録し、製品の確認と録画基盤の fixture を区別する。
 
-| モジュール                                      | 責務                               |
-| ----------------------------------------------- | ---------------------------------- |
-| [generate.ts](../scripts/preview/generate.ts)   | 引数、再利用・生成の選択、出力先   |
-| [artifacts.ts](../scripts/preview/artifacts.ts) | 内容照合、サイズ・形式の検証、診断 |
-| [capture.ts](../scripts/preview/capture.ts)     | PTY、出力記録、撮影位置、終了判定  |
-| [render.ts](../scripts/preview/render.ts)       | 画像化、生成前後の入力源検証、保存 |
-| [preview-env.sh](../scripts/preview-env.sh)     | preview shell の準備               |
+異常終了、不足画面、上限超過、timeout、生成中の入力源変更は失敗とする。ダミーデータ、固定端末・locale、一時 HOME、限定 PATH を使うが、未信頼コードを隔離する sandbox ではない。内容照合と目視だけで各 OS の実端末、画面読み上げ、製品性能を確認したとは扱わない。
 
-Bun の PTY が stdout・stderr を記録し、agg が端末命令を描画する。一つのシナリオにつき一つの cast を保持し、撮影位置を event 番号で指定する。PNG は一つの Pillow プロセスで変換する。GIF には閲覧用の入力前待機500 msを設け、PNG には使わない。
+プレビュー基盤の性能を調べる場合は preview shell 内で次を使う。
 
-キャプチャと描画は順次実行する。既定上限はキャプチャ15秒、出力1 MiB、10,000 event、描画コマンド60秒。agg の Rayon スレッドプールは2、GIF は10 fpsとする。これは録画基盤の制限であり、製品の性能予算ではない。
+```sh
+nix develop .#preview
+bun scripts/benchmark-preview.ts dist/preview/benchmark.json 15
+```
 
-異常終了、不足画面、上限超過、timeout、生成中の入力源変更は失敗とする。ダミーデータ、固定端末・locale、一時 HOME、限定 PATH を使い、`.env` と依存自動取得を無効にする。未信頼コードを隔離する sandbox としては使わない。内容照合、目視、実端末、画面読み上げ、製品性能は別々に評価する。[プレビューの性能記録](research/preview-performance.md)
-
-## 参照資料
-
-- 検査: [Biome](https://biomejs.dev/guides/getting-started/)、[Prettier](https://prettier.io/docs/cli)、[Husky](https://typicode.github.io/husky/)、[lint-staged](https://github.com/lint-staged/lint-staged)、[Bun install](https://bun.com/docs/pm/cli/install)。
-- 端末記録: [Bun PTY](https://bun.com/docs/runtime/child-process#terminal-pty-support)、[asciicast v2](https://docs.asciinema.org/manual/asciicast/v2/)、[agg](https://docs.asciinema.org/manual/agg/usage/)。
+この測定は強制生成を含み PNG・manifest・ローカル録画を更新するため、差分を確認する。wrapper は shell 準備も含み、内部の生成・照合時間と分けて評価する。製品の入力応答の測定には使わない。

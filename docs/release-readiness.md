@@ -11,14 +11,12 @@
 | 製品版 / API                  | `v0.1.0` / API v1                                                                                                   |
 | 製品ソース commit             | `1c266341fd4d62c9314f6654abda00cd223941fa`                                                                          |
 | ビルド入力 SHA-256            | `f665a4f5c22359b011bd37fab345d7759c16031693f16a8224499a514a034f06`                                                  |
-| 公開日時                      | 2026-09-17 13:58:30 UTC                                                                                             |
-| 公開状態                      | Release ID `390765156`。immutable、draft ではなく、prerelease ではない                                              |
 | 配布資産                      | 3対象各4資産と共通の `install.sh`、合計13資産                                                                       |
 | 候補生成・証明の実行          | [run 35229026857](https://github.com/9uiLe/hamio/actions/runs/35229026857)。workflow と製品は上記のタグ・commit     |
 | 公開物の導入試験              | [run 35230519812](https://github.com/9uiLe/hamio/actions/runs/35230519812)。`mode=verify-install`、`version=v0.1.0` |
 | 導入検証 workflow             | ref は `fix/release-publication`、commit は `17d19724dd4469dc983c7be8d57ce2e32da33e2a`                              |
 | 導入試験の製品・利用側 Action | 公開製品の commit `1c266341fd4d62c9314f6654abda00cd223941fa`                                                        |
-| 生データ                      | [公開状態、資産 digest、工程別結果、対象別の検証記録](research/initial-release-verification.json)                   |
+| 根拠データ                    | [公開資産・対象別結果の根拠データ](research/initial-release-verification.json)                                      |
 
 製品ソースの commit は公開実行ファイルと利用側 Action の対象を特定し、検証 workflow の commit は試験手順を特定する。導入試験では両者を分け、検証手順のソースで公開製品を再生成していない。
 
@@ -36,19 +34,11 @@ macOS の5資産には全対象共通の `install.sh` を含む。候補の証�
 
 公開後の試験では、immutable release と資産への帰属、インストーラーの由来、インストーラーと利用側 Action による配置を確認した。独立したローカル Git ディレクトリで、限定した環境変数と Bun・Node.js・Nix のない PATH から版、機能照会、非対話フォームを実行した。別の GitHub リポジトリへの公開操作は試験に含まない。
 
-### 公開工程の実行記録
+### 公開工程の制約
 
-| 工程                                             | 結果と検証範囲                                                                                                           |
-| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| 候補 workflow の build・attest・verify-candidate | 3対象すべて成功                                                                                                          |
-| 候補 workflow の publish                         | immutable releases の管理設定照会が権限不足で403となり失敗。run 全体も失敗                                               |
-| 候補 workflow の verify-install                  | publish 失敗により未実行                                                                                                 |
-| 所有者による公開                                 | immutable releases が有効であること、13資産の hash と provenance を確認し、GitHub CLI で公開。`gh release verify` が成功 |
-| 独立した導入検証 workflow                        | 3対象の verify-install が成功し、run 全体も成功。生成・証明発行・候補検証・公開はモードの仕様に従い未実行                |
+候補 workflow は build・attest・verify-candidate が3対象すべて成功したが、publish は immutable releases の管理設定照会が権限不足（403）で失敗し、後続の導入試験も未実行だった。所有者が管理設定、候補と13公開資産の hash・provenance を確認して同じバイト列を公開し、`gh release verify` と独立した導入検証 workflow が成功した。
 
-所有者による公開は、候補 workflow で生成した資産を使い、製品タグと資産のバイト列を変更せずに行った。実行記録に含まれる publish の失敗を、所有者による公開や導入試験の成功で置き換えない。
-
-workflow commit `17d19724dd4469dc983c7be8d57ce2e32da33e2a` は、管理設定の確認を所有者の Environment 承認条件とし、公開 job を `contents: write` に限定する設計である。この commit で実施したのは `verify-install` モードであり、この workflow の `publish` モードを新しい版タグで通した実績は本評価に含まれない。
+修正後の workflow commit `17d19724dd4469dc983c7be8d57ce2e32da33e2a` では管理設定の確認を所有者の承認条件へ移した。この commit で実施したのは `verify-install` のみであり、承認から公開までの `publish` 経路は本評価では未検証である。公開・導入の成功を候補 run 全体の成功へ置き換えない。
 
 ### 配布サイズ
 
@@ -74,20 +64,30 @@ workflow commit `17d19724dd4469dc983c7be8d57ce2e32da33e2a` は、管理設定の
 
 ## 性能の実測範囲
 
-性能評価は[配布基盤と実行経路の評価](research/reproducibility-performance.md)に条件と生データを記録している。2026-09-17、Darwin 25.2.0、M1 Pro 10 core・16 GiB RAM、Bun 1.4.2、OS cache を温めた条件で各30試行を実施した。測定した macOS 実行ファイルの SHA-256 は `dd45f29f67ba6687a186a9004c616159f675d1409fe690edd7d6ceae284c4c82` であり、公開版の macOS 実行ファイルと一致する。
+2026-09-17、Darwin 25.2.0、Apple M1 Pro 10 core・16 GiB RAM、Bun 1.4.2 の同梱実行ファイルを測定した。minify 有効、bytecode・smol なし。binary SHA-256 は `dd45f29f67ba6687a186a9004c616159f675d1409fe690edd7d6ceae284c4c82` で公開版の macOS 実行ファイルと一致する。[根拠データ](research/reproducibility-performance.json)は当時の比較測定から評価版の全サンプルを残したもの。ソース・入力・出力の hash、測定条件は保持し、旧版の結果と改善率は本評価に含めない。
 
-| 指標           | 実測値                                             | 測定範囲                                                              |
-| -------------- | -------------------------------------------------- | --------------------------------------------------------------------- |
-| 小さい呼び出し | 機能照会 p95 21.94 ms、非対話フォーム p95 21.22 ms | 新規プロセスの起動から応答取得まで。cold start は未測定               |
-| 入力応答       | p95 2.028 ms                                       | PTY の入力送信から成功 JSON まで。実画面の描画や IME の遅延を含まない |
-| メモリ         | peak RSS 中央値30.16 MiB                           | 2,000進捗。定常 RSS、長時間反復、PSS、footprint は未測定              |
-| 並列実行       | p95 53.65 ms                                       | 4プロセス×20,000進捗の全終了まで。業務処理の並列性能は測定していない  |
+[benchmark-refactor.ts](../scripts/benchmark-refactor.ts)で各条件・各版2回 warmup 後、版の順序を交代して各30試行を行った。OS cache は warm。wall time は起動から終了・出力取得まで、p95 は nearest-rank の29番目、CPU と maxRSS は中央値。子の resourceUsage を CPU microseconds → ms、maxRSS bytes → MiB に換算し、親の負荷は含めない。別の benchmark・build・test は並行せず、常駐プロセスや電源状態は完全には固定していない。
 
-Release workflow の3対象の動作試験と、この macOS の性能測定は別の評価である。Linux の製品性能、30秒待機 CPU、実業務に対する追加時間、長時間のメモリ、実端末の描画遅延には数値保証を設けない。[性能予算](design.md#性能予算)の達成判定には、目標ごとの条件に合う測定が必要となる。
+| 条件                               | 中央値 ms | p95 ms | CPU ms | maxRSS MiB |
+| ---------------------------------- | --------: | -----: | -----: | ---------: |
+| 機能照会                           |     17.38 |  21.94 |  16.06 |      20.77 |
+| 非対話フォーム                     |     20.49 |  21.22 |  19.18 |      23.34 |
+| JSON 表示                          |     19.37 |  20.91 |  18.24 |      22.91 |
+| 32表の生成・出力                   |     23.65 |  24.57 |  26.39 |      28.41 |
+| 2,000進捗・最終結果のみ            |     23.74 |  24.53 |  28.85 |      30.16 |
+| 20,000進捗・全 event 出力          |     44.09 |  46.45 |  73.86 |      52.09 |
+| 4プロセス×20,000進捗・最終結果のみ |     46.37 |  53.65 | 274.03 |     188.33 |
+| PTY フォーム・日本語入力           |     45.42 |  47.98 |  34.63 |      26.05 |
+
+32表は各20行×4列、日本語を含む61,147 bytesの入力、stderr は63,360 bytes。pipe への生成・転送時間であり、端末画面の描画時間ではない。stream は100 task を開始し、進捗後に全 task と run を完了する。最終応答は1 runあたり124 bytes、全 event 出力は2,984,149 bytes。4プロセスの wall time は全終了まで、CPU と maxRSS は各子の合計で、peak の合計を同時点のメモリ使用量と扱わない。
+
+PTY は80列×24行、`TERM=xterm-256color`、色なし。質問を受け取ると `日本語` と Enter を送る。起動から質問までは中央値42.95 ms・p95 45.31 ms、入力送信から成功 JSON までは中央値1.900 ms・p95 2.028 ms、PTY 出力は330 bytes。人の思考時間、各キーの描画、IME、実画面の遅延は含まない。
+
+cold start、Linux の製品性能、30秒待機 CPU、実業務の JSON 生成・転送を含む追加時間、定常 RSS・長時間反復・PSS・footprint、実端末の描画は未測定であり、数値保証を設けない。[性能予算](design.md#性能予算)の全達成を示す結果ではない。
 
 ## 同梱部品と許諾の確認
 
-同梱ランタイムは Bun 1.4.2、revision `744846f844374847c902b5e7fd59b4342a51ef99`。2026-09-17の確認先、固定ソース、照会結果、許諾・再リンクの参照先を [Bun・native 依存の確認記録](research/runtime-review.md)と生データに保存している。
+同梱ランタイムは Bun 1.4.2、revision `744846f844374847c902b5e7fd59b4342a51ef99`。2026-09-17の固定ソース・OSV 照会・結果・確認時刻を[根拠データ](research/runtime-review.json)に保存している。確認先は [Bun advisory](https://github.com/oven-sh/bun/security/advisories)、[1.4.2 のリリース情報](https://bun.com/blog/bun-v1.4.2)、[OSV API](https://google.github.io/osv.dev/api/#osv-api)、[固定 revision の notices](https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/LICENSE.md)。再リンク方法は[配布手順](distribution.md#配布物と在庫情報)に定める。
 
 | 確認             | 結果と範囲                                                                                          |
 | ---------------- | --------------------------------------------------------------------------------------------------- |
@@ -97,16 +97,6 @@ Release workflow の3対象の動作試験と、この macOS の性能測定は�
 | notices          | 固定した上流の `LICENSE.md` と保存済みの通知が byte 一致。配布工程でも hash を検証                  |
 | SBOM・許諾の範囲 | Bun 内部は集約した一部品。native 全部品の許諾本文の完全な集約や、上流 WebKit 全体の再ビルドは未検証 |
 
+native 依存の一覧は上流ソースの定義であり、Windows 限定の定義も含む。配布 binary の全構成を確定した一覧ではない。SQLite・ICU などの vendor データや WebKit 側の依存は[同じ Bun revision](https://github.com/oven-sh/bun/tree/744846f844374847c902b5e7fd59b4342a51ef99)と根拠データ内の固定ソースから追跡する。
+
 照会結果が0件であることは安全性の証明ではない。OSV の収録範囲、fork、vendor 部品、OS 提供ライブラリ、polyfill、未公表の問題は照合だけで判定できない。署名付き SBOM も在庫の網羅性を保証しない。確認結果は固定 revision と確認日に対する記録として扱い、依存更新時と公開前に再評価する。
-
-## 参照用の候補検証記録
-
-公開製品とは別に、commit `b1d00e50f29a4aa9e3ea45c435f6ba21e7eec7cd` で候補検証を行った記録がある。
-
-| 記録                                                                                | 対象と結果                                           |
-| ----------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| [候補検証 run 35224202459](https://github.com/9uiLe/hamio/actions/runs/35224202459) | `mode=verify`。3対象の候補生成・証明・動作確認が成功 |
-| [Quality run 35224205460](https://github.com/9uiLe/hamio/actions/runs/35224205460)  | 上記 commit の Linux 全体検査が成功                  |
-| [検証の生データ](research/release-verification.json)                                | 日時、対象、runtime・資産 hash                       |
-
-ビルド入力の内容 hash は公開タグの候補と同じだが、ソース commit と commit 時刻に由来するメタデータが異なる。SBOM と notices を含む資産一式の記録は公開版の記録と混同しない。v0.1.0 の公開資産の根拠には [initial-release-verification.json](research/initial-release-verification.json) を使う。

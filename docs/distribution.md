@@ -2,7 +2,7 @@
 
 hamio は、製品コード・製品依存・Bun をまとめた実行ファイルを GitHub Releases で配布する。利用側は公開版を明示して導入し、スクリプトからその実行ファイルを直接呼び出す。通常実行には Bun・Node.js・Nix を必要としない。業務処理に使う言語ランタイムは利用側が用意する。
 
-利用者は [Nix での導入](#nix-で導入する)、[リポジトリへの導入](#リポジトリへの導入)、[GitHub Actions](#github-actions-で使う)、[更新とロールバック](#更新ロールバック削除)の手順に従う。保守者は[リリース工程](#保守者のリリース工程)に従い、配布候補、承認付き公開、公開版の導入試験を管理する。入力形式は [API 契約](api.md)、ビルド内部の責務は[実装設計](implementation.md#9-ビルドと配布の境界)、公開版の実施結果は[リリース評価](release-readiness.md)に定める。
+利用者は [Nix での導入](#nix-で導入する)、[リポジトリへの導入](#リポジトリへの導入)、[GitHub Actions](#github-actions-で使う)、[更新とロールバック](#更新ロールバック削除)の手順に従う。保守者は[リリース工程](#保守者のリリース工程)に従い、配布候補、承認付き公開、公開版の導入試験を管理する。入力形式は [API 契約](api.md)、公開版の結果と未確認範囲は[リリース評価](release-readiness.md)に定める。
 
 ## 配布方式と対象環境
 
@@ -28,13 +28,11 @@ hamio は、製品コード・製品依存・Bun をまとめた実行ファイ�
 | `hamio-vX.Y.Z-<対象>.notices.txt` | 本体・npm の許諾全文、Bun の notices、ソース・再リンク手順への参照 |
 | `install.sh`                      | 全対象共通の POSIX インストーラー。macOS の梱包工程で生成          |
 
-SBOM（Software Bill of Materials）は同梱部品の在庫情報である。hamio 本体、解決した production npm 依存、同梱 Bun を記録する。ソース commit、作業ツリーの変更有無、ビルド入力の内容 hash、lockfile・実行ファイル・gzip・ランタイムの hash、npm の版と取得元を含め、日時は commit 時刻から決める。開発ツールは製品依存に含めない。
-
-hamio 本体は [MIT License](../LICENSE)、著作権表記は `Copyright (c) 2026 9uiLe` とする。package の `license` と SBOM の `licenseDeclared` を `MIT` とし、notices に全文を含める。第三者のコードには各部品のライセンスが適用される。
+SBOM（Software Bill of Materials）は hamio 本体、production npm 依存、同梱 Bun の在庫で、ソースと資産を hash で特定する。hamio 本体の [MIT License](../LICENSE) と第三者部品の許諾・通知を配布物へ含める。開発ツールは製品依存に含めない。
 
 Bun は native ライブラリと polyfill を集約した一つの部品として記録する。内部の個別の版・許諾を網羅的に確定した SBOM ではなく、未確認の項目には `NOASSERTION` を使う。SBOM の署名は在庫の網羅性や脆弱性の不存在を保証しない。
 
-Bun には MIT の本体、LGPL の JavaScriptCore、他の native ライブラリが含まれる。再リンク用 Bun は[固定した提供元の notices](https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/LICENSE.md)の手順で用意する。hamio の同じタグのソースと固定依存を取得し、`HAMIO_BUN_RUNTIME` にその Bun を指定して `bun scripts/build.ts` を実行できる。独自ビルドは公式資産の hash・証明の対象外とする。公開者は各部品の許諾・通知・ソース提供条件を確認する。
+Bun には MIT の本体、LGPL の JavaScriptCore、他の native ライブラリが含まれる。再リンク用 Bun は[固定した提供元の notices](https://github.com/oven-sh/bun/blob/744846f844374847c902b5e7fd59b4342a51ef99/LICENSE.md)の手順で用意する。hamio の同じタグのソースと固定依存を取得し、`HAMIO_BUN_RUNTIME` にその Bun を指定して `bun scripts/build.ts` を実行できる。独自ビルドは公式資産の hash・証明の対象外とする。公式 runtime revision を強制する `release:verify` と、修正 runtime を指定できる `build` を区別する。公開者は各部品の許諾・通知・ソース提供条件を確認し、固定したソースと再リンク方法を配布物と同じ版から追跡可能に保つ。
 
 ## 導入時の前提と信頼条件
 
@@ -55,15 +53,11 @@ immutable release は公開後のタグと資産を固定する仕組み、prove
 
 ## Nix で導入する
 
-Nix の `nix-command` と `flakes` を有効にすると、GitHub CLI や Bun の導入なしで公開版を使える。出力は `packages.<system>.hamio` と `apps.<system>.hamio`、各 `default` はその別名とする。対応する system は `aarch64-darwin`、`aarch64-linux`、`x86_64-linux` である。
+Nix の `nix-command` と `flakes` を有効にすると、GitHub CLI や Bun の導入なしで公開版を使える。対応する system は `aarch64-darwin`、`aarch64-linux`、`x86_64-linux` である。
 
 ```sh
 # 一回実行する
 nix run github:9uiLe/hamio#hamio -- --version
-
-# 一時的な shell に追加する
-nix shell github:9uiLe/hamio#hamio
-hamio capabilities
 
 # ユーザーの profile に追加する
 nix profile add github:9uiLe/hamio#hamio
@@ -97,8 +91,6 @@ flake が導入する製品版は [nix/release.json](../nix/release.json) の `v
 
 `nix develop` で shell に入り、`hamio` を直接呼び出す。生成した `flake.lock` を利用側の Git に含める。hamio 自身の `nixpkgs` は提供元の固定版を使い、利用側の `nixpkgs` へ `follows` させない。これにより配布で確認した Nix の依存構成を維持する。
 
-NixOS の `environment.systemPackages`、Home Manager の `home.packages` にも同じ `hamio.packages.<system>.hamio` を渡せる。hamio 用の常駐サービスや専用 module は必要ない。
-
 ### 更新とロールバック
 
 利用側の flake input は `nix flake update hamio` で更新する。`flake.lock` の差分、採用される製品版、対応環境を確認し、利用側のフォームと失敗処理を検査してから変更をマージする。戻す場合はレビュー済みの以前の lockfile を復元する。commit SHA を URL に固定している場合は、その SHA も明示的に変更する。
@@ -113,7 +105,7 @@ Nix パッケージは公式の gzip、checksum、SBOM、notices を固定 SHA-2
 
 macOS は公開バイナリをそのまま配置する。Linux は公開バイナリの hash を確認した後、Nix の glibc と共有ライブラリを参照するよう ELF の loader・探索パスを調整する。Bun の埋め込みデータを壊さないよう strip は行わない。Linux の配置後の実行ファイルは公開資産とは異なるバイト列になり、公開時の attestation は調整前の入力資産を証明する。Nix の依存・調整工程は flake と lockfile で管理する。
 
-`$out/share/hamio/` に公開物の `upstream.sha256`、`upstream.spdx.json`、`notices.txt`、固定情報の `release.json` を保存する。上流の SBOM は Nix の glibc などを含む全 closure の在庫ではない。通常起動は `$out/bin/hamio` を直接実行し、Bun・Node.js・GitHub CLI を起動しない。
+`$out/share/hamio/` に公開物の `upstream.sha256`、`upstream.spdx.json`、`notices.txt`、固定情報の `release.json` を保存する。上流の SBOM は Nix の glibc などを含む全 closure の在庫ではない。通常起動は `$out/bin/hamio` を直接実行する。
 
 ## リポジトリへの導入
 
@@ -155,14 +147,7 @@ sh scripts/install-hamio.sh
 
 ### 配置と失敗時の動作
 
-インストーラーは取得した実行ファイルを検証してから、使用中の版を切り替える。
-
-1. OS・CPU・版指定を検証し、配置先の lock を取得する。
-2. immutable release を確認し、タグのソース commit を解決する。
-3. gzip、checksum、SBOM、notices を一時領域へ取得し、各資産の公開リリースとの結び付きと由来を検証する。
-4. gzip の hash を確認し、容量制限付きで展開する。
-5. 展開後の hash と `--version` を照合する。
-6. `.tools/lib/hamio/<版>-<対象>/` へ保存し、最後に `.tools/bin/hamio` の symlink を切り替える。
+インストーラーは lock を取得し、公開資産の帰属・由来、圧縮前後の hash、展開後の版を照合する。検証後に `.tools/lib/hamio/<版>-<対象>/` へ保存し、最後に `.tools/bin/hamio` の symlink を切り替える。
 
 検証に失敗した場合は使用中の symlink を変更しない。同じ版の保存先に異なるバイト列がある場合、管理対象外の実行ファイルがある場合、別の導入処理が lock を保持する場合も停止する。
 
@@ -178,18 +163,7 @@ SIGKILL や電源断で lock が残った場合は、導入処理が動いてい
 
 ## スクリプトから呼び出す
 
-[フォーム定義の例](../examples/form.json)を利用側の `scripts/form.json` へ保存すると、次の Shell で非対話の回答を受け取れる。
-
-```sh
-response=$(
-  printf '%s\n' '{"environment":"local","approved":false}' |
-    .tools/bin/hamio form --definition scripts/form.json \
-      --values - --interactive never
-)
-printf '%s\n' "$response"
-```
-
-対話には stdin の端末接続を使う。対話と提供値を併用する場合は `--values` にファイルを指定する。UI は stderr、回答は stdout に分離される。利用側は回答と終了コードを確認して業務を進める。言語からの接続例は [Shell](../examples/form.sh)・[Python](../examples/form.py)、不足・無効値・中断の規則は [API 契約](api.md)を参照する。
+[Shell](../examples/form.sh)・[Python](../examples/form.py) の例と [API 契約](api.md)に従い、配置した実行ファイルを直接呼ぶ。対話のキー入力には stdin、回答の捕捉には stdout を使い、回答と終了コードの両方を判断する。
 
 ## GitHub Actions で使う
 
@@ -224,10 +198,9 @@ jobs:
 
 ## 手元でビルドした実行ファイル
 
-レビューしたソースを hamio の clone でビルドし、同じ OS・CPU の利用側へ配置する。次の `consumer_dir` は実在する利用側リポジトリに置き換える。
+[開発環境のセットアップ](development.md#2-初回セットアップ)後、レビューしたソースを hamio の clone でビルドし、同じ OS・CPU の利用側へ配置する。次の `consumer_dir` は実在する利用側リポジトリに置き換える。
 
 ```sh
-./scripts/dev.sh bun run setup
 ./scripts/dev.sh bun run build
 consumer_dir=/absolute/path/to/consumer
 mkdir -p "$consumer_dir/.tools/local-hamio"
@@ -251,16 +224,7 @@ workflow の ref は検証手順を選ぶ。製品のタグは検証する公開
 
 ### 権限と公開順序
 
-| 担当               | 責務                                                                | 必要な権限                                                                             |
-| ------------------ | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| 所有者             | 保護設定と immutable releases の確認、公開判断、Environment 承認    | リポジトリの管理権限                                                                   |
-| `build`            | 3対象の preflight、audit、check、二回の生成・比較、展開後の試験     | `contents: read`                                                                       |
-| `attest`           | 全資産の provenance と gzip に結び付く SBOM の証明発行              | `contents: read`、`id-token: write`、`attestations: write`、`artifact-metadata: write` |
-| `verify-candidate` | 実際の provenance、圧縮前後の hash、独立プロジェクトでの実行        | `contents: read`                                                                       |
-| `publish`          | 承認後の draft 作成、全資産の添付、公開、immutable release の検証   | `contents: write`                                                                      |
-| `verify-install`   | 公開資産の取得・検証・導入、利用側 Action、独立プロジェクトでの実行 | `contents: read`                                                                       |
-
-証明発行と公開の job は製品コードを実行しない。製品の smoke test へ token を渡さず、Actions は完全な commit SHA で固定する。PR の共通検査は Linux 1ジョブ、3環境の配布検証は手動の Release workflow が担当する。
+所有者は保護設定・immutable releases を管理権限で確認し、公開を承認する。workflow の権限は [release.yml](../.github/workflows/release.yml) を正本とする。証明発行と公開の job は製品コードを実行せず、製品の smoke test に token を渡さない。書き込み権限は各担当工程に限定し、Actions を完全な commit SHA で固定する。
 
 `release` Environment は所有者の承認と `v*` タグを必須にし、管理者による承認の bypass を無効にする。単独保守のため起動者の自己承認は許可する。設定は[リポジトリの保護設定](development.md#リポジトリの保護設定)に従う。
 
@@ -275,15 +239,9 @@ immutable releases の設定照会には `Administration: read` が必要であ�
 ./scripts/dev.sh bun run release:verify
 ```
 
-`release:package` は一候補を生成する。`release:verify` は次をすべて確認してから検証済み資産を保存する。
+`release:package` は一候補、`release:verify` は別ディレクトリで二候補を依存取得から生成する。全資産（SBOM・notices を含む）の名前と hash が一致し、gzip を展開した実行ファイルの API・端末試験に通った場合に `dist/release/` と `dist/release-verification.json` を保存する。試験は実行ファイルを再ビルドしない。
 
-1. ソースの commit・内容と固定ランタイムを取得し、候補ごとの独立した作業ディレクトリを用意する。
-2. 各ディレクトリで固定依存を取得し、同じ入力から順次ビルド・梱包する。
-3. 二候補の全資産の名前と SHA-256 を照合する。SBOM と notices も比較対象に含める。
-4. 一つ目の gzip を展開して hash を確認し、実行ファイルを再ビルドせず API・端末試験へ渡す。
-5. 生成中に入力が変わっていないことを確認し、`dist/release/` と `dist/release-verification.json` を保存する。
-
-比較条件は同じソース・依存・ランタイム・対象環境とする。SBOM の日時は commit 時刻から決め、異なる OS・CPU の資産同士の一致は求めない。共有の `dist/hamio` は候補生成に使わず、入力やランタイムが生成中に変われば失敗とする。
+比較条件は同じソース・依存・ランタイム・対象環境とする。SBOM の日時は commit 時刻から決め、異なる OS・CPU の資産同士の一致は求めない。共有の `dist/hamio` は使わず、入力やランタイムが生成中に変われば失敗とする。
 
 保存時は出力先を lock し、古い資産を退避してディレクトリ一式を入れ替える。配置失敗時は復元し、復元できない場合は退避先を残してエラーで知らせる。SIGKILL などで `dist/release.lock` が残った場合は、生成処理が動いていないことと退避資産を確認して復旧する。ローカルの配布コマンドは公開・証明発行を行わない。
 
@@ -302,7 +260,7 @@ gh workflow run release.yml --ref REVIEW_BRANCH -f mode=verify
 正式公開は次の手順で行う。
 
 1. 変更と `package.json` の版を PR でレビューし、`quality` と候補検証を通して `master` へマージする。
-2. 同梱部品の許諾、Bun・native 依存の advisory、対応環境、性能の実測範囲を確認する。固定 revision、確認先、確認日、結果を記録する。
+2. 同梱部品の許諾・通知・ソース提供条件、Bun・native 依存の advisory を確認し、固定 revision、確認先、確認日、結果を記録する。製品入口のプレビューに加え、日本語・emoji・狭い幅・resize・色なし・中断と復旧、実端末・アクセシビリティの確認範囲、性能・出力量の実測条件と未測定範囲を[リリース評価](release-readiness.md)へ明記する。自動試験の成功で未実施の確認を置き換えない。
 3. 対象 commit と版を照合し、レビュー済みの `master` commit に `vX.Y.Z` タグを作成して push する。タグは作成後に更新・削除できない。
 4. タグを ref にして `mode=publish` を実行する。タグのソースで候補の全検証を行う。
 5. 所有者の認証で immutable releases の有効化を確認する。Environment の承認画面で対象 commit、3環境の結果、許諾・advisory の記録を照合して承認する。
@@ -334,9 +292,9 @@ gh api repos/9uiLe/hamio/immutable-releases --jq .enabled
 gh workflow run release.yml --ref master -f mode=verify-install -f version=vX.Y.Z
 ```
 
-このモードでは build、attest、verify-candidate、publish を実行しない。3対象の runner は指定版の immutable release とタグの commit を取得し、`install.sh` の資産への帰属と由来を検証してから実行する。利用側 Action はその製品 commit から checkout する。
+3対象の runner は指定版の immutable release とタグの commit を取得し、`install.sh` の資産への帰属と由来を検証してから実行する。利用側 Action はその製品 commit から checkout する。
 
-インストーラーと Action の両経路を確認し、独立した Git プロジェクトから限定した環境変数・開発ランタイムのない PATH で版、機能照会、非対話フォームを試験する。検証 workflow の ref・commit・実行 URL と、製品のタグ・commit・資産 digest を別に記録する。検証手順の変更によって、公開製品のバイト列や利用側 Action が置き換わることはない。
+インストーラーと Action の両経路を確認し、独立した Git プロジェクトから限定した環境変数・開発ランタイムのない PATH で版、機能照会、非対話フォームを試験する。検証 workflow の ref・commit・実行 URL と、製品のタグ・commit・資産 digest を別に記録する。
 
 ### 公開と導入の失敗
 
@@ -360,40 +318,15 @@ nix flake check --all-systems --no-build --no-write-lock-file
 nix flake check --no-write-lock-file --print-build-logs
 ```
 
-更新スクリプトは3対象・12資産の証明を照合し、確認した版、製品ソース commit、各資産と展開後の実行ファイルの hash を `nix/release.json` に保存する。取得したコードは実行せず、途中で失敗した場合は固定情報を変更しない。競合する更新は lock で拒否し、成功時だけファイルを入れ替える。強制終了で `nix/release.json.lock` が残った場合は更新プロセスがないことを確認して削除する。
+更新時に3対象の公開資産の証明を検証し、`nix/release.json` へ版・製品 commit・資産と展開後の hash を保存する。取得したコードは実行せず、失敗時は固定情報を変更しない。競合は lock で拒否する。強制終了で `nix/release.json.lock` が残った場合は更新プロセスがないことを確認して削除する。
 
 公開版と固定情報の更新は別の PR・commit として扱う。公開前の版や `latest` から hash を生成せず、公開済みタグへ Nix 定義を後付けしない。`package.json` は開発ソースの版、`nix/release.json` は Nix で採用する公開版を表す。
 
-[Nix package workflow](../.github/workflows/nix.yml) は Nix 定義、lockfile、固定情報、導入試験に関係する変更で3対象を検査する。各 runner で Nix パッケージを生成し、開発ランタイムのない PATH から版・機能照会・非対話フォームを確認する。Nix の設定変更に関係しない PR と、マージ後の push では起動しない。ブランチの3対象を手動で確認する場合は Quality から呼び出せる。
+Nix の関連変更は [Nix package workflow](../.github/workflows/nix.yml) で3対象の native 検査を通す。ブランチの3対象を手動で確認する場合は Quality から呼び出す。
 
 ```sh
 # REVIEW_BRANCH を確認するブランチに置き換える。
 gh workflow run quality.yml --ref REVIEW_BRANCH -f runner=ubuntu-24.04 -f nix-package=true
 ```
 
-## 検証の範囲
-
-| 入口                                                  | 確認するもの                                                                              |
-| ----------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [distribution.test.ts](../tests/distribution.test.ts) | GitHub CLI の代替実装による検証条件、失敗時の非実行、更新・復旧、lock、既存ファイル保護   |
-| [executable.test.ts](../tests/executable.test.ts)     | 本物の実行ファイルを使う Bun のない PATH、別ディレクトリ、暗黙設定、端末入力              |
-| [release.test.ts](../tests/release.test.ts)           | 独立ルートのビルド、入力の固定、資産配置と失敗時の復元                                    |
-| `release:verify`                                      | 独立した二候補の全資産と、梱包した実行ファイルの API・端末動作                            |
-| `verify-candidate`                                    | 実際の provenance、展開後の hash、独立した Git プロジェクトでの機能照会・フォーム         |
-| 公開後の導入試験                                      | 実際の GitHub 署名、公開資産との結び付き、対象環境への配置と起動                          |
-| [nix-release.test.ts](../tests/nix-release.test.ts)   | GitHub CLI の代替実装による固定情報の更新条件、失敗時の保持、競合拒否、取得コードの非実行 |
-| `nix flake check`                                     | 固定した公開資産の取得、展開後の hash、Nix の配置先からの独立プロジェクト試験             |
-
-各試験は対象と検証経路を明示して結果を記録する。代替実装による試験は実際の署名検証の成功を示さない。同一環境での二候補の一致は、別ホストでの一致や依存の無害性を証明するものではない。
-
-## 根拠
-
-- [Immutable releases](https://docs.github.com/en/code-security/concepts/supply-chain-security/immutable-releases): 公開済みタグ・資産の固定と release attestation。
-- [GitHub CLI attestation verify](https://cli.github.com/manual/gh_attestation_verify): repository、workflow、source ref / digest、runner の信頼条件。
-- [GitHub-hosted runners](https://docs.github.com/en/actions/reference/runners/github-hosted-runners): runner の OS・CPU。
-- [actions/attest](https://github.com/actions/attest/tree/1e69f48acb82d1966a394da916b4c1698aa569d6): provenance と SBOM の証明発行。
-- [SPDX 2.3](https://spdx.github.io/spdx-spec/v2.3/): 在庫の交換形式と `NOASSERTION`。
-- [SOURCE_DATE_EPOCH](https://reproducible-builds.org/docs/source-date-epoch/): ソースの時刻を使った再現可能な生成物。
-- [Nix flakes](https://nix.dev/concepts/flakes.html): packages・apps と lockfile による固定。
-- [Nix profile add](https://nix.dev/manual/nix/2.33/command-ref/new-cli/nix3-profile-add): ユーザー profile への導入。
-- [Nixpkgs autoPatchelfHook](https://nixos.org/manual/nixpkgs/unstable/#setup-hook-autopatchelfhook): Linux の loader・共有ライブラリの調整。
+検査の選び方と代替実装による試験の限界は[開発手順](development.md#製品試験と性能測定)を参照する。

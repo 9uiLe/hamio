@@ -14,13 +14,13 @@ hamio は利用側スクリプトの入力と表示を担当する。入力検�
 
 サポート対象は最新の公開製品版とする。過去版への修正のバックポートは保証しない。利用者は完全な版を固定し、修正版の内容と証明を確認して明示的に更新する。
 
-Nix の配布は、保守者が証明を検証して固定した公開資産を取得する。利用側は flake・lockfile・固定 hash と Nix の信頼済み cache を検証の起点とする。Linux の loader 調整後の実行ファイルと Nix の追加依存は、公開資産の attestation・上流 SBOM の範囲には含まれない。[Nix の信頼条件](docs/distribution.md#検証と信頼条件)を参照する。
+Nix で導入する場合の固定 hash・cache・Linux 調整と証明の範囲は [Nix の信頼条件](docs/distribution.md#検証と信頼条件)に従う。
 
 hamio は利用側コードの sandbox ではない。業務処理、起動元の環境変数、実行権限、回答 stdout の保管・ログ・転送は利用側が管理する。
 
 ## 依存とランタイムの確認
 
-Dependabot が作成する Bun ecosystem の依存、GitHub Actions、Nix の更新 PR は、取得元、差分、lifecycle scripts、lockfile、検査結果をレビューして採用する。自動マージは行わない。
+依存の採用と更新は[開発手順](docs/development.md#7-依存とツールの更新)に従い、取得元・差分・検査結果をレビューする。自動マージは行わない。
 
 `bun audit` は npm 依存の監査であり、同梱 Bun 内部の native 部品を網羅しない。公開前および Bun 更新時は [Bun の advisory](https://github.com/oven-sh/bun/security/advisories)、[リリース情報](https://github.com/oven-sh/bun/releases)、固定ソースの native 依存と許諾を別途確認する。対象 revision、確認日、結果、確認できない範囲を[リリース評価](docs/release-readiness.md)と根拠資料へ記録する。
 
