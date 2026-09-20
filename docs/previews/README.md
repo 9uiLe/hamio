@@ -18,10 +18,4 @@
 
 ![録画基盤の結果](fixture-result.png)
 
-## 生成元と確認範囲
-
-実行対象、入力、撮影位置は [scenarios.ts](../../scripts/preview/scenarios.ts)に定義します。`./scripts/preview.sh` は生成元と PNG の SHA-256 を [manifest.json](manifest.json) と照合し、不足・変更・破損があれば生成します。`--force` を指定すると必ず端末を再実行します。
-
-操作途中は `./scripts/preview.sh --recording` で生成する `dist/preview/product.gif` と `dist/preview/fixture.gif` を確認します。録画はローカル専用の manifest で生成元、GIF、端末出力の記録を照合します。
-
-内容の照合で更新漏れを検出し、画像と録画の目視で表示を確認します。各 OS の実端末、画面読み上げ、製品性能は専用の試験で評価します。
+シナリオは [scenarios.ts](../../scripts/preview/scenarios.ts)、生成元と画像の照合情報は [manifest.json](manifest.json) にあります。操作過程の GIF、生成・目視・共有の手順は[開発手順](../development.md#8-ターミナル-ui-のプレビュー)を参照してください。

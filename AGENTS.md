@@ -1,6 +1,6 @@
 # hamio の開発
 
-[基本設計](docs/design.md)を製品の責務と公開契約の正本、[開発手順](docs/development.md)をツールと検査の正本とする。業務処理は利用側に残す。
+[基本設計](docs/design.md)を製品の責務・設計理由、[API 契約](docs/api.md)を公開契約、[開発手順](docs/development.md)をツールと検査の正本とする。業務処理は利用側に残す。
 
 ## 作業の入口
 
@@ -8,7 +8,7 @@
 - 開発中は `nix develop` を使う。依存は `bun.lock`、開発ツールは `flake.lock` で固定する。
 - 変更後は対象に合う検査を行い、完了前に `./scripts/dev.sh bun run check` を通す。検証不能な環境は結果に明記する。
 - format は `./scripts/dev.sh bun run format`。自動修正の差分を確認する。検査を通すためだけにルール、型検査、hooks を無効化しない。
-- 依存追加・更新では取得元、差分、lifecycle scripts、lockfile を確認する。通常の実行に `bunx` 等の自動取得を持ち込まない。
+- 依存追加・更新は[依存とツールの更新](docs/development.md#7-依存とツールの更新)に従い、取得元・差分・lifecycle scripts・lockfile を確認する。
 
 ## UI の確認
 

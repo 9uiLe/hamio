@@ -167,14 +167,12 @@ jobs:
           Standalone terminal UI for macOS 15 arm64 and Ubuntu 24.04 x64/arm64 (glibc).
           Bun, Node.js and Nix are not required on consumer machines.
 
-          Install, update and rollback: see docs/distribution.md at this release tag.
-          Select an exact version; verify the immutable release and artifact provenance before execution.
-
-          Each platform includes SHA-256 checksums, an SPDX inventory and third-party notices.
-          Inventory scope: production JavaScript dependencies and Bun as a hash-pinned aggregate.
-          Bun's native component versions are not individually resolved; see the inventory comment and upstream notices.
+          Includes SHA-256 checksums, an SPDX inventory and third-party notices.
+          The inventory covers production JavaScript dependencies and Bun as an aggregate, not every native component.
           These platform tests do not guarantee older OS versions, musl, all terminals or every performance budget.
           NOTES
+          docs_url="https://github.com/$GH_REPO/blob/$RELEASE_TAG/docs"
+          printf '\n[Install, update and rollback](%s/distribution.md) · [API](%s/api.md) · [Validation and limits](%s/release-readiness.md)\n' "$docs_url" "$docs_url" "$docs_url" >> notes.md
           printf '\nValidation run: https://github.com/%s/actions/runs/%s\nSource commit: %s\n' "$GH_REPO" "$GITHUB_RUN_ID" "$GITHUB_SHA" >> notes.md
           gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" --notes-file notes.md --generate-notes assets/*
           gh release edit "$RELEASE_TAG" --draft=false

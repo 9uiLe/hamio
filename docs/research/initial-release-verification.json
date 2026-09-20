@@ -1,6 +1,5 @@
 {
   "release": {
-    "id": 390765156,
     "tag_name": "v0.1.0",
     "html_url": "https://github.com/9uiLe/hamio/releases/tag/v0.1.0",
     "published_at": "2026-09-17T13:58:30Z",
@@ -77,77 +76,53 @@
     ]
   },
   "candidateRun": {
-    "databaseId": 35229026857,
     "headSha": "1c266341fd4d62c9314f6654abda00cd223941fa",
     "url": "https://github.com/9uiLe/hamio/actions/runs/35229026857",
-    "status": "completed",
     "conclusion": "failure",
     "jobs": [
       {
         "name": "build (ubuntu-24.04, linux-x64)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:44:49Z",
-        "completedAt": "2026-09-17T13:45:53Z"
+        "conclusion": "success"
       },
       {
         "name": "build (ubuntu-24.04-arm, linux-arm64)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:44:51Z",
-        "completedAt": "2026-09-17T13:45:38Z"
+        "conclusion": "success"
       },
       {
         "name": "build (macos-15, darwin-arm64)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:44:54Z",
-        "completedAt": "2026-09-17T13:47:34Z"
+        "conclusion": "success"
       },
       {
         "name": "attest (darwin-arm64)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:47:37Z",
-        "completedAt": "2026-09-17T13:47:43Z"
+        "conclusion": "success"
       },
       {
         "name": "attest (linux-x64)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:47:37Z",
-        "completedAt": "2026-09-17T13:47:44Z"
+        "conclusion": "success"
       },
       {
         "name": "attest (linux-arm64)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:47:37Z",
-        "completedAt": "2026-09-17T13:47:43Z"
+        "conclusion": "success"
       },
       {
         "name": "verify-candidate (ubuntu-24.04-arm, linux-arm64)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:48:07Z",
-        "completedAt": "2026-09-17T13:48:26Z"
+        "conclusion": "success"
       },
       {
         "name": "verify-candidate (ubuntu-24.04, linux-x64)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:48:05Z",
-        "completedAt": "2026-09-17T13:48:25Z"
+        "conclusion": "success"
       },
       {
         "name": "verify-candidate (macos-15, darwin-arm64)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:48:11Z",
-        "completedAt": "2026-09-17T13:48:44Z"
+        "conclusion": "success"
       },
       {
         "name": "publish",
-        "conclusion": "failure",
-        "startedAt": "2026-09-17T13:49:38Z",
-        "completedAt": "2026-09-17T13:49:45Z"
+        "conclusion": "failure"
       },
       {
         "name": "verify-install",
-        "conclusion": "skipped",
-        "startedAt": "2026-09-17T13:49:45Z",
-        "completedAt": "2026-09-17T13:49:45Z"
+        "conclusion": "skipped"
       }
     ]
   },
@@ -160,53 +135,21 @@
     "immutableReleaseVerified": true
   },
   "consumerVerification": {
-    "databaseId": 35230519812,
     "headSha": "17d19724dd4469dc983c7be8d57ce2e32da33e2a",
     "url": "https://github.com/9uiLe/hamio/actions/runs/35230519812",
-    "status": "completed",
     "conclusion": "success",
     "jobs": [
       {
-        "name": "build",
-        "conclusion": "skipped",
-        "startedAt": "2026-09-17T13:58:40Z",
-        "completedAt": "2026-09-17T13:58:40Z"
-      },
-      {
-        "name": "attest",
-        "conclusion": "skipped",
-        "startedAt": "2026-09-17T13:58:40Z",
-        "completedAt": "2026-09-17T13:58:40Z"
-      },
-      {
-        "name": "verify-candidate",
-        "conclusion": "skipped",
-        "startedAt": "2026-09-17T13:58:40Z",
-        "completedAt": "2026-09-17T13:58:40Z"
-      },
-      {
         "name": "verify-install (ubuntu-24.04)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:58:43Z",
-        "completedAt": "2026-09-17T14:00:05Z"
+        "conclusion": "success"
       },
       {
         "name": "verify-install (macos-15)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:58:47Z",
-        "completedAt": "2026-09-17T14:00:00Z"
+        "conclusion": "success"
       },
       {
         "name": "verify-install (ubuntu-24.04-arm)",
-        "conclusion": "success",
-        "startedAt": "2026-09-17T13:58:45Z",
-        "completedAt": "2026-09-17T14:00:04Z"
-      },
-      {
-        "name": "publish",
-        "conclusion": "skipped",
-        "startedAt": "2026-09-17T13:58:41Z",
-        "completedAt": "2026-09-17T13:58:40Z"
+        "conclusion": "success"
       }
     ]
   },

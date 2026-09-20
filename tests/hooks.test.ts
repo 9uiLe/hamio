@@ -125,6 +125,47 @@ describe("local quality hooks", () => {
     must(cwd, ["git", "push", "origin", "HEAD:main"]);
   }, 30_000);
 
+  test("pre-push isolates nested repositories from the invoking Git environment", () => {
+    const cwd = fixture();
+    const before = must(cwd, ["git", "rev-parse", "HEAD"]);
+    const index = must(cwd, ["git", "write-tree"]);
+    writeFileSync(
+      join(cwd, "package.json"),
+      JSON.stringify({ private: true, scripts: { check: "sh check-repositories.sh" } }),
+    );
+    writeFileSync(
+      join(cwd, "check-repositories.sh"),
+      [
+        "set -eu",
+        "mkdir nested",
+        "cd nested",
+        "git init -q",
+        "git -c user.name=Fixture -c user.email=fixture@example.invalid commit --allow-empty -qm nested",
+        "git init --bare -q ../nested-remote.git",
+      ].join("\n"),
+    );
+    const result = spawnSync("sh", [".husky/pre-push"], {
+      cwd,
+      env: {
+        ...env,
+        GIT_DIR: join(cwd, ".git"),
+        GIT_WORK_TREE: cwd,
+        GIT_INDEX_FILE: join(cwd, ".git/index"),
+        GIT_COMMON_DIR: join(cwd, ".git"),
+      },
+      encoding: "utf8",
+      timeout: 30_000,
+    });
+    expect(result.status, result.stderr).toBe(0);
+    expect(must(cwd, ["git", "rev-parse", "HEAD"])).toBe(before);
+    expect(must(cwd, ["git", "write-tree"])).toBe(index);
+    expect(must(cwd, ["git", "config", "--get", "core.bare"]).trim()).toBe("false");
+    expect(must(join(cwd, "nested"), ["git", "log", "-1", "--format=%s"]).trim()).toBe("nested");
+    expect(
+      must(join(cwd, "nested-remote.git"), ["git", "rev-parse", "--is-bare-repository"]).trim(),
+    ).toBe("true");
+  }, 30_000);
+
   test("hook installation preserves an existing hooks directory", () => {
     const cwd = fixture();
     must(cwd, ["git", "config", "core.hooksPath", "custom-hooks"]);
