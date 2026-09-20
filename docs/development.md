@@ -126,7 +126,7 @@ Husky が hook を起動し、lint-staged がステージ済みファイルへ�
 
 失敗時は差分を修正して再ステージする。pre-push には未コミットの内容も含まれるため、送信 commit や PR のマージ候補と検査対象が一致するとは限らない。マージ候補の確認は Quality workflow が担当する。
 
-必須のマージ条件は、ローカル hooks とは別に GitHub の ruleset で管理する。
+pre-push は Git が渡すリポジトリ固有の環境変数を検査前に外す。一時リポジトリを作るテストが、呼び出し元のブランチ・index・Git 設定を変更しないためである。必須のマージ条件は GitHub の ruleset で管理する。
 
 ## 5. GitHub Actions
 

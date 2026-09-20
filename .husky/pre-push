@@ -1,2 +1,10 @@
 #!/bin/sh
+set -eu
+
+# Tests create independent repositories; hook-local Git paths must not escape into them.
+git_local_env=$(git rev-parse --local-env-vars)
+for name in $git_local_env; do
+  unset "$name"
+done
+
 exec ./scripts/dev.sh bun run check
