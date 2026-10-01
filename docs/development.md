@@ -115,9 +115,9 @@ nix run .#hamio -- --version
 
 ### 成果物と Phase 4 Catalog の入口
 
-現時点の `build` は CLI の native executable 一つだけを生成し、Catalog や開発用 preview は含めない。単一 private package のままで Phase 3/4 の論理 module を置ける。package 分割は import 規則の強制、独立配布、build/test や version の責務が実際に分かれた場合に判断する。TypeScript API と HTML report assets が将来 consumer artifact になるかは未決であり、決定した場合は release 資産、Nix 配置、SBOM、署名、利用側の版固定を一緒に見直す。Catalog は development-only とし、現行の native release に混ぜない。
+現時点の `build` は CLI の native executable 一つだけを生成し、Catalog や開発用 preview は含めない。Phase 3/4 の論理 module は単一 private package に置いている。package 分割は import 規則の強制、独立配布、build/test や version の責務が実際に分かれた場合に判断する。TypeScript API と HTML report assets が将来 consumer artifact になるかは未決であり、決定した場合は release 資産、Nix 配置、SBOM、署名、利用側の版固定を一緒に見直す。
 
-Phase 4 で実体ができたら root の `bun run catalog` を起動入口、`bun run catalog:check` を scenario・HTML・実 Terminal capture の検査入口として追加する。共有 semantic scenario は Domain の意味を検証する test concern に置き、Catalog は両 renderer を同じ scenario で表示する。Terminal capture は既存 `scripts/preview` の PTY 技術を再利用し、生成時だけ `devShells.preview` の描画 tool を要求する。HTML dependency が必要になったら固定依存を導入し、`catalog:check` を `check` または Quality CI の明示 step に入れる。Phase 2 では Catalog の実体がないため no-op command は置かず、`bun run preview:check` が現行 capture 基盤の生成元・成果物の整合を検証する。
+Catalog は現在 development-only artifact として存在する。人間向けの `bun run catalog` と automation / CI 向けの `bun run catalog:check` を root に置き、後者は通常の `bun run check` に含める。共有 scenario の正本は [`scripts/catalog/scenarios.ts`](../scripts/catalog/scenarios.ts) で、Terminal と HTML は同じ解決済み `PresentationState` を読む。実 Terminal 画像は既存の PTY capture 基盤を再利用し、画像生成時だけ preview shell の描画 tool を使う。v1 `preview:check` と v2 Catalog check は移行中の別 concern である。起動・検査・画像更新の手順と、Phase 5 前の diagnostic 表示の位置付けは[Semantic Catalog と diagnostic capture](#9-semantic-catalog-と-diagnostic-capture)にまとめる。
 
 ### 製品試験と性能測定
 
@@ -130,23 +130,15 @@ Phase 4 で実体ができたら root の `bun run catalog` を起動入口、`b
 | [distribution.test.ts](../tests/distribution.test.ts)・[nix-release.test.ts](../tests/nix-release.test.ts) | GitHub CLI の代替実装で検証条件、失敗時の非実行・保持、更新・復旧・lock を確認 |
 | [release.test.ts](../tests/release.test.ts)                                                                | 別ルートのビルド、入力の固定、資産の配置・復元、公開条件                       |
 | [hooks.test.ts](../tests/hooks.test.ts)・[preview.test.ts](../tests/preview.test.ts)                       | 検査の拒否・復元、録画・照合                                                   |
+| [presentation.test.ts](../tests/presentation.test.ts)・[protocol-v2.test.ts](../tests/protocol-v2.test.ts) | v2 の状態遷移・Replay、未信頼 JSON/NDJSON の境界検証                           |
+| [catalog.test.ts](../tests/catalog.test.ts)・`catalog:check`                                               | 共有 scenario、両 diagnostic renderer、Catalog と代表 PTY capture              |
 | `release:verify`                                                                                           | 独立した二回の依存取得・梱包、全資産の一致、gzip から展開した製品の試験        |
 | Release workflow                                                                                           | 実際の provenance と候補の動作、公開後の署名・資産帰属・インストーラー・Action |
 | `nix flake check`                                                                                          | 固定した公開資産の取得・hash、Nix 配置後の独立プロジェクトからの実行           |
 
 `HAMIO_TEST_BINARY` を指定した API・実行ファイル試験は、渡された binary を再生成せずに使う。代替実装による試験を実際の署名検証の成功と扱わず、同一環境の二候補の一致を別ホストでの一致へ一般化しない。
 
-将来の test 責務との対応は次のとおり。Phase 2 では既存 test の名前や配置を変更しない。
-
-| 将来の層                                  | 現行の主な該当 test                                                                                              | Phase 3/4 での整理候補                                                              |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Domain unit                               | `api.test.ts` の stream lifecycle・進捗・ID                                                                      | v2 reducer の純粋な遷移 test として独立させ、CLI 経由の同条件重複を減らす           |
-| Protocol                                  | `api.test.ts` の JSON/NDJSON・制限・版・秘匿                                                                     | v2 decoder と資源上限を検証する。業務結果との混同は integration に残す              |
-| Renderer                                  | `api.test.ts` の表・制御文字、`runtime.test.ts` の描画・prompt                                                   | Terminal と HTML の媒体固有契約へ分ける。Form は interaction concern として扱う     |
-| Integration                               | `api.test.ts` の CLI/TTY、`runtime.test.ts` の application・backpressure、`executable.test.ts`                   | 利用側から観測できる入口と入出力を残す                                              |
-| UI / Visual                               | `preview.test.ts`、`preview:check`、製品 preview                                                                 | Phase 4 の共通 scenario と実 renderer に結び、録画基盤 fixture と製品 UI を区別する |
-| Regression                                | 各 test の中断、secret、失敗時の資産保持                                                                         | 修正した障害の境界に置き、同じ条件を全層に複製しない                                |
-| Development / Distribution infrastructure | `hooks.test.ts`、`release.test.ts`、`nix-release.test.ts`、`distribution.test.ts`、`preview.test.ts` の PTY 基盤 | build・hook・配布・録画の独立した失敗条件を維持する                                 |
+v1 の API・CLI・端末・配布 test は、現行製品の回帰確認として維持する。v2 の Domain、Protocol、diagnostic renderer と Catalog は上記の独立した test と検査入口で確認し、同じ遷移規則を全層へ複製しない。
 
 性能は本番と同じ設定の実行ファイルで測る。TypeScript の開発実行、画像生成の時間、製品の応答は別の測定とする。
 
