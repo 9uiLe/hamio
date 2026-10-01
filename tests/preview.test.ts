@@ -76,10 +76,12 @@ test("preview freshness detects source additions, changed sources, and altered P
     };
     await Bun.write(join(root, manifestPath), JSON.stringify(manifest));
     await checkPreviews(root);
-    await Bun.write(join(root, "src/new.ts"), "export {};\n");
+    await Bun.write(join(root, "src/core/new.ts"), "export {};\n");
     await expect(checkPreviews(root)).rejects.toThrow("stale");
-    expect(await previewChanges(root)).toEqual(["src/new.ts"]);
+    expect(await previewChanges(root)).toEqual(["src/core/new.ts"]);
     await rm(join(root, "src"), { recursive: true });
+    await Bun.write(join(root, "src/presentation/new.ts"), "export {};\n");
+    await checkPreviews(root);
     await Bun.write(join(root, "package.json"), '{"changed": true}');
     await expect(checkPreviews(root)).rejects.toThrow("stale");
     await Bun.write(join(root, "package.json"), "{}");
