@@ -42,10 +42,10 @@ try {
         {
           waitFor:
             capture.id === "run-group-mixed"
-              ? "Task Package (b) — succeeded; no data"
+              ? "Run result"
               : capture.id === "task-running-partial"
-                ? "running; progress determinate 2/4"
-                : "Name: short | Value: null",
+                ? "Compile sources  2/4"
+                : "Value: null",
           snapshot: "state",
         },
       ],

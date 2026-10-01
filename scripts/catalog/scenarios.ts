@@ -408,6 +408,21 @@ export const scenarios: readonly Scenario[] = [
       ]),
     },
   },
+  {
+    id: "content-cjk",
+    name: "Japanese and grapheme text",
+    category: "Content",
+    description:
+      "Japanese, full-width, emoji, and combining marks remain readable at narrow widths.",
+    intent: "Inspect actual Terminal glyph widths and HTML text without losing characters",
+    covers: ["content.cjk"],
+    source: {
+      kind: "state",
+      state: staticState([
+        { kind: "message", level: "info", text: "日本語の進捗: 全角ＡＢＣ 👩‍💻 é 確認済み" },
+      ]),
+    },
+  },
 ] as const;
 
 export function resolveScenario(scenario: Scenario): PresentationState {
