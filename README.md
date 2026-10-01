@@ -1,6 +1,6 @@
 # hamio
 
-hamio は、開発用スクリプトの質問、進捗、表、結果を統一するターミナル UI ツールです。Shell、Python、Go、TypeScript などからコマンドラインと JSON で呼び出します。業務処理の順序、並列数、権限、再試行は利用側が管理します。
+hamio は、Script / AI / Application が人へ提示する状態と内容を標準化するツールです。Presentation Protocol v2 を production Terminal Renderer へ渡せます。HTML Renderer も repository 内にありますが、consumer 向け HTML report はまだ提供していません。Shell、Python、Go、TypeScript などから native CLI と JSON で呼び出せます。業務処理の順序、並列数、権限、再試行は利用側が管理します。
 
 ## 導入
 
@@ -17,7 +17,19 @@ nix profile add github:9uiLe/hamio#hamio
 
 flake input・lockfile への組み込み、製品版と flake commit の固定、ロールバックは [Nix の導入手順](docs/distribution.md#nix-で導入する)を参照してください。
 
-## スクリプトから使う
+## Presentation Protocol v2
+
+開発中の source / 次の配布候補では、明示的な `presentation` 入口から static JSON または live NDJSON を表示します。公開済み v0.1.0 は API v1 のままです。
+
+```sh
+./dist/hamio presentation capabilities
+./dist/hamio presentation static --input examples/presentation-static.json
+sh examples/presentation-live.sh ./dist/hamio succeeded
+```
+
+人向け表示は stderr、機械向け応答は stdout。Run の業務上の失敗と hamio の処理失敗は別です。完全な入力形式、終了コード、色・motion、例は [Presentation v2 契約](docs/presentation-api.md)を参照してください。
+
+## API v1（移行中も維持）
 
 | コマンド       | 用途                                               |
 | -------------- | -------------------------------------------------- |
@@ -30,7 +42,7 @@ flake input・lockfile への組み込み、製品版と flake commit の固定�
 
 AI エージェントと CI は `form --interactive never` または `render / stream --format json` を指定します。stream は既定で最終応答一つを返し、全 event の応答が必要な場合は `--events` を使います。
 
-データ形式と終了コードは [API 契約](docs/api.md)、接続例は [Shell](examples/form.sh)・[Python](examples/form.py)、CI への導入は [GitHub Actions の手順](docs/distribution.md#github-actions-で使う)を参照してください。
+v1 のデータ形式と終了コードは [API v1 契約](docs/api.md)、接続例は [Shell](examples/form.sh)・[Python](examples/form.py)、CI への導入は [GitHub Actions の手順](docs/distribution.md#github-actions-で使う)を参照してください。v1 と v2 の JSON は混用しません。
 
 ## 開発する
 
