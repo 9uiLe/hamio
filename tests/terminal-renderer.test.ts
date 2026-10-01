@@ -164,15 +164,17 @@ test("TTY redraw stays in its owned rows, resize reflows, and completion stops m
     animation: true,
   });
   view.update(scenario("task-running-partial"));
-  await Bun.sleep(280);
-  const before = sink.chunks.length;
-  expect(before).toBeGreaterThan(0);
+  for (let attempt = 0; attempt < 20 && sink.chunks.length === 0; attempt++) await Bun.sleep(20);
+  expect(sink.chunks.length).toBeGreaterThan(0);
+  view.update(scenario("task-running-complete"));
+  for (let attempt = 0; attempt < 20 && !sink.chunks.join("").includes("\u001b[2K"); attempt++)
+    await Bun.sleep(20);
+  expect(sink.chunks.join("")).toContain("\u001b[2K");
   view.resize(40);
   view.update(scenario("task-succeeded"));
   await view.close();
   const combined = sink.chunks.join("");
   expect(combined).toContain("\u001b[36m");
-  expect(combined).toContain("\u001b[2K");
   expect(combined).toContain("+ succeeded");
   expect(combined).not.toContain("\u001b[?25l");
   const count = sink.chunks.length;
