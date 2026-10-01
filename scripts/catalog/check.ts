@@ -1,7 +1,7 @@
 import { captureTerminal } from "../preview/capture.ts";
 import { catalogResponse } from "./server.ts";
 import { resolveScenario, scenarios } from "./scenarios.ts";
-import { renderHtmlDiagnostic } from "../../src/renderers/html-diagnostic.ts";
+import { renderHtml } from "../../src/renderers/html.ts";
 import { renderTerminal } from "../../src/renderers/terminal.ts";
 import { checkCaptureArtifacts } from "./artifacts.ts";
 import { verifyTerminalPaths } from "./terminal-verify.ts";
@@ -25,6 +25,7 @@ const requiredCoverage = [
   "result.succeeded.value",
   "result.failed",
   "result.cancelled",
+  "failure.details",
   "run.running",
   "run.succeeded",
   "run.failed",
@@ -83,7 +84,7 @@ export async function checkCatalog(): Promise<void> {
       }
     }
     try {
-      const html = renderHtmlDiagnostic(state);
+      const html = renderHtml(state, { language: "en" });
       if (!html.startsWith("<!doctype html>") || !html.includes("<main>"))
         throw new Error("HTML document is incomplete.");
     } catch (error) {

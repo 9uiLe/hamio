@@ -138,7 +138,7 @@ Catalog は現在 development-only artifact として存在する。人間向け
 
 `HAMIO_TEST_BINARY` を指定した API・実行ファイル試験は、渡された binary を再生成せずに使う。代替実装による試験を実際の署名検証の成功と扱わず、同一環境の二候補の一致を別ホストでの一致へ一般化しない。
 
-v1 の API・CLI・端末・配布 test は、現行製品の回帰確認として維持する。v2 の Domain、Protocol、Terminal renderer、HTML diagnostic renderer と Catalog は上記の独立した test と検査入口で確認し、同じ遷移規則を全層へ複製しない。
+v1 の API・CLI・端末・配布 test は、現行製品の回帰確認として維持する。v2 の Domain、Protocol、Terminal / HTML renderer と Catalog は上記の独立した test と検査入口で確認し、同じ遷移規則を全層へ複製しない。
 
 性能は本番と同じ設定の実行ファイルで測る。TypeScript の開発実行、画像生成の時間、製品の応答は別の測定とする。
 
@@ -307,9 +307,9 @@ bun scripts/benchmark-preview.ts dist/preview/benchmark.json 15
 
 この測定は強制生成を含み PNG・manifest・ローカル録画を更新するため、差分を確認する。wrapper は shell 準備も含み、内部の生成・照合時間と分けて評価する。製品の入力応答の測定には使わない。
 
-## 9. Semantic Catalog と Terminal capture
+## 9. Semantic Catalog と Renderer review
 
-Catalog は開発専用で、Phase 3 の State / Event を両媒体で読むための検査環境である。consumer 向け CLI・native executable には入れない。Terminal pane は Phase 7 の Renderer、HTML pane は Phase 4 の diagnostic renderer を使う。HTML の診断表示は [Design Direction](design/direction.md)、[Design Tokens](design/tokens.md)、[Component Specification](design/components.md) の最終実装ではない。
+Catalog は開発専用で、Phase 3 の State / Event を両媒体で読むための検査環境である。consumer 向け CLI・native executable には入れない。Terminal pane と HTML pane は各 production renderer を使い、同じ解決済み `PresentationState` を受け取る。HTML の実装境界とブラウザ確認は [Phase 8 記録](rearchitecture/phase-8-html.md) を参照する。
 
 ```sh
 ./scripts/dev.sh bun run catalog
@@ -317,7 +317,7 @@ Catalog は開発専用で、Phase 3 の State / Event を両媒体で読むた�
 ./scripts/dev.sh bun run catalog:check
 ```
 
-`catalog` は scenario、Terminal 80/40 列、HTML 640/360 px を選べるローカル server を起動する。`HAMIO_CATALOG_PORT` に別の空きポートを指定でき、競合時は起動に失敗する。Terminal pane は `renderTerminal(PresentationState)` の色・animation なしの実出力、HTML pane は `renderHtmlDiagnostic(PresentationState)` の文書で、同じ [shared scenario registry](../scripts/catalog/scenarios.ts) から解決する。Event scenario は Phase 3 reducer を通す。JSON panel は補助表示であり両 renderer の代わりではない。
+`catalog` は scenario、Terminal 80/40 列、HTML 360/640/1200 px と Light/Dark、Motion、Report/Live の表示条件を選べるローカル server を起動する。`HAMIO_CATALOG_PORT` に別の空きポートを指定でき、競合時は起動に失敗する。Terminal pane は `renderTerminal(PresentationState)` の色・animation なしの実出力、HTML pane は `renderHtml(PresentationState)` の文書で、同じ [shared scenario registry](../scripts/catalog/scenarios.ts) から解決する。Event scenario は Phase 3 reducer を通す。JSON panel は補助表示であり両 renderer の代わりではない。表示条件は Catalog 専用で、consumer API ではない。
 
 `catalog:check` は inventory、全 scenario の解決、両 renderer、HTTP route、TTY 色 / animation 4 条件、non-TTY、代表 PTY 経路と追跡 PNG の鮮度を調べる。日常の `check` に含まれるが画像生成はしない。代表画像を更新する場合だけ固定 preview shell で次を実行し、[Catalog の PNG](catalog-previews/)を画像として開く。
 
@@ -326,3 +326,5 @@ nix develop .#preview --no-write-lock-file --command bun scripts/catalog/capture
 ```
 
 PNG は Phase 3 の State → Phase 7 Terminal renderer → 開発用 runner → 既存 PTY capture → cast 描画の結果である。manifest は各画像の解決済み State、幅・行数、renderer と capture の source hash、PNG hash を追跡する。代表3件だけを保存し、全 scenario の screenshot は作らない。既存の `preview:check` と製品 PNG は v1 の回帰確認として維持する。Catalog の HTML は browser でも default / narrow と長文 scenario を確認し、status text、表、見出し順、escape をレビューする。
+
+HTML は [代表的な実ブラウザ画像](html-previews/README.md)と [Phase 8 の検証記録](rearchitecture/phase-8-html.md)を参照する。これらの画像は手動 review evidence であり、`catalog:check` は全 Shared Scenario を両 renderer で検査する。HTML の screenshot 全組合せ生成や browser binary を通常の `check` に必須としない。

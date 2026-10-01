@@ -54,6 +54,8 @@ Status intent は独立の state union を増やさず、次の mapping で定�
 
 `0 / total`、途中、`total / total` はいずれも determinate。数字は桁位置を揃える。HTML の `progress` 値と accessible name は本当の `current` と `total` に基づく。source 自体の `SourceExtent.truncated` と表示幅の制約は別に扱う。
 
+Phase 8 の `task-running-indeterminate` を Chrome 154 / macOS で確認すると、native indeterminate `<progress>` は author CSS の animation を停止しても Report / reduced motion で動き続けた。そこで Live の代表箇所だけ native indeterminate `<progress>` を使い、Report / reduced motion / 同時に表示する他 Task は text と静止した `role=progressbar` にする。600 ms 間隔の画面比較で Report / reduced motion が静止し、`Total unknown` が残ることを確認した。これは媒体の motion 方針の修正であり、ProgressState の意味や determinate の native `<progress>` は変更しない。
+
 ## 3. HTML palette and themes
 
 **Light と Dark の両方を採用**する。長時間の browser live view では利用者の OS preference に従い、保存・共有する report では browser 表示と印刷の双方で読める必要があるためである。少数の同一 role を 2 theme へ map し、別の component system は作らない。初期表示は `prefers-color-scheme`、print は Light の値を明示する。手動 theme switch と保存方式は Phase 8 の利用検証で判断する。Terminal は user theme を尊重し、この palette を移植しない。
