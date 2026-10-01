@@ -2,8 +2,9 @@ import { captureTerminal } from "../preview/capture.ts";
 import { catalogResponse } from "./server.ts";
 import { resolveScenario, scenarios } from "./scenarios.ts";
 import { renderHtmlDiagnostic } from "../../src/renderers/html-diagnostic.ts";
-import { renderTerminalDiagnostic } from "../../src/renderers/terminal-diagnostic.ts";
+import { renderTerminal } from "../../src/renderers/terminal.ts";
 import { checkCaptureArtifacts } from "./artifacts.ts";
+import { verifyTerminalPaths } from "./terminal-verify.ts";
 
 const requiredCoverage = [
   "task.pending",
@@ -50,6 +51,7 @@ const requiredCoverage = [
   "keyvalue.redacted",
   "summary.normal",
   "content.long",
+  "content.cjk",
 ] as const;
 
 export async function checkCatalog(): Promise<void> {
@@ -67,9 +69,12 @@ export async function checkCatalog(): Promise<void> {
     const state = resolveScenario(scenario);
     for (const columns of [80, 40]) {
       try {
-        const terminal = renderTerminalDiagnostic(state, columns);
+        const terminal = renderTerminal(state, { columns, color: false, animation: false });
         if (!terminal.includes("\n") || terminal.includes(String.fromCharCode(27)))
           throw new Error("Output is empty or contains a control sequence.");
+        for (const line of terminal.trimEnd().split("\n"))
+          if (Bun.stringWidth(line) >= columns)
+            throw new Error(`Output exceeds the safe ${columns}-column line width.`);
       } catch (error) {
         throw new Error(
           `Scenario ${scenario.id}, Terminal ${columns} columns: ${error instanceof Error ? error.message : String(error)}`,
@@ -116,11 +121,11 @@ export async function checkCatalog(): Promise<void> {
     ],
     cols: 40,
     rows: 24,
-    steps: [{ waitFor: "Task Compile sources" }],
+    steps: [{ waitFor: "Compile sources" }],
     holdMs: 0,
   });
-  if (!captured.cast.includes("determinate 2/4"))
-    throw new Error("Actual PTY output lost task progress.");
+  if (!captured.cast.includes("2/4")) throw new Error("Actual PTY output lost task progress.");
+  await verifyTerminalPaths();
   await checkCaptureArtifacts();
   console.log(
     `Catalog: ${scenarios.length} shared scenarios, both renderers, HTTP routes, and representative PTY capture passed.`,

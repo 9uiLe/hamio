@@ -16,7 +16,7 @@
     "scripts/preview-env.sh": "66182da4d523a034ba0a1140592ce404fa1033db33268853216bdea2863e6f92",
     "scripts/preview.sh": "13f1763eea91b877ea201aea6bf6b999ee40f44a617421fa45e6a2e83a291381",
     "scripts/preview/artifacts.ts": "3dff1aee88072b92495f9bdaecfcff2e8792de9b3067bcba6d759194ea59dcf9",
-    "scripts/preview/capture.ts": "beef24cd9f7a756e080cfc81521ff5a039edf223a3fa9131004238bf10319153",
+    "scripts/preview/capture.ts": "539c0c622dba3c166b5c61a15f5607dafb8e756383bb4d41c0a5053428d46924",
     "scripts/preview/check.ts": "45309ebfc2b84b9ea5853ab0a6599ee4d0add4f18a83884552e3ba3ae1ccadf7",
     "scripts/preview/fixture.ts": "66506e4e597d8e215f70a3b37c782b2b835705575bb405ecc1a0f23a52577074",
     "scripts/preview/generate.ts": "4ed028f0fc2654ddca1e8950bca5019a60b41ea022e5c19dd9b2779222d9c87d",

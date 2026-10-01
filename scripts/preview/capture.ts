@@ -16,6 +16,7 @@ export interface CaptureOptions {
   timeoutMs?: number;
   maxBytes?: number;
   holdMs?: number;
+  env?: Readonly<Record<string, string>>;
 }
 
 export async function captureTerminal(options: CaptureOptions) {
@@ -65,6 +66,7 @@ export async function captureTerminal(options: CaptureOptions) {
         LANG: "en_US.UTF-8",
         LC_ALL: "en_US.UTF-8",
         TZ: "UTC",
+        ...options.env,
       },
       terminal: {
         cols: options.cols,
