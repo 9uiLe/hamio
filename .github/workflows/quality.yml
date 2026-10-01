@@ -48,11 +48,13 @@ jobs:
           diagnostic-endpoint: ""
       - name: Validate Nix definitions
         run: nix flake check --all-systems --no-build --no-write-lock-file
-      - name: Install dependencies and run checks
+      - name: Install dependencies, check and build
         run: |
           nix develop --no-write-lock-file --command sh -eu -c '
             bun install --frozen-lockfile --ignore-scripts
             bun run check
+            bun run build
+            ./dist/hamio capabilities
           '
       - name: Verify checks leave files unchanged
         run: git diff --exit-code

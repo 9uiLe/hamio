@@ -5,6 +5,8 @@
     "editor.codeActionsOnSave": { "source.fixAll.biome": "explicit" }
   },
   "[markdown][yaml]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "prettier.prettierPath": "./node_modules/prettier",
+  "prettier.requireConfig": true,
   "js/ts.experimental.useTsgo": true,
   "js/ts.tsdk.path": "./node_modules/typescript"
 }
