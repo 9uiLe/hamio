@@ -12,7 +12,7 @@
     "examples/form.json": "64e0832b9b1b4ed866c8befff73e81020923f528b7e66e5cdc2eac62bec5807d",
     "flake.lock": "b8ca102a5e7a2a73a804dd6b116fd29ee04a83b959b0f11befa886bdbd2965dd",
     "flake.nix": "6026f67d7703fef8ea0f1453f9b4db630a675158af76598e87156ad0add094a1",
-    "package.json": "ef540c62dfed4a11a526f0dc3924d0c0a5d53eda548ad569cf602493b44b033a",
+    "package.json": "fce9e518d83030c55fa8551357575b0ed4711fdc075acc54e41ccfbfa46c7b41",
     "scripts/preview-env.sh": "66182da4d523a034ba0a1140592ce404fa1033db33268853216bdea2863e6f92",
     "scripts/preview.sh": "13f1763eea91b877ea201aea6bf6b999ee40f44a617421fa45e6a2e83a291381",
     "scripts/preview/artifacts.ts": "3dff1aee88072b92495f9bdaecfcff2e8792de9b3067bcba6d759194ea59dcf9",

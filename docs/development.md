@@ -75,16 +75,18 @@ bun run preview
 bun run check
 ```
 
-| Command             | 責務                                                                                                                 |
-| ------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `bun run format`    | 対象を所有する formatter で書き換える。差分を確認する                                                                |
-| `bun run lint`      | Biome、ShellCheck、actionlint の静的規則を検査する                                                                   |
-| `bun run typecheck` | `src`・`scripts`・`tests` を emit なしで型検査する                                                                   |
-| `bun run test`      | Bun の API・統合・実行ファイル・開発基盤 test を走らせる                                                             |
-| `bun run build`     | 作業中のソースからホスト用 native `dist/hamio` を作る                                                                |
-| `bun run check`     | lint → format check → typecheck → test → 追跡 PNG/manifest の preview freshness を確認する。修正・成果物生成はしない |
+| Command                 | 責務                                                                                                       |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| `bun run format`        | 対象を所有する formatter で書き換える。差分を確認する                                                      |
+| `bun run lint`          | Biome、ShellCheck、actionlint の静的規則を検査する                                                         |
+| `bun run typecheck`     | `src`・`scripts`・`tests` を emit なしで型検査する                                                         |
+| `bun run test`          | Bun の API・統合・実行ファイル・開発基盤 test を走らせる                                                   |
+| `bun run build`         | 作業中のソースからホスト用 native `dist/hamio` を作る                                                      |
+| `bun run catalog`       | 開発用 semantic Catalog を `127.0.0.1:4174` で起動する。競合時は `HAMIO_CATALOG_PORT` を指定する           |
+| `bun run catalog:check` | scenario inventory、両 diagnostic renderer、HTTP、代表 PTY、追跡 capture の鮮度を検査する。生成はしない    |
+| `bun run check`         | lint → format check → typecheck → test → v1 preview freshness → v2 Catalog check。修正・成果物生成はしない |
 
-`check` に `build` を含めない。test は隔離した一時領域でも compile を検証するが、`build` は共有 `dist/hamio` を生成する別の成果物確認であり、編集途中の全体検査や pre-push の時間と副作用を増やす。**完了確認は `check` の後に `build` と `./dist/hamio capabilities` を実行する。** Quality CI も同じ順番で実行する。`check` に含む `preview:check` は追跡画像の生成元・hash を読み取り照合する。動画や release artifact の鮮度検査ではない。個別検査・watch は [package.json](../package.json) を参照する。
+`check` に `build` を含めない。test は隔離した一時領域でも compile を検証するが、`build` は共有 `dist/hamio` を生成する別の成果物確認であり、編集途中の全体検査や pre-push の時間と副作用を増やす。**完了確認は `check` の後に `build` と `./dist/hamio capabilities` を実行する。** Quality CI も同じ順番で実行する。`preview:check` は v1 製品と録画基盤の追跡画像、`catalog:check` は v2 scenario と代表 capture を読み取り検査する。どちらも画像を生成せず、動画や release artifact の鮮度検査ではない。個別検査・watch は [package.json](../package.json) を参照する。
 
 shell 外では `./scripts/dev.sh bun run check` の形式で固定環境を呼び出す。引数なしの `./scripts/dev.sh` も全体検査を行う。hooks もこの入口を使うため、GUI の PATH に Bun・Node.js がなくても Nix があれば実行できる。
 
@@ -113,9 +115,9 @@ nix run .#hamio -- --version
 
 ### 成果物と Phase 4 Catalog の入口
 
-現時点の `build` は CLI の native executable 一つだけを生成し、Catalog や開発用 preview は含めない。単一 private package のままで Phase 3/4 の論理 module を置ける。package 分割は import 規則の強制、独立配布、build/test や version の責務が実際に分かれた場合に判断する。TypeScript API と HTML report assets が将来 consumer artifact になるかは未決であり、決定した場合は release 資産、Nix 配置、SBOM、署名、利用側の版固定を一緒に見直す。Catalog は development-only とし、現行の native release に混ぜない。
+現時点の `build` は CLI の native executable 一つだけを生成し、Catalog や開発用 preview は含めない。Phase 3/4 の論理 module は単一 private package に置いている。package 分割は import 規則の強制、独立配布、build/test や version の責務が実際に分かれた場合に判断する。TypeScript API と HTML report assets が将来 consumer artifact になるかは未決であり、決定した場合は release 資産、Nix 配置、SBOM、署名、利用側の版固定を一緒に見直す。
 
-Phase 4 で実体ができたら root の `bun run catalog` を起動入口、`bun run catalog:check` を scenario・HTML・実 Terminal capture の検査入口として追加する。共有 semantic scenario は Domain の意味を検証する test concern に置き、Catalog は両 renderer を同じ scenario で表示する。Terminal capture は既存 `scripts/preview` の PTY 技術を再利用し、生成時だけ `devShells.preview` の描画 tool を要求する。HTML dependency が必要になったら固定依存を導入し、`catalog:check` を `check` または Quality CI の明示 step に入れる。Phase 2 では Catalog の実体がないため no-op command は置かず、`bun run preview:check` が現行 capture 基盤の生成元・成果物の整合を検証する。
+Catalog は現在 development-only artifact として存在する。人間向けの `bun run catalog` と automation / CI 向けの `bun run catalog:check` を root に置き、後者は通常の `bun run check` に含める。共有 scenario の正本は [`scripts/catalog/scenarios.ts`](../scripts/catalog/scenarios.ts) で、Terminal と HTML は同じ解決済み `PresentationState` を読む。実 Terminal 画像は既存の PTY capture 基盤を再利用し、画像生成時だけ preview shell の描画 tool を使う。v1 `preview:check` と v2 Catalog check は移行中の別 concern である。起動・検査・画像更新の手順と、Phase 5 前の diagnostic 表示の位置付けは[Semantic Catalog と diagnostic capture](#9-semantic-catalog-と-diagnostic-capture)にまとめる。
 
 ### 製品試験と性能測定
 
@@ -128,23 +130,15 @@ Phase 4 で実体ができたら root の `bun run catalog` を起動入口、`b
 | [distribution.test.ts](../tests/distribution.test.ts)・[nix-release.test.ts](../tests/nix-release.test.ts) | GitHub CLI の代替実装で検証条件、失敗時の非実行・保持、更新・復旧・lock を確認 |
 | [release.test.ts](../tests/release.test.ts)                                                                | 別ルートのビルド、入力の固定、資産の配置・復元、公開条件                       |
 | [hooks.test.ts](../tests/hooks.test.ts)・[preview.test.ts](../tests/preview.test.ts)                       | 検査の拒否・復元、録画・照合                                                   |
+| [presentation.test.ts](../tests/presentation.test.ts)・[protocol-v2.test.ts](../tests/protocol-v2.test.ts) | v2 の状態遷移・Replay、未信頼 JSON/NDJSON の境界検証                           |
+| [catalog.test.ts](../tests/catalog.test.ts)・`catalog:check`                                               | 共有 scenario、両 diagnostic renderer、Catalog と代表 PTY capture              |
 | `release:verify`                                                                                           | 独立した二回の依存取得・梱包、全資産の一致、gzip から展開した製品の試験        |
 | Release workflow                                                                                           | 実際の provenance と候補の動作、公開後の署名・資産帰属・インストーラー・Action |
 | `nix flake check`                                                                                          | 固定した公開資産の取得・hash、Nix 配置後の独立プロジェクトからの実行           |
 
 `HAMIO_TEST_BINARY` を指定した API・実行ファイル試験は、渡された binary を再生成せずに使う。代替実装による試験を実際の署名検証の成功と扱わず、同一環境の二候補の一致を別ホストでの一致へ一般化しない。
 
-将来の test 責務との対応は次のとおり。Phase 2 では既存 test の名前や配置を変更しない。
-
-| 将来の層                                  | 現行の主な該当 test                                                                                              | Phase 3/4 での整理候補                                                              |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| Domain unit                               | `api.test.ts` の stream lifecycle・進捗・ID                                                                      | v2 reducer の純粋な遷移 test として独立させ、CLI 経由の同条件重複を減らす           |
-| Protocol                                  | `api.test.ts` の JSON/NDJSON・制限・版・秘匿                                                                     | v2 decoder と資源上限を検証する。業務結果との混同は integration に残す              |
-| Renderer                                  | `api.test.ts` の表・制御文字、`runtime.test.ts` の描画・prompt                                                   | Terminal と HTML の媒体固有契約へ分ける。Form は interaction concern として扱う     |
-| Integration                               | `api.test.ts` の CLI/TTY、`runtime.test.ts` の application・backpressure、`executable.test.ts`                   | 利用側から観測できる入口と入出力を残す                                              |
-| UI / Visual                               | `preview.test.ts`、`preview:check`、製品 preview                                                                 | Phase 4 の共通 scenario と実 renderer に結び、録画基盤 fixture と製品 UI を区別する |
-| Regression                                | 各 test の中断、secret、失敗時の資産保持                                                                         | 修正した障害の境界に置き、同じ条件を全層に複製しない                                |
-| Development / Distribution infrastructure | `hooks.test.ts`、`release.test.ts`、`nix-release.test.ts`、`distribution.test.ts`、`preview.test.ts` の PTY 基盤 | build・hook・配布・録画の独立した失敗条件を維持する                                 |
+v1 の API・CLI・端末・配布 test は、現行製品の回帰確認として維持する。v2 の Domain、Protocol、diagnostic renderer と Catalog は上記の独立した test と検査入口で確認し、同じ遷移規則を全層へ複製しない。
 
 性能は本番と同じ設定の実行ファイルで測る。TypeScript の開発実行、画像生成の時間、製品の応答は別の測定とする。
 
@@ -308,3 +302,23 @@ bun scripts/benchmark-preview.ts dist/preview/benchmark.json 15
 ```
 
 この測定は強制生成を含み PNG・manifest・ローカル録画を更新するため、差分を確認する。wrapper は shell 準備も含み、内部の生成・照合時間と分けて評価する。製品の入力応答の測定には使わない。
+
+## 9. Semantic Catalog と diagnostic capture
+
+Catalog は開発専用で、Phase 3 の State / Event を両媒体で読むための診断環境である。consumer 向け CLI・native executable には入れない。Phase 5 の Design Reference を受け取る前の画面なので、字体・色・余白・記号は hamio の最終仕様ではない。
+
+```sh
+./scripts/dev.sh bun run catalog
+# http://127.0.0.1:4174/
+./scripts/dev.sh bun run catalog:check
+```
+
+`catalog` は scenario、Terminal 80/40 列、HTML 640/360 px を選べるローカル server を起動する。`HAMIO_CATALOG_PORT` に別の空きポートを指定でき、競合時は起動に失敗する。Terminal pane は `renderTerminalDiagnostic(PresentationState)` の実出力、HTML pane は `renderHtmlDiagnostic(PresentationState)` の文書で、同じ [shared scenario registry](../scripts/catalog/scenarios.ts) から解決する。Event scenario は Phase 3 reducer を通す。JSON panel は補助表示であり両 renderer の代わりではない。
+
+`catalog:check` は inventory、全 scenario の解決、両 renderer、HTTP route、代表 PTY 経路と追跡 PNG の鮮度を調べる。日常の `check` に含まれるが画像生成はしない。代表画像を更新する場合だけ固定 preview shell で次を実行し、[Catalog の PNG](catalog-previews/)を画像として開く。
+
+```sh
+nix develop .#preview --no-write-lock-file --command bun scripts/catalog/capture.ts
+```
+
+PNG は Phase 3 の State → diagnostic Terminal renderer → 開発用 runner → 既存 PTY capture → cast 描画の結果である。manifest は各画像の解決済み State、幅・行数、renderer と capture の source hash、PNG hash を追跡する。代表3件だけを保存し、全 scenario の screenshot は作らない。既存の `preview:check` と製品 PNG は v1 の回帰確認として維持し、その visual appearance を新しい Design Reference にしない。Catalog の HTML は browser でも default / narrow と長文 scenario を確認し、status text、表、見出し順、escape をレビューする。

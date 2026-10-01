@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "captures": {
+    "task-running-partial": {
+      "sources": {
+        "scripts/catalog/terminal-runner.ts": "988b6a1702db5e26804fab5aa006be4d66c63d56d3e1a7c47fa4ef291bea550f",
+        "scripts/catalog/capture.ts": "abc7522bacd09d9c306421ce90ad44f4d999d990d54dc4ccddfa300563fac130",
+        "scripts/catalog/artifacts.ts": "3afe0fc711fdbb81d4186cd594e45713014d18d1037822118f7651fc820dcb24",
+        "scripts/preview/capture.ts": "beef24cd9f7a756e080cfc81521ff5a039edf223a3fa9131004238bf10319153",
+        "src/renderers/terminal-diagnostic.ts": "3d6e00f3cce4ec0374d84a0dda83e3ee4d25b03388d540fbe873d08cb7a05184",
+        "src/terminal/text.ts": "f3fe712700a99b9712ebbf96dc6bf06bbc8ecbe6738f823de4fadcbcc7d3b1f3",
+        "flake.nix": "6026f67d7703fef8ea0f1453f9b4db630a675158af76598e87156ad0add094a1",
+        "flake.lock": "b8ca102a5e7a2a73a804dd6b116fd29ee04a83b959b0f11befa886bdbd2965dd",
+        "resolved-state": "a14767dd9483bb89496a51ad7cf2f7af50106f515ac7a0f43016a62f6fbdaa4e",
+        "columns-rows": "b5c2961ba6d8bd159d2ea2736a1b223e7b39668c42c05dfce98a1b16e10446b1"
+      },
+      "image": "8c14d37491550e54dc6db92459ddde359995dac0e3b4274fb10af257f78b7e55"
+    },
+    "run-group-mixed": {
+      "sources": {
+        "scripts/catalog/terminal-runner.ts": "988b6a1702db5e26804fab5aa006be4d66c63d56d3e1a7c47fa4ef291bea550f",
+        "scripts/catalog/capture.ts": "abc7522bacd09d9c306421ce90ad44f4d999d990d54dc4ccddfa300563fac130",
+        "scripts/catalog/artifacts.ts": "3afe0fc711fdbb81d4186cd594e45713014d18d1037822118f7651fc820dcb24",
+        "scripts/preview/capture.ts": "beef24cd9f7a756e080cfc81521ff5a039edf223a3fa9131004238bf10319153",
+        "src/renderers/terminal-diagnostic.ts": "3d6e00f3cce4ec0374d84a0dda83e3ee4d25b03388d540fbe873d08cb7a05184",
+        "src/terminal/text.ts": "f3fe712700a99b9712ebbf96dc6bf06bbc8ecbe6738f823de4fadcbcc7d3b1f3",
+        "flake.nix": "6026f67d7703fef8ea0f1453f9b4db630a675158af76598e87156ad0add094a1",
+        "flake.lock": "b8ca102a5e7a2a73a804dd6b116fd29ee04a83b959b0f11befa886bdbd2965dd",
+        "resolved-state": "553769d1746d808077c928cff7cbbc5b91399810dfa1b3b6a77d35f74f32a6ec",
+        "columns-rows": "113569dfa0196fe9fe7deaf87b1a843956a65709a7c75fc8eaf12855541eba39"
+      },
+      "image": "5ad0f4858de42a1ab77858739e4f157af61d8563d6c5f715363dcd12c68be203"
+    },
+    "table-narrow-long-redacted": {
+      "sources": {
+        "scripts/catalog/terminal-runner.ts": "988b6a1702db5e26804fab5aa006be4d66c63d56d3e1a7c47fa4ef291bea550f",
+        "scripts/catalog/capture.ts": "abc7522bacd09d9c306421ce90ad44f4d999d990d54dc4ccddfa300563fac130",
+        "scripts/catalog/artifacts.ts": "3afe0fc711fdbb81d4186cd594e45713014d18d1037822118f7651fc820dcb24",
+        "scripts/preview/capture.ts": "beef24cd9f7a756e080cfc81521ff5a039edf223a3fa9131004238bf10319153",
+        "src/renderers/terminal-diagnostic.ts": "3d6e00f3cce4ec0374d84a0dda83e3ee4d25b03388d540fbe873d08cb7a05184",
+        "src/terminal/text.ts": "f3fe712700a99b9712ebbf96dc6bf06bbc8ecbe6738f823de4fadcbcc7d3b1f3",
+        "flake.nix": "6026f67d7703fef8ea0f1453f9b4db630a675158af76598e87156ad0add094a1",
+        "flake.lock": "b8ca102a5e7a2a73a804dd6b116fd29ee04a83b959b0f11befa886bdbd2965dd",
+        "resolved-state": "3a4356acf53449c961f782c9ff58b6a3346ad07302a24908ab8e8c89d50bd6c7",
+        "columns-rows": "69751332f5b4f508748e6410da159733c5946800430b31028ca503e17c27fce7"
+      },
+      "image": "b5fdf8c89b4098658d6eb0e74a9500b039518e34e552d361901cbe697dff2f13"
+    }
+  }
+}
