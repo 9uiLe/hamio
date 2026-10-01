@@ -2,7 +2,7 @@
 
 hamio の編集、検査、ビルドは固定した Nix 環境で行う。エディタ、Git hooks、GitHub Actions は同じリポジトリ設定を使い、ローカルでも変更の問題を検出する。本書のコマンドは、特記がなければ hamio のリポジトリ直下で実行する。
 
-製品の責務と依存境界は[基本設計](design.md)、公開契約は [API 契約](api.md)、導入と公開は[配布手順](distribution.md)に定める。
+製品の責務と依存境界は[基本設計](design.md)、公開契約は [API v1](api.md) と [Presentation v2](presentation-api.md)、導入と公開は[配布手順](distribution.md)に定める。
 
 ## 1. 対応環境とツール
 
@@ -113,11 +113,11 @@ nix run .#hamio -- --version
 
 `nix build`・`nix run` は固定した公開版を対象とし、`bun run build` は作業中の製品ソースを対象とする。Nix の新規ファイルは Git にステージしてから評価する。Nix 定義と固定情報の更新は[配布手順](distribution.md#nix-パッケージの保守)に従う。
 
-### 成果物と Phase 4 Catalog の入口
+### 成果物と Catalog の入口
 
-現時点の `build` は CLI の native executable 一つだけを生成し、Catalog や開発用 preview は含めない。Phase 3/4 の論理 module は単一 private package に置いている。package 分割は import 規則の強制、独立配布、build/test や version の責務が実際に分かれた場合に判断する。TypeScript API と HTML report assets が将来 consumer artifact になるかは未決であり、決定した場合は release 資産、Nix 配置、SBOM、署名、利用側の版固定を一緒に見直す。
+現時点の `build` は v1 CLI と Presentation v2 CLI を含む native executable 一つだけを生成し、Catalog や開発用 preview は含めない。論理 module は単一 private package に置いている。package 分割は import 規則の強制、独立配布、build/test や version の責務が実際に分かれた場合に判断する。TypeScript SDK と HTML report assets はまだ consumer artifact ではない。公開を決定する場合は release 資産、Nix 配置、SBOM、署名、利用側の版固定を一緒に見直す。
 
-Catalog は現在 development-only artifact として存在する。人間向けの `bun run catalog` と automation / CI 向けの `bun run catalog:check` を root に置き、後者は通常の `bun run check` に含める。共有 scenario の正本は [`scripts/catalog/scenarios.ts`](../scripts/catalog/scenarios.ts) で、Terminal と HTML は同じ解決済み `PresentationState` を読む。実 Terminal 画像は既存の PTY capture 基盤を再利用し、画像生成時だけ preview shell の描画 tool を使う。v1 `preview:check` と v2 Catalog check は移行中の別 concern である。起動・検査・画像更新の手順と、Phase 5 前の diagnostic 表示の位置付けは[Semantic Catalog と diagnostic capture](#9-semantic-catalog-と-diagnostic-capture)にまとめる。
+Catalog は現在 development-only artifact として存在する。人間向けの `bun run catalog` と automation / CI 向けの `bun run catalog:check` を root に置き、後者は通常の `bun run check` に含める。共有 scenario の正本は [`scripts/catalog/scenarios.ts`](../scripts/catalog/scenarios.ts) で、Terminal と HTML は同じ解決済み `PresentationState` を読む。実 Terminal 画像は既存の PTY capture 基盤を再利用し、画像生成時だけ preview shell の描画 tool を使う。v1 `preview:check` と v2 Catalog check は移行中の別 concern である。起動・検査・画像更新の手順は[Semantic Catalog と Renderer review](#9-semantic-catalog-と-renderer-review)にまとめる。
 
 ### 製品試験と性能測定
 

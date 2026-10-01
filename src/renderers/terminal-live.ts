@@ -34,19 +34,28 @@ export function terminalPolicy(input: {
 
 function write(output: Writable, chunk: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    const onError = (error: Error) => reject(error);
+    let settled = false;
+    const finish = (error?: Error | null) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (error) {
+        // Writable may emit its error after invoking the write callback.
+        setTimeout(() => output.off("error", onError), 0);
+        reject(error);
+      } else {
+        output.off("error", onError);
+        resolve();
+      }
+    };
+    const onError = (error: Error) => finish(error);
+    // A stalled destination must not keep close(), signal handling, or a CLI response pending forever.
+    const timer = setTimeout(() => finish(new Error("Terminal output timed out.")), 5000);
     output.once("error", onError);
     try {
-      output.write(chunk, (error?: Error | null) => {
-        if (error) reject(error);
-        else {
-          output.off("error", onError);
-          resolve();
-        }
-      });
+      output.write(chunk, finish);
     } catch (error) {
-      output.off("error", onError);
-      reject(error);
+      finish(error instanceof Error ? error : new Error("Terminal output failed."));
     }
   });
 }

@@ -1,0 +1,23 @@
+{
+  "protocolVersion": 2,
+  "state": {
+    "run": {
+      "kind": "present",
+      "value": {
+        "id": "build",
+        "title": "Build project",
+        "state": { "kind": "succeeded", "data": { "kind": "none" } }
+      }
+    },
+    "items": [
+      {
+        "kind": "task",
+        "id": "compile",
+        "label": "Compile sources",
+        "state": { "kind": "succeeded", "data": { "kind": "none" } }
+      },
+      { "kind": "message", "level": "success", "text": "Artifacts are ready." },
+      { "kind": "summary", "headline": "Build completed", "points": ["One task succeeded."] }
+    ]
+  }
+}

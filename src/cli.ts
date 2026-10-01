@@ -15,6 +15,16 @@ export async function main(args: readonly string[]): Promise<number> {
   process.once("SIGINT", cancel);
   process.once("SIGTERM", cancel);
   try {
+    if (args[0] === "presentation") {
+      const { executePresentation } = await import("./application/presentation-cli.ts");
+      return await executePresentation(args.slice(1), {
+        stdin,
+        stdout,
+        stderr,
+        env,
+        signal: controller.signal,
+      });
+    }
     const command = parseCommand(args, {
       inputTTY: !!stdin.isTTY,
       outputTTY: !!stderr.isTTY,
@@ -49,6 +59,16 @@ export async function main(args: readonly string[]): Promise<number> {
     };
     return await execute(command, ports);
   } catch (error) {
+    if (args[0] === "presentation") {
+      try {
+        await output.write(
+          `${JSON.stringify({ protocolVersion: 2, status: "error", error: { code: "RENDER_ERROR", message: "Could not start Presentation." } })}\n`,
+        );
+      } catch {
+        return 7;
+      }
+      return 7;
+    }
     return await reportFailure(error, output);
   } finally {
     process.off("SIGINT", cancel);
