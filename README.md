@@ -39,6 +39,7 @@ AI エージェントと CI は `form --interactive never` または `render / s
 ```sh
 ./scripts/dev.sh bun run setup
 ./scripts/dev.sh bun run check
+./scripts/dev.sh bun run build
 ```
 
 setup は固定依存を取得し、この clone に Git hooks を導入します。ビルド・検査・UI 確認・性能測定は[開発手順](docs/development.md)、画像は[製品プレビュー](docs/previews/README.md)を参照してください。
