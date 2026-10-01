@@ -1,6 +1,6 @@
 # hamio
 
-hamio は、Script / AI / Application が人へ提示する状態と内容を標準化するツールです。Presentation Protocol v2 を production Terminal Renderer へ渡せます。HTML Renderer も repository 内にありますが、consumer 向け HTML report はまだ提供していません。Shell、Python、Go、TypeScript などから native CLI と JSON で呼び出せます。業務処理の順序、並列数、権限、再試行は利用側が管理します。
+hamio は、Script / AI / Application が人へ提示する状態と内容を標準化するツールです。Presentation Protocol v2 を production Terminal Renderer へ渡し、受理済み Event を記録して self-contained HTML Report を生成できます。Shell、Python、Go、TypeScript などから native CLI と JSON で呼び出せます。業務処理の順序、並列数、権限、再試行は利用側が管理します。
 
 ## 導入
 
@@ -25,9 +25,11 @@ flake input・lockfile への組み込み、製品版と flake commit の固定�
 ./dist/hamio presentation capabilities
 ./dist/hamio presentation static --input examples/presentation-static.json
 sh examples/presentation-live.sh ./dist/hamio succeeded
+sh examples/presentation-live.sh ./dist/hamio succeeded --record run.ndjson
+./dist/hamio presentation report --input run.ndjson --output run.html
 ```
 
-人向け表示は stderr、機械向け応答は stdout。Run の業務上の失敗と hamio の処理失敗は別です。完全な入力形式、終了コード、色・motion、例は [Presentation v2 契約](docs/presentation-api.md)を参照してください。
+人向け表示は stderr、機械向け応答は stdout。Run の業務上の失敗、Recording の完結性、hamio の処理失敗は別です。入力形式と終了コードは [Presentation v2 契約](docs/presentation-api.md)、保存形式と復旧規則は [Recording 形式](docs/presentation-recording.md)を参照してください。
 
 ## API v1（移行中も維持）
 

@@ -1,6 +1,9 @@
 import type { Readable, Writable } from "node:stream";
 import { readDocument, readEvents } from "../adapters/input.ts";
 import { Output } from "../adapters/output.ts";
+import type { RecordedReplay } from "../recording/reader.ts";
+import { recordingLimits, recordingVersion } from "../recording/format.ts";
+import { RecordingWriteError, RecordingWriter } from "../recording/writer.ts";
 import { Cancelled, ContractError } from "../core/contract.ts";
 import { PresentationError } from "../presentation/error.ts";
 import { stateLimits } from "../presentation/limits.ts";
@@ -25,7 +28,8 @@ type Command =
   | { kind: "help" }
   | { kind: "capabilities" }
   | { kind: "static"; input: string; noColor: boolean }
-  | { kind: "live"; noColor: boolean; noMotion: boolean };
+  | { kind: "live"; noColor: boolean; noMotion: boolean; record?: string }
+  | { kind: "report"; input: string; output: string };
 
 class CliError extends Error {
   constructor(
@@ -39,7 +43,8 @@ class CliError extends Error {
 const help = `hamio presentation — Presentation Protocol v2
 
   hamio presentation static [--input FILE|-] [--no-color]
-  hamio presentation live [--no-color] [--no-motion]
+  hamio presentation live [--record FILE] [--no-color] [--no-motion]
+  hamio presentation report --input RECORDING --output HTML
   hamio presentation capabilities
 
 Static reads one v2 JSON document; live reads v2 NDJSON from stdin.
@@ -51,12 +56,35 @@ function parse(args: readonly string[]): Command {
   const [kind, ...rest] = args;
   if ((kind === undefined || kind === "--help") && rest.length === 0) return { kind: "help" };
   if (kind === "capabilities" && rest.length === 0) return { kind };
+  if (kind === "report") {
+    let input: string | undefined;
+    let output: string | undefined;
+    for (let index = 0; index < rest.length; index++) {
+      const option = rest[index];
+      const path = rest[index + 1];
+      if (
+        (option !== "--input" && option !== "--output") ||
+        !path ||
+        path.startsWith("--") ||
+        path === "-"
+      )
+        throw new CliError("INVALID_ARGUMENT", "Report requires --input FILE and --output FILE.");
+      if (option === "--input" && input === undefined) input = path;
+      else if (option === "--output" && output === undefined) output = path;
+      else throw new CliError("INVALID_ARGUMENT", "An option is unknown or repeated.");
+      index++;
+    }
+    if (!input || !output)
+      throw new CliError("INVALID_ARGUMENT", "Report requires --input FILE and --output FILE.");
+    return { kind, input, output };
+  }
   if (kind !== "static" && kind !== "live")
-    throw new CliError("INVALID_ARGUMENT", "Choose static, live or capabilities.");
+    throw new CliError("INVALID_ARGUMENT", "Choose static, live, report or capabilities.");
   let input = "-";
   let noColor = false;
   let noMotion = false;
   let inputSeen = false;
+  let record: string | undefined;
   for (let index = 0; index < rest.length; index++) {
     const option = rest[index];
     if (option === "--input" && kind === "static" && !inputSeen) {
@@ -65,11 +93,18 @@ function parse(args: readonly string[]): Command {
         throw new CliError("INVALID_ARGUMENT", "--input requires a file path or -.");
       input = path;
       inputSeen = true;
+    } else if (option === "--record" && kind === "live" && record === undefined) {
+      const path = rest[++index];
+      if (!path || path.startsWith("--") || path === "-")
+        throw new CliError("INVALID_ARGUMENT", "--record requires a file path.");
+      record = path;
     } else if (option === "--no-color" && !noColor) noColor = true;
     else if (option === "--no-motion" && kind === "live" && !noMotion) noMotion = true;
     else throw new CliError("INVALID_ARGUMENT", "An option is unknown or repeated.");
   }
-  return kind === "static" ? { kind, input, noColor } : { kind, noColor, noMotion };
+  return kind === "static"
+    ? { kind, input, noColor }
+    : { kind, noColor, noMotion, ...(record === undefined ? {} : { record }) };
 }
 
 function runSummary(state: PresentationState) {
@@ -85,6 +120,12 @@ function issue(error: unknown): { code: string; exit: number; message: string } 
     return {
       code: error.code,
       exit: error.code === "INVALID_ARGUMENT" ? 2 : error.code === "INCOMPLETE_STREAM" ? 5 : 7,
+      message: error.message,
+    };
+  if (error instanceof RecordingWriteError)
+    return {
+      code: error.code,
+      exit: error.code === "INVALID_ARGUMENT" ? 2 : error.code === "LIMIT_EXCEEDED" ? 6 : 7,
       message: error.message,
     };
   if (error instanceof ProtocolError)
@@ -138,6 +179,10 @@ export async function executePresentation(
   let lastAcceptedSeq: number | undefined;
   let lastRunId: string | undefined;
   let terminalFault: unknown;
+  let writer: RecordingWriter | undefined;
+  let recordPath: string | undefined;
+  let recordingFault = false;
+  let recordingClosedAs: "complete" | "partial" | undefined;
   try {
     const command = parse(args);
     if (command.kind === "help") {
@@ -146,11 +191,37 @@ export async function executePresentation(
     }
     if (command.kind === "capabilities") {
       await machine.write(
-        `${JSON.stringify({ protocolVersion: 2, version: VERSION, modes: ["static", "live"], renderer: "terminal", limits: { wire: protocolLimits, state: stateLimits } })}\n`,
+        `${JSON.stringify({ protocolVersion: 2, version: VERSION, modes: ["static", "live"], renderer: "terminal", recordingVersion, recording: { live: true, report: "html", limits: recordingLimits }, limits: { wire: protocolLimits, state: stateLimits } })}\n`,
       );
       return 0;
     }
     if (ports.signal.aborted) throw ports.signal.reason ?? new Cancelled();
+    if (command.kind === "report") {
+      const [{ readRecording }, { writeReport }] = await Promise.all([
+        import("../recording/reader.ts"),
+        import("./presentation-report.ts"),
+      ]);
+      let replay: RecordedReplay;
+      try {
+        replay = await readRecording(command.input, ports.signal);
+      } catch {
+        if (ports.signal.aborted) throw ports.signal.reason ?? new Cancelled();
+        throw new CliError("IO_ERROR", "Could not read Recording file.");
+      }
+      try {
+        await writeReport(command.output, replay, ports.signal);
+      } catch (error) {
+        if (ports.signal.aborted) throw ports.signal.reason ?? new Cancelled();
+        if ((error as NodeJS.ErrnoException).code === "EEXIST")
+          throw new CliError("INVALID_ARGUMENT", "Report file already exists.");
+        throw new CliError("IO_ERROR", "Could not write HTML Report.");
+      }
+      const state = replay.kind === "invalid" ? replay.acceptedPrefix : replay.state;
+      await machine.write(
+        `${JSON.stringify({ protocolVersion: 2, status: "ok", ...runSummary(state), recording: { recordingVersion, status: replay.kind, eventCount: replay.eventCount, lastRecordedSeq: replay.lastSeq, ...(replay.kind === "invalid" ? { issue: { line: replay.line, code: replay.issue.code } } : {}) } })}\n`,
+      );
+      return 0;
+    }
     if (command.kind === "static") {
       const state = decodeStatic(await readDocument(command.input, ports.stdin, ports.signal));
       const config = policy(ports, command.noColor, false);
@@ -163,6 +234,10 @@ export async function executePresentation(
       return 0;
     }
     const session = new PresentationSession();
+    if (command.record !== undefined) {
+      recordPath = command.record;
+      writer = await RecordingWriter.create(command.record);
+    }
     const config = policy(ports, command.noColor, !command.noMotion);
     view = new TerminalLiveView(ports.stderr, config, ports.signal);
     const resize = () => view?.resize(ports.stderr.columns ?? 80, ports.stderr.rows);
@@ -177,26 +252,53 @@ export async function executePresentation(
             session.accept(event);
             lastAcceptedSeq = event.seq;
             lastRunId = event.runId;
+            if (writer) {
+              try {
+                await writer.append(event);
+              } catch (error) {
+                recordingFault = true;
+                throw error;
+              }
+            }
             accepted = true;
           }
         } finally {
-          if (accepted) view.update(session.snapshot());
+          if (accepted && !recordingFault) view.update(session.snapshot());
         }
       }
       const state = session.snapshot();
       if (state.run.kind !== "present" || state.run.value.state.kind === "running")
         throw new CliError("INCOMPLETE_STREAM", "Input ended before run.finished.");
+      if (writer) {
+        try {
+          await writer.finish("complete");
+          recordingClosedAs = "complete";
+        } catch (error) {
+          recordingFault = true;
+          throw error;
+        }
+      }
       await view.close();
       view = undefined;
       await machine.write(
-        `${JSON.stringify({ protocolVersion: 2, status: "ok", ...runSummary(state), lastAcceptedSeq })}\n`,
+        `${JSON.stringify({ protocolVersion: 2, status: "ok", ...runSummary(state), lastAcceptedSeq, ...(writer ? { recording: { recordingVersion, status: "complete", eventCount: writer.eventCount, lastRecordedSeq: writer.lastRecordedSeq } } : {}) })}\n`,
       );
       return 0;
     } finally {
       ports.stderr.off("resize", resize);
     }
   } catch (error) {
-    const failure = issue(error);
+    let failure = issue(error);
+    if (writer && !recordingFault && recordingClosedAs === undefined) {
+      try {
+        await writer.finish("partial");
+        recordingClosedAs = "partial";
+      } catch {
+        recordingFault = true;
+        failure = issue(new CliError("IO_ERROR", "Could not finish Recording file."));
+      }
+    }
+    if (recordingFault) await writer?.abort();
     try {
       await view?.close();
     } catch (closeError) {
@@ -208,7 +310,7 @@ export async function executePresentation(
         : issue(new CliError("IO_ERROR", "Could not write Terminal presentation."));
     try {
       await machine.write(
-        `${JSON.stringify({ protocolVersion: 2, status: "error", error: { code: actual.code, message: actual.message }, ...(lastAcceptedSeq === undefined ? {} : { accepted: { runId: lastRunId, lastAcceptedSeq } }) })}\n`,
+        `${JSON.stringify({ protocolVersion: 2, status: "error", error: { code: actual.code, message: actual.message }, ...(lastAcceptedSeq === undefined ? {} : { accepted: { runId: lastRunId, lastAcceptedSeq } }), ...(recordPath === undefined ? {} : { recording: { recordingVersion, writeStatus: writer === undefined ? "not_created" : recordingFault ? "unverified" : recordingClosedAs, eventCount: writer?.eventCount ?? 0, lastRecordedSeq: writer?.lastRecordedSeq ?? null } }) })}\n`,
       );
     } catch {
       return 7;

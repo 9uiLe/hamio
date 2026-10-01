@@ -140,6 +140,8 @@ Catalog は現在 development-only artifact として存在する。人間向け
 
 v1 の API・CLI・端末・配布 test は、現行製品の回帰確認として維持する。v2 の Domain、Protocol、Terminal / HTML renderer と Catalog は上記の独立した test と検査入口で確認し、同じ遷移規則を全層へ複製しない。
 
+Phase 10 の file format・crash recovery・public CLI・native PTY は [recording.test.ts](../tests/recording.test.ts)、[recording-cli.test.ts](../tests/recording-cli.test.ts)、[executable.test.ts](../tests/executable.test.ts) で確認する。Recording の wire 契約は[Recording 形式](presentation-recording.md)、実測と未確認範囲は [Phase 10 記録](rearchitecture/phase-10-recording-report.md)を正本とする。
+
 性能は本番と同じ設定の実行ファイルで測る。TypeScript の開発実行、画像生成の時間、製品の応答は別の測定とする。
 
 ```sh

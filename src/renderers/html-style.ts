@@ -80,6 +80,14 @@ main {
   margin-inline: auto;
   padding: 24px max(16px, 3vw) 48px;
 }
+.recording-meta {
+  border-inline-start: 3px solid var(--border-strong);
+  background: var(--surface-subtle);
+  padding: 8px 12px;
+  margin-block-end: 16px;
+}
+.recording-meta h2 { font-size: 0.875rem; }
+.recording-meta p { color: var(--fg-secondary); }
 h1,
 h2,
 h3,

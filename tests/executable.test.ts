@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, expect, test } from "bun:test";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { buildExecutable } from "../scripts/build/compiler.ts";
@@ -192,4 +192,52 @@ test("Shell example exercises public v2 CLI through an actual PTY", async () => 
   expect(output).toContain("> running");
   expect(output).not.toContain("\u001b[32m");
   expect(output).not.toContain("\u001b[36m");
+});
+
+test("native v2 records through a real PTY and reports without Bun or Node in PATH", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "hamio-record-native-"));
+  try {
+    const recording = join(directory, "run.ndjson");
+    const report = join(directory, "report.html");
+    const captured = await captureTerminal({
+      command: ["sh", "examples/presentation-live.sh", binary, "succeeded", "--record", recording],
+      cols: 80,
+      rows: 24,
+      holdMs: 0,
+      timeoutMs: 5000,
+      steps: [{ waitFor: '"runState":"succeeded"' }],
+    });
+    const terminal = captured.cast
+      .trim()
+      .split("\n")
+      .slice(1)
+      .map((line) => JSON.parse(line)[2])
+      .join("");
+    expect(terminal).toContain("Compile sources");
+    expect(terminal).toContain("1/2");
+    const raw = await readFile(recording, "utf8");
+    expect(raw).toContain('"kind":"header"');
+    expect(raw).toContain('"kind":"trailer"');
+    expect(raw).not.toContain("\u001b");
+    const child = Bun.spawn(
+      [binary, "presentation", "report", "--input", recording, "--output", report],
+      {
+        cwd: directory,
+        env: { PATH: "/nonexistent", HOME: directory },
+        stdin: "ignore",
+        stdout: "pipe",
+        stderr: "pipe",
+        timeout: 5000,
+      },
+    );
+    const [exit, stdout] = await Promise.all([child.exited, new Response(child.stdout).text()]);
+    expect(exit).toBe(0);
+    expect(JSON.parse(stdout).recording.status).toBe("complete");
+    const html = await readFile(report, "utf8");
+    expect(html).toContain("Recording complete");
+    expect(html).toContain("Artifacts are ready.");
+    expect(html).not.toContain("<script");
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
 });

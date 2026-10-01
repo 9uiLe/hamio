@@ -7,7 +7,8 @@ export const help = `hamio ${VERSION} — semantic presentation for scripts and 
 
 Presentation Protocol v2:
   hamio presentation static [--input FILE|-] [--no-color]
-  hamio presentation live [--no-color] [--no-motion]
+  hamio presentation live [--record FILE] [--no-color] [--no-motion]
+  hamio presentation report --input RECORDING --output HTML
   hamio presentation capabilities
 
 API v1 (unchanged):
