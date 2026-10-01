@@ -247,6 +247,10 @@ AI エージェントの作業規則と領域別スキルの選択は [AGENTS.md
 
 [Dependabot の設定](../.github/dependabot.yml)に従う更新と security updates は PR で検査し、所有者が取得元、差分、lifecycle scripts、lockfile を確認する。自動マージと通常実行時の `bunx` などによる取得は行わない。
 
+新しい機能では **標準 Web / Runtime / Language API → 既存の依存・utility → 小さく検証可能な内部実装 → 外部依存** の順に検討する。外部依存を既定で追加せず、dependency 数ではなく長期の複雑性、security、correctness、保守費用で判断する。複雑な parser、暗号、sanitizer、Unicode、accessibility primitive 等を依存回避のために危険な自作実装へ置き換えない。
+
+外部依存が必要な場合は導入前に publisher / repository、活動状況、security policy と既知 advisory、直接・推移依存、install / lifecycle scripts、native binary・network access、license、API 安定性、更新頻度を確認する。`bun install --frozen-lockfile --ignore-scripts` で使用可能か、production / development-only / build-only / catalog-only のどれか、native executable・HTML artifact・Catalog への影響も PR に記録する。未確認の項目は推測せず未確認と明記する。各 Phase の終わりに既存依存も再評価し、責務がなくなったものは削除する。
+
 Bun の更新では Nix 入力、同梱ランタイム、`packageManager`、`engines`、型定義、配布 metadata と notices を揃える。Node.js は開発ツールの要求版を使う。`@types/node` は Bun の宣言が参照する依存として `overrides` で固定し、宣言ファイルも検査する。型定義の版を実行時 API の保証とはみなさない。
 
 ```sh
@@ -305,7 +309,7 @@ bun scripts/benchmark-preview.ts dist/preview/benchmark.json 15
 
 ## 9. Semantic Catalog と diagnostic capture
 
-Catalog は開発専用で、Phase 3 の State / Event を両媒体で読むための診断環境である。consumer 向け CLI・native executable には入れない。Phase 5 の Design Reference を受け取る前の画面なので、字体・色・余白・記号は hamio の最終仕様ではない。
+Catalog は開発専用で、Phase 3 の State / Event を両媒体で読むための診断環境である。consumer 向け CLI・native executable には入れない。Phase 4 で作成した診断画面であり、[Design Direction](design/direction.md)、[Design Tokens](design/tokens.md)、[Component Specification](design/components.md) が定まっても、その字体・色・余白・記号は hamio の最終 renderer 実装ではない。
 
 ```sh
 ./scripts/dev.sh bun run catalog
