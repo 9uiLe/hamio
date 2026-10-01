@@ -261,13 +261,15 @@ export const scenarios: readonly Scenario[] = [
     id: "results-all-states",
     name: "Result states",
     category: "Message / Result",
-    description: "Success with no data, success with JSON null/data, Failure, and cancellation.",
-    intent: "Distinguish absence, JSON value, failure, and cancellation",
+    description:
+      "Success with no data, success with JSON null/data, Failure details, and cancellation.",
+    intent: "Distinguish absence, JSON value, failure details, and cancellation",
     covers: [
       "result.succeeded.none",
       "result.succeeded.value",
       "result.failed",
       "result.cancelled",
+      "failure.details",
     ],
     source: {
       kind: "state",
@@ -282,7 +284,13 @@ export const scenarios: readonly Scenario[] = [
         },
         { kind: "result", result: failed },
         { kind: "result", result: cancelled },
-        { kind: "failure", failure },
+        {
+          kind: "failure",
+          failure: {
+            ...failure,
+            details: { kind: "value", value: { file: "src/build.ts", line: 12 } },
+          },
+        },
       ]),
     },
   },
