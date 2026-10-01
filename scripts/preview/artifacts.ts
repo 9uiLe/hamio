@@ -22,7 +22,11 @@ export async function sourceHashes(root = ".") {
   for (const pattern of [
     "scripts/preview/**/*.ts",
     "scripts/preview*.sh",
-    "src/**/*",
+    "src/cli.ts",
+    "src/core/**/*",
+    "src/application/**/*",
+    "src/adapters/**/*",
+    "src/terminal/**/*",
     "examples/**/*.json",
     "flake.nix",
     "flake.lock",

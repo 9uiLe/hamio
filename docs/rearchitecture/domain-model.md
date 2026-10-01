@@ -120,7 +120,7 @@ Table は列定義と、列数が一致した行を持つ。KeyValue の値と T
 | Summary             | headline と要点の列。Result の成否を置き換えない                                             |
 | Redacted            | 元の item の値を一切保持しない秘匿 placeholder                                               |
 
-`source extent` は `{kind:"complete"}` または `{kind:"truncated"; omittedCount?: number}` とする。`omittedCount?` は「分かる場合のみ付ける件数」であり、状態は `kind` が決める。Run/Task/Group の title・label、Message text、Failure code/message、Summary headline は空文字を拒否する。Code text と各 item の配列は空を許し、Catalog で空状態を確認する。Table は少なくとも一列を持ち、行は 0 件を許す。Phase 3 で確定する byte・depth 制限は、これらの意味を変えずに resource policy として適用する。
+`source extent` は `{kind:"complete"}` または `{kind:"truncated"; omittedCount?: number}` とする。`omittedCount?` は「分かる場合のみ付ける正の件数」であり、状態は `kind` が決める。Run/Task/Group の title・label、Message text、Failure code/message、Summary headline は空文字を拒否する。Code text と各 item の配列は空を許し、Catalog で空状態を確認する。Table は少なくとも一列を持ち、行は 0 件を許す。Phase 3 で確定する byte・depth 制限は、これらの意味を変えずに resource policy として適用する。
 
 HTML 固有の Tabs、Accordion、Detail Panel、Diagram、Architecture Map、Sequence Visualization、Evidence Inspector は**意味モデルの種類としては追加しない**。同じ item を HTML が探索・折り畳み・図で表示するための表現候補とし、図固有の意味が後に判明した場合だけ別仕様で設計する。Terminal の Interactive Prompt、Cursor Selection、TTY live redraw は Form/環境 adapter の責務であり、共有 item ではない。[ADR 0002](adr/0002-boundaries-and-form.md)。
 
