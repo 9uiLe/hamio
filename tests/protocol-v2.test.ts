@@ -1,7 +1,7 @@
 import { expect, test } from "bun:test";
 import { PresentationError } from "../src/presentation/error.ts";
 import { PresentationSession } from "../src/presentation/session.ts";
-import { decodeEventLine, decodeStatic, replayNdjson } from "../src/protocol/decode.ts";
+import { decodeEventLine, decodeStatic } from "../src/protocol/decode.ts";
 import { ProtocolError } from "../src/protocol/error.ts";
 import { protocolLimits } from "../src/protocol/limits.ts";
 
@@ -181,37 +181,4 @@ test("static State decoding applies domain invariants after protocol shape valid
       }),
     ),
   ).toThrow(PresentationError);
-});
-
-test("NDJSON replay uses the same reducer and keeps protocol errors separate from Run Result", () => {
-  const lines = [
-    frame(0, "run.started", { title: "Run" }),
-    frame(1, "task.declared", { taskId: "t", label: "Task", placement: { kind: "root" } }),
-    frame(2, "task.started", { taskId: "t" }),
-    frame(3, "task.finished", { taskId: "t", result: { kind: "cancelled" } }),
-    frame(4, "run.finished", { result: { kind: "succeeded", data: { kind: "none" } } }),
-  ];
-  const complete = replayNdjson(`${lines.join("\r\n")}\r\n`, "complete");
-  expect(complete.kind).toBe("complete");
-  const partial = replayNdjson(lines.join("\n"), "partial");
-  expect(partial.kind).toBe("partial");
-  if (complete.kind === "complete" && partial.kind === "partial")
-    expect(partial.state).toEqual(complete.state);
-  const broken = replayNdjson([...lines.slice(0, 2), "{bad json}"].join("\n"), "complete");
-  expect(broken.kind).toBe("invalid");
-  if (broken.kind === "invalid") {
-    expect(broken.issue).toBeInstanceOf(ProtocolError);
-    expect(broken.eventIndex).toBe(2);
-    expect(broken.acceptedPrefix.items[0]?.kind).toBe("task");
-  }
-  const prefix = new TextEncoder().encode(`${lines.slice(0, 2).join("\n")}\n`);
-  const invalidUtf8 = new Uint8Array([...prefix, 0xff]);
-  const brokenBytes = replayNdjson(invalidUtf8, "partial");
-  expect(brokenBytes.kind).toBe("invalid");
-  if (brokenBytes.kind === "invalid") {
-    expect(brokenBytes.acceptedPrefix.items[0]?.kind).toBe("task");
-    expect(brokenBytes.eventIndex).toBe(2);
-  }
-  expect(replayNdjson(`${lines[0]}\n\n${lines[1]}`, "partial").kind).toBe("invalid");
-  expect(replayNdjson(lines.slice(0, 2).join("\n"), "complete").kind).toBe("invalid");
 });

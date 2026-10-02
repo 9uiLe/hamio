@@ -164,7 +164,7 @@ jobs:
             exit 1
           fi
           cat > notes.md <<'NOTES'
-          Standalone terminal UI for macOS 15 arm64 and Ubuntu 24.04 x64/arm64 (glibc).
+          Semantic Presentation CLI with Terminal output, Recording, and self-contained HTML reports for macOS 15 arm64 and Ubuntu 24.04 x64/arm64 (glibc). Form interaction is also included.
           Bun, Node.js and Nix are not required on consumer machines.
 
           Includes SHA-256 checksums, an SPDX inventory and third-party notices.
@@ -172,7 +172,7 @@ jobs:
           These platform tests do not guarantee older OS versions, musl, all terminals or every performance budget.
           NOTES
           docs_url="https://github.com/$GH_REPO/blob/$RELEASE_TAG/docs"
-          printf '\n[Install, update and rollback](%s/distribution.md) · [API](%s/api.md) · [Validation and limits](%s/release-readiness.md)\n' "$docs_url" "$docs_url" "$docs_url" >> notes.md
+          printf '\n[Install, update and rollback](%s/distribution.md) · [Presentation API](%s/presentation-api.md) · [Form API](%s/interaction-form.md) · [Validation and limits](%s/release-readiness-v%s.md)\n' "$docs_url" "$docs_url" "$docs_url" "$docs_url" "${RELEASE_TAG#v}" >> notes.md
           printf '\nValidation run: https://github.com/%s/actions/runs/%s\nSource commit: %s\n' "$GH_REPO" "$GITHUB_RUN_ID" "$GITHUB_SHA" >> notes.md
           gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" --notes-file notes.md --generate-notes assets/*
           gh release edit "$RELEASE_TAG" --draft=false

@@ -6,7 +6,7 @@ hamio は、Script / AI / Application が人へ提示する状態と内容を標
 
 macOS arm64 と Linux x64 / arm64（glibc）向けの単一実行ファイルを配布します。通常実行に Bun・Node.js・Nix は不要です。[導入・更新手順](docs/distribution.md)では公開版を `vX.Y.Z` で固定し、証明を検証して配置します。通常起動で通信や更新確認は行いません。
 
-公開済み [v0.1.0](https://github.com/9uiLe/hamio/releases/tag/v0.1.0) は旧 API v1 です。現在の master と次の配布候補には下記の入口があり、旧 `render` / `stream` / root `capabilities` は含みません。[移行ガイド](docs/migration-v1-to-presentation-v2.md)を参照してください。Phase 11 のためだけに新しい release は公開しません。
+公開済み [v0.1.0](https://github.com/9uiLe/hamio/releases/tag/v0.1.0) は旧 API v1 です。現在のソースは次の配布候補 `0.2.0` で、旧 `render` / `stream` / root `capabilities` は含みません。`0.2.0` はまだ公開していません。[移行ガイド](docs/migration-v1-to-presentation-v2.md)を参照してください。
 
 ## Presentation
 

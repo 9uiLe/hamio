@@ -475,6 +475,10 @@ details > summary:hover {
   .run-head {
     display: block;
   }
+  .run-head .meta {
+    display: block;
+    margin-block-start: 4px;
+  }
   .task-main {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -587,6 +591,7 @@ code,
 }
 @media print {
   :root,
+  :root:not([data-theme="light"]),
   :root[data-theme="dark"] {
     color-scheme: light;
     --surface-base: #fff;

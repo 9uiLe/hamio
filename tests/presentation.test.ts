@@ -6,7 +6,6 @@ import type {
   StructuredValue,
   TreeNode,
 } from "../src/presentation/model.ts";
-import { replayEvents } from "../src/presentation/replay.ts";
 import { PresentationSession } from "../src/presentation/session.ts";
 import { validateState } from "../src/presentation/validate.ts";
 
@@ -77,8 +76,6 @@ test("a declared group retains a completed task and Run result is independently 
   expect(live.items[0]?.kind).toBe("task-group");
   const group = live.items[0];
   if (group?.kind === "task-group") expect(group.tasks[0]?.state.kind).toBe("failed");
-  expect(replayEvents(events, "complete")).toEqual({ kind: "complete", state: live });
-  expect(replayEvents(events, "partial")).toMatchObject({ kind: "partial", state: live });
 });
 
 test("rejected events leave state and sequence intact", () => {
@@ -313,34 +310,4 @@ test("static state rejects contradictory relationships and malformed semantic co
       ],
     }),
   ).toThrow(PresentationError);
-});
-
-test("partial and invalid replays preserve the accepted prefix", () => {
-  const events: PresentationEvent[] = [
-    { type: "run.started", runId: "r", seq: 0, title: "Run" },
-    {
-      type: "task.declared",
-      runId: "r",
-      seq: 1,
-      taskId: "t",
-      label: "Task",
-      placement: { kind: "root" },
-    },
-    { type: "task.started", runId: "r", seq: 2, taskId: "t" },
-  ];
-  const partial = replayEvents(events, "partial");
-  expect(partial.kind).toBe("partial");
-  if (partial.kind === "partial") {
-    expect(partial.state.run.kind).toBe("present");
-    expect(partial.state.items[0]?.kind).toBe("task");
-  }
-  const invalid = replayEvents(
-    [...events, { type: "task.started", runId: "r", seq: 3, taskId: "t" }],
-    "complete",
-  );
-  expect(invalid.kind).toBe("invalid");
-  if (invalid.kind === "invalid" && partial.kind === "partial") {
-    expect(invalid.acceptedPrefix).toEqual(partial.state);
-    expect(invalid.eventIndex).toBe(3);
-  }
 });

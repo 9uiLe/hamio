@@ -22,7 +22,7 @@ hamio は利用側コードの sandbox ではない。業務処理、起動元�
 
 依存の採用と更新は[開発手順](docs/development.md#7-依存とツールの更新)に従い、取得元・差分・検査結果をレビューする。自動マージは行わない。
 
-`bun audit` は npm 依存の監査であり、同梱 Bun 内部の native 部品を網羅しない。公開前および Bun 更新時は [Bun の advisory](https://github.com/oven-sh/bun/security/advisories)、[リリース情報](https://github.com/oven-sh/bun/releases)、固定ソースの native 依存と許諾を別途確認する。対象 revision、確認日、結果、確認できない範囲を[リリース評価](docs/release-readiness.md)と根拠資料へ記録する。
+`bun audit` は npm 依存の監査であり、同梱 Bun 内部の native 部品を網羅しない。公開前および Bun 更新時は [Bun の advisory](https://github.com/oven-sh/bun/security/advisories)、[リリース情報](https://github.com/oven-sh/bun/releases)、固定ソースの native 依存と許諾を別途確認する。対象 revision、確認日、結果、確認できない範囲を対象版のリリース評価（[0.2.0 候補](docs/release-readiness-v0.2.0.md)）と根拠資料へ記録する。
 
 ## 保守者の対応
 
