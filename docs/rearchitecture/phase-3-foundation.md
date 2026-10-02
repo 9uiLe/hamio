@@ -1,6 +1,6 @@
 # Phase 3 — Core / Protocol foundation の実装境界
 
-[Phase 1 の Domain 仕様](domain-model.md)と [Target Architecture](target-architecture.md)を実装した範囲を記録する。現行 CLI の [API v1](../api.md) はこの Phase では変更しない。v2 はまだ公開 CLI/API へ接続していないため、二つの経路の並存は移行中だけの状態である。
+[Phase 1 の Domain 仕様](domain-model.md)と [Target Architecture](target-architecture.md)を実装した範囲を記録する。現行 CLI の [API v1](https://github.com/9uiLe/hamio/blob/v0.1.0/docs/api.md) はこの Phase では変更しない。v2 はまだ公開 CLI/API へ接続していないため、二つの経路の並存は移行中だけの状態である。
 
 | 責務                        | 実装                           | 境界                                                                                           |
 | --------------------------- | ------------------------------ | ---------------------------------------------------------------------------------------------- |

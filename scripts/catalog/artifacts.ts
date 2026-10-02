@@ -1,5 +1,9 @@
 import { join } from "node:path";
-import { digest } from "../preview/artifacts.ts";
+import { createHash } from "node:crypto";
+
+export function digest(bytes: Uint8Array): string {
+  return createHash("sha256").update(bytes).digest("hex");
+}
 import { resolveScenario, scenarioById } from "./scenarios.ts";
 
 export const captures = [
@@ -15,7 +19,7 @@ const sources = [
   "scripts/catalog/terminal-runner.ts",
   "scripts/catalog/capture.ts",
   "scripts/catalog/artifacts.ts",
-  "scripts/preview/capture.ts",
+  "scripts/terminal-capture/capture.ts",
   "src/renderers/terminal.ts",
   "src/renderers/terminal-live.ts",
   "src/terminal/text.ts",

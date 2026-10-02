@@ -9,12 +9,13 @@ import {
   SelectPrompt,
   TextPrompt,
 } from "@clack/core";
-import type { Appearance } from "../terminal/appearance.ts";
-import type { Writer } from "../application/ports.ts";
-import { type Answers, Cancelled, ContractError, type Field, limits } from "../core/contract.ts";
-import { answerIssue } from "../core/form.ts";
-import { Format } from "../terminal/format.ts";
-import { inputLine, optionLines, promptFrame, type PromptState } from "../terminal/prompt-view.ts";
+import type { Appearance } from "./appearance.ts";
+import type { Writer } from "../adapters/output.ts";
+import { type Answers, type Field, formLimits } from "./contract.ts";
+import { answerIssue } from "./form.ts";
+import { formNotice } from "./prompt-view.ts";
+import { Cancelled, OperationError } from "../application/error.ts";
+import { inputLine, optionLines, promptFrame, type PromptState } from "./prompt-view.ts";
 
 class PromptOutput extends Writable {
   readonly isTTY = true;
@@ -36,8 +37,8 @@ class PromptOutput extends Writable {
     callback?: (error?: Error | null) => void,
   ): boolean {
     const bytes = typeof chunk === "string" ? Buffer.byteLength(chunk) : chunk.byteLength;
-    if (this.writableLength + bytes > limits.documentBytes) {
-      const error = new ContractError(
+    if (this.writableLength + bytes > formLimits.documentBytes) {
+      const error = new OperationError(
         "LIMIT_EXCEEDED",
         "The prompt output queue exceeded its limit.",
       );
@@ -56,7 +57,7 @@ class PromptOutput extends Writable {
   ) {
     this.destination.write(chunk.toString("utf8")).then(
       () => callback(),
-      () => callback(new ContractError("IO_ERROR", "Could not write the prompt.")),
+      () => callback(new OperationError("IO_ERROR", "Could not write the prompt.")),
     );
   }
   drain(): Promise<void> {
@@ -178,7 +179,6 @@ export async function promptForm(
 ): Promise<Answers> {
   const answers: Answers = {};
   const output = new PromptOutput(destination, terminal);
-  const format = new Format(appearance);
   let outputFailed = false;
   let current: AbortController | undefined;
   const onOutputError = () => {
@@ -190,10 +190,11 @@ export async function promptForm(
   terminal.on("resize", onResize);
   const raw = input.isRaw;
   try {
-    if (title) await destination.write(format.message("info", title));
+    if (title) await destination.write(formNotice("info", title, appearance));
     for (const field of fields) {
       if (signal.aborted) throw new Cancelled();
-      if (field.description) await destination.write(format.message("info", field.description));
+      if (field.description)
+        await destination.write(formNotice("info", field.description, appearance));
       const question = new AbortController();
       current = question;
       let inputBytes = 0;
@@ -201,7 +202,7 @@ export async function promptForm(
       const cancel = () => question.abort();
       const observe = (data: Buffer) => {
         inputBytes += data.length;
-        if (inputBytes > limits.stringBytes * 4) {
+        if (inputBytes > formLimits.stringBytes * 4) {
           oversized = true;
           question.abort();
         }
@@ -213,12 +214,12 @@ export async function promptForm(
       try {
         const value = await ask(field, output, input, question.signal, appearance);
         await output.drain();
-        if (outputFailed) throw new ContractError("IO_ERROR", "Could not write the prompt.");
+        if (outputFailed) throw new OperationError("IO_ERROR", "Could not write the prompt.");
         if (oversized)
-          throw new ContractError("LIMIT_EXCEEDED", "Interactive input exceeded its byte limit.");
+          throw new OperationError("LIMIT_EXCEEDED", "Interactive input exceeded its byte limit.");
         if (isCancel(value) || signal.aborted) throw new Cancelled();
         if (value === undefined || answerIssue(field, value))
-          throw new ContractError("UI_ERROR", "The prompt returned an invalid answer.");
+          throw new OperationError("UI_ERROR", "The prompt returned an invalid answer.");
         answers[field.id] = value;
       } finally {
         signal.removeEventListener("abort", cancel);
@@ -227,7 +228,7 @@ export async function promptForm(
         current = undefined;
       }
     }
-    await destination.write(format.message("success", "入力完了"));
+    await destination.write(formNotice("success", "入力完了", appearance));
     return answers;
   } finally {
     terminal.off("resize", onResize);

@@ -1,6 +1,7 @@
 import { createReadStream } from "node:fs";
 import type { Readable } from "node:stream";
-import { Cancelled, ContractError, limited, limits } from "../core/contract.ts";
+import { Cancelled, OperationError, limited } from "../application/error.ts";
+import { ioLimits } from "../application/io-limits.ts";
 
 async function* chunks(input: Readable, signal: AbortSignal) {
   const abort = () => input.destroy(new Cancelled());
@@ -10,14 +11,14 @@ async function* chunks(input: Readable, signal: AbortSignal) {
     for await (const chunk of input) {
       if (signal.aborted) throw signal.reason ?? new Cancelled();
       if (!(chunk instanceof Uint8Array))
-        throw new ContractError("IO_ERROR", "Input must be a byte stream.");
+        throw new OperationError("IO_ERROR", "Input must be a byte stream.");
       yield Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     }
   } catch (error) {
     if (signal.aborted)
-      throw signal.reason instanceof ContractError ? signal.reason : new Cancelled();
-    if (error instanceof ContractError) throw error;
-    throw new ContractError("IO_ERROR", "Could not read input.");
+      throw signal.reason instanceof OperationError ? signal.reason : new Cancelled();
+    if (error instanceof OperationError) throw error;
+    throw new OperationError("IO_ERROR", "Could not read input.");
   } finally {
     signal.removeEventListener("abort", abort);
   }
@@ -29,7 +30,7 @@ function decoder() {
     try {
       return utf8.decode(bytes);
     } catch {
-      throw new ContractError("INVALID_JSON", "Input must be valid UTF-8.");
+      throw new OperationError("INVALID_JSON", "Input must be valid UTF-8.");
     }
   };
 }
@@ -44,7 +45,7 @@ export async function readDocument(
   let size = 0;
   for await (const chunk of chunks(input, signal)) {
     size += chunk.byteLength;
-    if (size > limits.documentBytes) limited("The input document exceeds its byte limit.");
+    if (size > ioLimits.documentBytes) limited("The input document exceeds its byte limit.");
     parts.push(chunk);
   }
   return decoder()(Buffer.concat(parts, size));
@@ -59,7 +60,7 @@ export async function* readEvents(
   let parts: Uint8Array[] = [];
   let size = 0;
   function check(additional: number) {
-    if (size + additional > limits.frameBytes) limited("An event exceeds its byte limit.");
+    if (size + additional > ioLimits.frameBytes) limited("An event exceeds its byte limit.");
   }
   function* split(chunk: Buffer): Generator<string> {
     let start = 0;
@@ -75,7 +76,7 @@ export async function* readEvents(
         size = 0;
       }
       if (!line.trim())
-        throw new ContractError("INVALID_JSON", "Empty event lines are not allowed.");
+        throw new OperationError("INVALID_JSON", "Empty event lines are not allowed.");
       yield line;
       start = end + 1;
     }

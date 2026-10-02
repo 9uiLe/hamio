@@ -3,7 +3,7 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { buildExecutable } from "../scripts/build/compiler.ts";
-import { captureTerminal } from "../scripts/preview/capture.ts";
+import { captureTerminal } from "../scripts/terminal-capture/capture.ts";
 
 let binary = process.env.HAMIO_TEST_BINARY ? resolve(process.env.HAMIO_TEST_BINARY) : "";
 let workspace: string | undefined;
@@ -34,7 +34,7 @@ test("compiled executable runs without Bun in PATH and ignores project configura
     await Bun.write(join(directory, "package.json"), '{"type":"invalid"}');
     await Bun.write(join(directory, "tsconfig.json"), "invalid");
     const child = Bun.spawn(
-      [binary, "render", "--format", "json", "--input", resolve("examples/display.json")],
+      [binary, "presentation", "static", "--input", resolve("examples/presentation-static.json")],
       {
         cwd: directory,
         env: { PATH: "/nonexistent", HOME: directory },
@@ -49,7 +49,7 @@ test("compiled executable runs without Bun in PATH and ignores project configura
       new Response(child.stderr).text(),
     ]);
     expect(code).toBe(0);
-    expect(stderr).toBe("");
+    expect(stderr).toContain("Run: Build project");
     expect(JSON.parse(stdout).status).toBe("ok");
     expect(stdout).not.toContain("dummy-preview-token");
     expect(await Bun.file(marker).exists()).toBe(false);

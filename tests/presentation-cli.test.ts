@@ -24,17 +24,13 @@ const frame = (seq: number, type: string, fields: Record<string, unknown> = {}) 
 const lines = (...frames: string[]) => `${frames.join("\n")}\n`;
 const none = { kind: "none" };
 
-test("v2 discovery is separate from v1 capabilities and static uses production state", async () => {
+test("Presentation discovery and static input use the production State", async () => {
   const capabilities = await cli(["capabilities"]);
   expect(capabilities.response()).toMatchObject({
     protocolVersion: 2,
     modes: ["static", "live"],
     renderer: "terminal",
   });
-  const v1 = Bun.spawn(productCommand(["capabilities"]), { stdout: "pipe" });
-  expect(JSON.parse(await new Response(v1.stdout).text()).apiVersion).toBe(1);
-  expect(await v1.exited).toBe(0);
-
   const state = await cli(["static", "--input", "examples/presentation-static.json"]);
   expect(state.code).toBe(0);
   expect(state.response()).toEqual({

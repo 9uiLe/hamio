@@ -45,5 +45,5 @@ jobs:
         run: |
           nix flake check --no-write-lock-file --print-build-logs
           nix run .#hamio -- --version
-          nix shell .#hamio --command hamio capabilities
+          nix shell .#hamio --command hamio --version
           git diff --exit-code

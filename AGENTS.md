@@ -1,6 +1,6 @@
 # hamio の開発
 
-[基本設計](docs/design.md)を製品の責務・設計理由、[API 契約](docs/api.md)を公開契約、[開発手順](docs/development.md)をツールと検査の正本とする。業務処理は利用側に残す。
+[基本設計](docs/design.md)を製品責務、[Presentation API](docs/presentation-api.md)・[Form 契約](docs/interaction-form.md)・[Recording 形式](docs/presentation-recording.md)を公開契約、[開発手順](docs/development.md)をツールと検査の正本とする。業務処理は利用側に残す。
 
 ## 作業の入口
 
@@ -12,9 +12,9 @@
 
 ## UI の確認
 
-- UI・録画シナリオを変更したら `./scripts/preview.sh` を実行し、`docs/previews/` の PNG を画像として開いて確認する。操作途中は `./scripts/preview.sh --recording` の GIF も確認する。
-- チャットでは生成した PNG をインライン表示する。PR 本文には対象 commit SHA に固定した画像リンクを埋め込み、シナリオと確認範囲を説明する。[プレビュー手順](docs/development.md#8-ターミナル-ui-のプレビュー)に従う。
-- プレビューは実際の端末出力から生成する。製品の表示確認には製品の入口を使い、別実装の見本を提出しない。`fixture` は録画基盤の検証用プログラムであり、製品 UI の確認とは区別する。
+- Presentation UI を変更したら `./scripts/dev.sh bun run catalog:check` を実行し、必要に応じて固定 preview shell の `bun scripts/catalog/capture.ts` で実 PTY の代表 PNG を更新する。HTML Report は native executable が生成したファイルを browser で確認する。
+- 追跡 PNG は画像として開いて確認する。チャットでは代表画像をインライン表示し、PR 本文には対象 commit SHA に固定したリンクと確認範囲を記載する。[Catalog 手順](docs/development.md#9-semantic-catalog-と-renderer-review)に従う。
+- Form の対話表示を変更したら、現行 `hamio form` を実 PTY で確認する。Catalog の Semantic Scenario を Form の fixture と誤認しない。
 
 ## スキルの選択
 

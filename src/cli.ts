@@ -1,11 +1,9 @@
 import { Output } from "./adapters/output.ts";
-import { parseCommand } from "./application/command.ts";
-import { queryResponse } from "./application/metadata.ts";
-import type { Ports } from "./application/ports.ts";
-import { reportFailure } from "./application/response.ts";
-import { Cancelled } from "./core/contract.ts";
+import { Cancelled, OperationError } from "./application/error.ts";
+import { help, VERSION } from "./application/metadata.ts";
+import { reportFailure } from "./interaction/response.ts";
 
-/** Process boundary. Input and terminal execution are loaded only for commands that use them. */
+/** Process boundary. Interaction and Presentation internals are loaded only by their commands. */
 export async function main(args: readonly string[]): Promise<number> {
   const { stdin, stdout, stderr, env } = process;
   const output = new Output(stdout);
@@ -25,7 +23,24 @@ export async function main(args: readonly string[]): Promise<number> {
         signal: controller.signal,
       });
     }
-    const command = parseCommand(args, {
+    if (args.length === 1 && (args[0] === "--help" || args[0] === "-h")) {
+      await output.write(help);
+      return 0;
+    }
+    if (args.length === 1 && args[0] === "--version") {
+      await output.write(`${VERSION}\n`);
+      return 0;
+    }
+    if (args[0] !== "form")
+      throw new OperationError(
+        "INVALID_ARGUMENT",
+        "Choose presentation or form. Use --help for usage.",
+      );
+    const [{ parseFormCommand }, { executeForm }] = await Promise.all([
+      import("./interaction/command.ts"),
+      import("./interaction/application.ts"),
+    ]);
+    const command = parseFormCommand(args.slice(1), {
       inputTTY: !!stdin.isTTY,
       outputTTY: !!stderr.isTTY,
       columns: stderr.columns,
@@ -33,31 +48,14 @@ export async function main(args: readonly string[]): Promise<number> {
       ci: env.CI,
       noColor: env.NO_COLOR,
     });
-    if (command.kind === "help" || command.kind === "version" || command.kind === "capabilities") {
-      await output.write(queryResponse(command));
-      return 0;
-    }
-    const [{ execute }, { readDocument, readEvents }] = await Promise.all([
-      import("./application/run.ts"),
-      import("./adapters/input.ts"),
-    ]);
-    const destination = new Output(stderr);
-    screen = destination;
-    const ports: Ports = {
+    screen = new Output(stderr);
+    return await executeForm(command, {
       output,
+      screen,
+      stdin,
+      stderr,
       signal: controller.signal,
-      readDocument: (path) => readDocument(path, stdin, controller.signal),
-      readEvents: () => readEvents(stdin, controller.signal),
-      async openView(appearance) {
-        const { TerminalView } = await import("./adapters/terminal.ts");
-        return new TerminalView(destination, appearance, (error) => controller.abort(error));
-      },
-      async ask(fields, title, appearance) {
-        const { promptForm } = await import("./adapters/prompts.ts");
-        return promptForm(fields, title, destination, stdin, stderr, controller.signal, appearance);
-      },
-    };
-    return await execute(command, ports);
+    });
   } catch (error) {
     if (args[0] === "presentation") {
       try {

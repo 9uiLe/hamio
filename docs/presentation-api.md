@@ -1,6 +1,6 @@
 # Presentation Protocol v2 — CLI contract
 
-hamio は利用側が宣言した Presentation の意味を Terminal へ表示する。業務処理、Task の再試行、Run の成否決定は利用側が行う。本書は native executable の `presentation` 入口を定める。[`form` / `render` / `stream` / `capabilities` の API v1](api.md) は引き続き別契約であり、v1 JSON をこの入口へ混ぜない。
+hamio は利用側が宣言した Presentation の意味を Terminal へ表示する。業務処理、Task の再試行、Run の成否決定は利用側が行う。本書は native executable の `presentation` 入口を定める。[Form](interaction-form.md) は別の Interaction 契約であり、旧 Presentation v1 JSON をこの入口へ混ぜない。旧公開版からの変更は[移行ガイド](migration-v1-to-presentation-v2.md)を参照する。
 
 ## 入口と例
 
@@ -19,7 +19,7 @@ hamio presentation report --input run.ndjson --output run.html
 
 `live --record FILE` は accepted Event を [Recording v1](presentation-recording.md) として、Terminal へ State を公開する前に追記する。既存 file は上書きしない。入力の未完了・不正・中断では、書込先が健全なら partial trailer を閉じる。Recording I/O が失敗した Event は新たに表示せず、`lastAcceptedSeq` と `lastRecordedSeq` を区別する。`report --input FILE --output FILE` は streaming replay の受理済み State を production HTML renderer に渡し、単一の self-contained HTML file を作る。出力 file は既存なら拒否し、途中の生成物を final path に公開しない。Report は complete / partial / invalid Recording のいずれからも生成でき、status と安全な issue location を Run Result と別枠で示す。
 
-`presentation --help` は短い command 一覧を出す。`presentation capabilities` は v1 の `capabilities` を変更せず、`protocolVersion: 2`、製品版、`static` / `live`、Terminal と wire / state の上限を JSON で返す。Recording support、`recordingVersion: 1`、Recording 上限は additive field で返す。処理中に network、schema download、update check、telemetry、plugin lookup は行わない。
+`presentation --help` は短い command 一覧を出す。`presentation capabilities` は現行 Presentation の発見入口で、`protocolVersion: 2`、製品版、`static` / `live`、Terminal と wire / state の上限を JSON で返す。Recording support、`recordingVersion: 1`、Recording 上限は additive field で返す。処理中に network、schema download、update check、telemetry、plugin lookup は行わない。
 
 ## 入出力と終了
 

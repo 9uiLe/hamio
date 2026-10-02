@@ -1,6 +1,18 @@
 import type { Appearance } from "./appearance.ts";
-import { paint } from "./format.ts";
-import { fit, safeText } from "./text.ts";
+function paint(text: string, code: number, enabled: boolean): string {
+  return enabled ? `\u001b[${code}m${text}\u001b[0m` : text;
+}
+
+export function formNotice(
+  level: "info" | "success",
+  text: string,
+  appearance: Appearance,
+): string {
+  const cue = level === "info" ? "i" : "+";
+  const color = level === "info" ? 36 : 32;
+  return `${paint(cue, color, appearance.color)} ${fit(text, appearance.width - 2)}\n`;
+}
+import { fit, safeText } from "../terminal/text.ts";
 
 export type PromptState = "initial" | "active" | "cancel" | "submit" | "error" | "validating";
 export interface PromptFrame {

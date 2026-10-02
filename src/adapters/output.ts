@@ -1,6 +1,9 @@
 import type { Writable } from "node:stream";
-import type { Writer } from "../application/ports.ts";
-import { ContractError, limits } from "../core/contract.ts";
+export interface Writer {
+  write(text: string): Promise<void>;
+}
+import { OperationError } from "../application/error.ts";
+import { ioLimits } from "../application/io-limits.ts";
 
 /** Owns the error listener and deadline for one destination. Call close after all writes. */
 export class Output implements Writer {
@@ -10,30 +13,30 @@ export class Output implements Writer {
   };
   constructor(
     private readonly stream: Writable,
-    private readonly timeoutMs: number = limits.outputTimeoutMs,
+    private readonly timeoutMs: number = ioLimits.outputTimeoutMs,
   ) {
     stream.on("error", this.onError);
   }
   async write(text: string): Promise<void> {
     if (this.fault || this.stream.destroyed)
-      throw new ContractError("IO_ERROR", "Could not write output.");
+      throw new OperationError("IO_ERROR", "Could not write output.");
     await new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => {
         this.fault = true;
-        reject(new ContractError("IO_ERROR", "Output did not accept data before its deadline."));
+        reject(new OperationError("IO_ERROR", "Output did not accept data before its deadline."));
       }, this.timeoutMs);
       try {
         this.stream.write(text, (error) => {
           clearTimeout(timer);
           if (error) {
             this.fault = true;
-            reject(new ContractError("IO_ERROR", "Could not write output."));
+            reject(new OperationError("IO_ERROR", "Could not write output."));
           } else resolve();
         });
       } catch {
         clearTimeout(timer);
         this.fault = true;
-        reject(new ContractError("IO_ERROR", "Could not write output."));
+        reject(new OperationError("IO_ERROR", "Could not write output."));
       }
     });
   }

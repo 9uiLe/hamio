@@ -1,6 +1,6 @@
 # Phase 1 — Target Architecture
 
-Status: **設計確定 / 実装前**。この文書と [Domain・状態契約](domain-model.md)、[ADR 0001](adr/0001-presentation-state-and-replay.md)、[ADR 0002](adr/0002-boundaries-and-form.md)が Phase 1 の設計成果物である。現行製品の動作契約は移行完了まで [API v1](../api.md)、現状の証拠は [Phase 0 監査](current-state.md)を正本とする。以後の製品実装では新しい意味・状態について本書を基準とし、API v1 の内容を無言で上書きしない。
+Status: **設計確定 / 実装前**。この文書と [Domain・状態契約](domain-model.md)、[ADR 0001](adr/0001-presentation-state-and-replay.md)、[ADR 0002](adr/0002-boundaries-and-form.md)が Phase 1 の設計成果物である。現行製品の動作契約は移行完了まで [API v1](https://github.com/9uiLe/hamio/blob/v0.1.0/docs/api.md)、現状の証拠は [Phase 0 監査](current-state.md)を正本とする。以後の製品実装では新しい意味・状態について本書を基準とし、API v1 の内容を無言で上書きしない。
 
 ## 1. 製品責務と Phase 0 からの導出
 

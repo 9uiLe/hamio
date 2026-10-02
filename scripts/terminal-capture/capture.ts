@@ -2,7 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-export interface PreviewStep {
+export interface CaptureStep {
   waitFor: string;
   snapshot?: string;
   send?: string;
@@ -10,7 +10,7 @@ export interface PreviewStep {
 
 export interface CaptureOptions {
   command: string[];
-  steps: readonly PreviewStep[];
+  steps: readonly CaptureStep[];
   cols: number;
   rows: number;
   timeoutMs?: number;
@@ -20,7 +20,7 @@ export interface CaptureOptions {
 }
 
 export async function captureTerminal(options: CaptureOptions) {
-  const home = await mkdtemp(join(tmpdir(), "hamio-preview-"));
+  const home = await mkdtemp(join(tmpdir(), "hamio-capture-"));
   const header = JSON.stringify({ version: 2, width: options.cols, height: options.rows });
   const events: string[] = [header];
   const snapshots = new Map<string, number>();
@@ -75,13 +75,13 @@ export async function captureTerminal(options: CaptureOptions) {
           if (fault) return;
           bytes += data.byteLength;
           if (bytes > (options.maxBytes ?? 1024 * 1024) || events.length >= 10_000) {
-            fail("Preview output exceeded its limit.");
+            fail("Terminal capture output exceeded its limit.");
             return;
           }
           try {
             append(decoder.decode(data, { stream: true }));
           } catch {
-            fail("Preview output is not valid UTF-8.");
+            fail("Terminal capture output is not valid UTF-8.");
           }
           wake();
         },
@@ -89,7 +89,7 @@ export async function captureTerminal(options: CaptureOptions) {
           try {
             append(decoder.decode());
           } catch {
-            fail("Preview output ended with invalid UTF-8.");
+            fail("Terminal capture output ended with invalid UTF-8.");
           }
           // Bun reports normal PTY closure as EOF on macOS and EIO on Linux.
           // This callback signals stream closure; child.exited determines success.
@@ -99,12 +99,12 @@ export async function captureTerminal(options: CaptureOptions) {
         },
       },
     });
-    timer = setTimeout(() => fail("Preview timed out."), options.timeoutMs ?? 15_000);
+    timer = setTimeout(() => fail("Terminal capture timed out."), options.timeoutMs ?? 15_000);
 
     for (const step of options.steps) {
       while (!received.includes(step.waitFor)) {
         if (fault) throw fault;
-        if (closed) throw new Error("Preview exited before reaching an expected screen.");
+        if (closed) throw new Error("Terminal capture exited before reaching an expected screen.");
         await changed.promise;
       }
       if (fault) throw fault;
@@ -121,7 +121,8 @@ export async function captureTerminal(options: CaptureOptions) {
     if (fault) throw fault;
     const exitCode = await child.exited;
     if (fault) throw fault;
-    if (exitCode !== 0) throw new Error(`Preview command failed with exit code ${exitCode}.`);
+    if (exitCode !== 0)
+      throw new Error(`Terminal capture command failed with exit code ${exitCode}.`);
     return { cast: `${events.join("\n")}\n`, snapshots, bytes };
   } finally {
     if (timer) clearTimeout(timer);

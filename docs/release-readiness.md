@@ -1,6 +1,6 @@
 # hamio v0.1.0 リリース評価
 
-本書は2026-09-17に実施した v0.1.0 の配布・導入検証と、その版に適用できる性能・同梱部品の確認結果を記録する。製品の仕様は[基本設計](design.md)と [API 契約](api.md)、公開の操作と承認条件は[配布手順](distribution.md#保守者のリリース工程)に定める。
+本書は2026-09-17に実施した v0.1.0 の配布・導入検証と、その版に適用できる性能・同梱部品の確認結果を記録する。製品の仕様は[当時の基本設計](https://github.com/9uiLe/hamio/blob/v0.1.0/docs/design.md)と [API 契約](https://github.com/9uiLe/hamio/blob/v0.1.0/docs/api.md)、公開の操作と承認条件は[配布手順](distribution.md#保守者のリリース工程)に定める。
 
 [v0.1.0](https://github.com/9uiLe/hamio/releases/tag/v0.1.0) は immutable release として公開済みである。macOS 15 arm64、Ubuntu 24.04 x64 / arm64 の3対象で、配布候補の再現性・動作・由来と、公開資産の導入を確認した。公開は所有者認証の GitHub CLI で行った。候補を作った workflow の publish job は失敗しており、workflow 全体の成功としては扱わない。
 

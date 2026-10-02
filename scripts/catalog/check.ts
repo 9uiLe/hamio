@@ -1,4 +1,4 @@
-import { captureTerminal } from "../preview/capture.ts";
+import { captureTerminal } from "../terminal-capture/capture.ts";
 import { catalogResponse } from "./server.ts";
 import { resolveScenario, scenarios } from "./scenarios.ts";
 import { renderHtml } from "../../src/renderers/html.ts";
