@@ -164,15 +164,18 @@ jobs:
             exit 1
           fi
           cat > notes.md <<'NOTES'
-          Semantic Presentation CLI with Terminal output, Recording, and self-contained HTML reports for macOS 15 arm64 and Ubuntu 24.04 x64/arm64 (glibc). Form interaction is also included.
+          hamio 0.2.0 accepts semantic Presentation Protocol v2 from scripts and applications. `presentation static` and `presentation live` use the production Terminal Renderer. `presentation live --record` saves accepted Events as Recording v1; `presentation report` replays them with the same Session through the production HTML Renderer into a self-contained Report. Recording completeness is independent of Run outcome. The independent `form` Interaction command remains available with Form API v1.
+
+          Breaking from v0.1.0: `render`, `stream`, root `capabilities`, and the Block/DisplayDefinition JSON contract were removed. There is no automatic compatibility translation. Migrate to the explicit Presentation commands and Protocol v2 using the guide below.
+
+          Verified candidate platforms: macOS 15 arm64 and Ubuntu 24.04 x64/arm64 (glibc). Older OS versions, Intel Mac, Windows, musl, and every terminal/browser combination are not covered. Actual VoiceOver speech, real power-loss and filesystem-corruption recovery, interactive Form key-response p95, and a complete component-level audit of Bun native internals remain unverified.
           Bun, Node.js and Nix are not required on consumer machines.
 
           Includes SHA-256 checksums, an SPDX inventory and third-party notices.
           The inventory covers production JavaScript dependencies and Bun as an aggregate, not every native component.
-          These platform tests do not guarantee older OS versions, musl, all terminals or every performance budget.
           NOTES
           docs_url="https://github.com/$GH_REPO/blob/$RELEASE_TAG/docs"
-          printf '\n[Install, update and rollback](%s/distribution.md) · [Presentation API](%s/presentation-api.md) · [Form API](%s/interaction-form.md) · [Validation and limits](%s/release-readiness-v%s.md)\n' "$docs_url" "$docs_url" "$docs_url" "$docs_url" "${RELEASE_TAG#v}" >> notes.md
+          printf '\n[Install, update and rollback](%s/distribution.md) · [Migration from v0.1.0](%s/migration-v1-to-presentation-v2.md) · [Presentation API](%s/presentation-api.md) · [Recording format](%s/presentation-recording.md) · [Form API](%s/interaction-form.md) · [Validation and limits](%s/release-readiness-v%s.md)\n' "$docs_url" "$docs_url" "$docs_url" "$docs_url" "$docs_url" "$docs_url" "${RELEASE_TAG#v}" >> notes.md
           printf '\nValidation run: https://github.com/%s/actions/runs/%s\nSource commit: %s\n' "$GH_REPO" "$GITHUB_RUN_ID" "$GITHUB_SHA" >> notes.md
           gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" --notes-file notes.md --generate-notes assets/*
           gh release edit "$RELEASE_TAG" --draft=false
