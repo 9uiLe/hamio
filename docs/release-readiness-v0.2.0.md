@@ -11,9 +11,11 @@
 
 ## 検証範囲
 
-Phase 12 の source 実装 commit `24fe562256026b27fd39ea9f3905f4c3a2351235` に対し、[Release `mode=verify` run 36948468392](https://github.com/9uiLe/hamio/actions/runs/36948468392) は macOS 15 arm64、Ubuntu 24.04 x64 / arm64 の build、証明、別 runner での候補検証に成功した。`publish` と `verify-install` は意図どおり skipped。各 runner の `release:verify` は二つの独立 build、SBOM / notices、Bun/Node のない製品実行を検査した。後続の文書のみの commit で head SHA が変わる場合、最新 head の候補検証結果は PR の check を参照する。候補 workflow は公開前の由来と動作を確認するもので、公開済み release の導入試験を代替しない。
+Phase 12 の source 実装 commit `24fe562256026b27fd39ea9f3905f4c3a2351235` に対し、[Release `mode=verify` run 36948468392](https://github.com/9uiLe/hamio/actions/runs/36948468392) は macOS 15 arm64、Ubuntu 24.04 x64 / arm64 の build、証明、別 runner での候補検証に成功した。`publish` と `verify-install` は意図どおり skipped。各 runner の `release:verify` は二つの独立 build、SBOM / notices、Bun/Node のない製品実行を検査した。後続の Nix install check 修正を含む最新 head の候補検証結果は PR に記録する。候補 workflow は公開前の由来と動作を確認するもので、公開済み release の導入試験を代替しない。
 
 ローカル検証は macOS 27.0 arm64 / Chrome 154.0.8037.93。fresh clone から `setup → check（114 tests、21 Catalog scenario）→ build → release:verify` を通し、追跡ファイルに差分なし。0.2.0 native executable を Bun/Node のない PATH と 40列の実 PTY で使用し、static、live、Progress、failure、Recording、Report、Form の経路を確認した。`nix flake check --all-systems --no-build --no-write-lock-file` は3対象の derivation を評価したが、その操作自体は Linux の実行試験ではない。Terminal/HTML、accessibility、性能の具体条件は[最終レビュー](rearchitecture/phase-12-final-review.md)に記録する。
+
+Nix package は公開済み v0.1.0 の固定資産を検証する。0.2.0 候補用の Presentation smoke を固定版へ適用した PR 検査の失敗を修正し、Nix install check は固定版の version/help を、Release candidate は現行 Presentation / Recording / Report を検証する。修正後の Nix package はローカル macOS で実行確認し、Linux 実行結果は PR の各 job で確認する。
 
 ## Security と dependency
 

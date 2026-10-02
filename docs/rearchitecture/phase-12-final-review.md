@@ -36,6 +36,8 @@ Optional field の棚卸し: `Result.succeeded.message?` と `cancelled.reason?`
 
 **修正した High finding:** release candidate の independent-project smoke は Form だけを通し、現行 Presentation/Recording/Report の製品入口を確認していなかった。`scripts/smoke-consumer.sh` に Bun/Node のない PATH で capabilities、static、live+Recording、Report を追加した。Release 公開ノートが削除済み `docs/api.md` と v0.1.0 評価へリンクしていた点も現行 API と版別 readiness へ変更した。
 
+**修正した High finding:** PR の Nix package jobs で、公開済み v0.1.0 を固定する derivation が、0.2.0 候補向けに拡張した `smoke-consumer.sh` を実行して失敗した。`nix/package.nix` の install check を固定資産の version/help 検証へ限定し、現行 Presentation/Recording/Report の independent-project smoke は Release candidate verification に置いた。未公開版の command を公開済み版へ要求しない境界にした。
+
 ## Tests / comments / simplification
 
 | 分類                              | 現行ファイル                                                                      |
