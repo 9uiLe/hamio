@@ -1,4 +1,10 @@
-import { type Answers, type Field, type FormDefinition, type Issue, limits } from "./contract.ts";
+import {
+  type Answers,
+  type Field,
+  type FormDefinition,
+  type Issue,
+  formLimits,
+} from "./contract.ts";
 
 export function answerIssue(field: Field, value: unknown): Issue | undefined {
   const issue = (code: Issue["code"], message: string): Issue => ({
@@ -15,7 +21,7 @@ export function answerIssue(field: Field, value: unknown): Issue | undefined {
       if (
         length < field.minLength ||
         length > field.maxLength ||
-        Buffer.byteLength(value) > limits.stringBytes
+        Buffer.byteLength(value) > formLimits.stringBytes
       )
         return issue("LENGTH", "The value is outside the allowed length.");
       return;

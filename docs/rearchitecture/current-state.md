@@ -36,7 +36,7 @@ Phase 0 では製品コード・公開 API・プレビュー画像を変更し�
 | Message  | info / success / warning / error の level                                                               | warning / error だけ最終 summary へ保持。通常通知は表示時のみ                                                      |
 | Form     | text / secret / confirm / select / multiselect と回答の検証                                             | Presentation の共通概念より対話入力の責務。独立した Terminal 機能として扱う余地がある                              |
 
-`Session.accept` は開始、連番、runId、task ID 再利用、active task 数、進捗の単調増加と total 固定、全 task 終了後の run 終了を検証する。入力 shape と資源上限は `validation.ts` が検証する。`Session.snapshot()` は端末の一行表示向けに「先頭 active task + 件数」を返し、履歴や完全な状態木ではない。根拠: `src/core/contract.ts`、`src/core/session.ts`、[API v1 の連続表示](../api.md#連続表示)。
+`Session.accept` は開始、連番、runId、task ID 再利用、active task 数、進捗の単調増加と total 固定、全 task 終了後の run 終了を検証する。入力 shape と資源上限は `validation.ts` が検証する。`Session.snapshot()` は端末の一行表示向けに「先頭 active task + 件数」を返し、履歴や完全な状態木ではない。根拠: `src/core/contract.ts`、`src/core/session.ts`、[API v1 の連続表示](https://github.com/9uiLe/hamio/blob/v0.1.0/docs/api.md#連続表示)。
 
 静的表示と live は別の入口で、`application/run.ts` が event を受理した後、Terminal view へ `message`、`progress`、`result` を直接通知する。`--events` は受理済み event を NDJSON に再送できるが、recording format、replay API、HTML report はない。現行 event 列を保存すれば入力として再利用できる可能性はあるものの、再生時の状態と表示の同等性は現在の契約では保証されない。
 
@@ -106,7 +106,7 @@ Phase 0 では製品コード・公開 API・プレビュー画像を変更し�
 
 1. **High — 保守性 / モジュール性**: `src/core/contract.ts:57` の静的 `Block` と `src/core/session.ts:3` の active task は別々の状態表現で、同じ semantic state を renderer 間へ渡す型がない。Phase 1 で一つの意味モデルと state/event の写像を決め、Phase 3 で変換規則を検証する。根拠: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html) の保守性、[Parnas のモジュール分割基準](https://doi.org/10.1145/361598.361623)。数値根拠: なし（構造調査）。差分帰属: 既存設計。
 2. **Medium — 保守性 / 修正性**: `src/application/ports.ts:3` と `src/application/command.ts:1` の `Appearance` 依存が、application の出力選択と Terminal policy を結ぶ。Phase 1 で application が renderer 非依存の要求を扱い、環境政策を adapter/CLI に置く境界を検討する。削減する軸は変更伝播先の数と共有する Terminal 固有型である。根拠: [Parnas](https://doi.org/10.1145/361598.361623)、[ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html)。数値根拠: なし（import 調査）。差分帰属: 既存設計。
-3. **Medium — 機能適合性 / 完全性**: `src/core/session.ts:87` の snapshot は先頭 task と件数のみで、完了 task を削除するため replay/report の状態源にはならない。event を保存する場合も状態復元の規則と保持上限を設計する。根拠: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html)、[API v1 の保持量](../api.md#資源上限と機能照会)。数値根拠: なし（model 調査）。差分帰属: 既存設計。
+3. **Medium — 機能適合性 / 完全性**: `src/core/session.ts:87` の snapshot は先頭 task と件数のみで、完了 task を削除するため replay/report の状態源にはならない。event を保存する場合も状態復元の規則と保持上限を設計する。根拠: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html)、[API v1 の保持量](https://github.com/9uiLe/hamio/blob/v0.1.0/docs/api.md#資源上限と機能照会)。数値根拠: なし（model 調査）。差分帰属: 既存設計。
 4. **Medium — 相互作用性 / 自己記述性**: `scripts/preview/scenarios.ts:3` は製品操作 1 本と capture fixture 1 本で、component の状態一覧や幅別比較ができない。共通 semantic scenario に替え、実 PTY capture を新 Catalog に接続する。根拠: [ISO/IEC 25010:2023](https://www.iso.org/standard/78176.html)、[WCAG 2.2](https://www.w3.org/TR/WCAG22/)（将来の HTML 確認基準）。数値根拠: scenario 2 本（コード列挙）。差分帰属: 既存設計。
 
 ## 破壊的変更と長期保守リスク

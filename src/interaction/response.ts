@@ -1,5 +1,5 @@
-import { Cancelled, ContractError } from "../core/contract.ts";
-import type { Writer } from "./ports.ts";
+import { Cancelled, OperationError } from "../application/error.ts";
+import type { Writer } from "../adapters/output.ts";
 
 export const json = (value: unknown) => `${JSON.stringify(value)}\n`;
 
@@ -7,9 +7,9 @@ export const json = (value: unknown) => `${JSON.stringify(value)}\n`;
 export async function reportFailure(error: unknown, output: Writer): Promise<number> {
   const cancelled = error instanceof Cancelled;
   const failure =
-    error instanceof ContractError
+    error instanceof OperationError
       ? error
-      : new ContractError("UI_ERROR", "The UI could not complete the request.");
+      : new OperationError("UI_ERROR", "The UI could not complete the request.");
   try {
     await output.write(
       json(

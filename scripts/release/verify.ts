@@ -41,7 +41,7 @@ try {
     throw new Error("Compressed executable differs from its build.");
   await chmod(binary, 0o755);
   const tests = await run(
-    [process.execPath, "test", "tests/api.test.ts", "tests/executable.test.ts"],
+    [process.execPath, "test", "tests/interaction.test.ts", "tests/executable.test.ts"],
     root,
     { HAMIO_TEST_BINARY: binary },
   );
@@ -54,7 +54,7 @@ try {
     runtimeSha256,
     independentBuilds: 2,
     assets: hashes,
-    executableTests: "api.test.ts + executable.test.ts",
+    executableTests: "interaction.test.ts + executable.test.ts",
     binaryBytes: first.binaryBytes,
     archiveBytes: first.archiveBytes,
   };

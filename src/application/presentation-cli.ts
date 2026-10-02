@@ -4,7 +4,7 @@ import { Output } from "../adapters/output.ts";
 import type { RecordedReplay } from "../recording/reader.ts";
 import { recordingLimits, recordingVersion } from "../recording/format.ts";
 import { RecordingWriteError, RecordingWriter } from "../recording/writer.ts";
-import { Cancelled, ContractError } from "../core/contract.ts";
+import { Cancelled, OperationError } from "./error.ts";
 import { PresentationError } from "../presentation/error.ts";
 import { stateLimits } from "../presentation/limits.ts";
 import { PresentationSession } from "../presentation/session.ts";
@@ -140,7 +140,7 @@ function issue(error: unknown): { code: string; exit: number; message: string } 
       exit: error.code === "LIMIT_EXCEEDED" ? 6 : 5,
       message: error.message,
     };
-  if (error instanceof ContractError)
+  if (error instanceof OperationError)
     return {
       code:
         error.code === "LIMIT_EXCEEDED"

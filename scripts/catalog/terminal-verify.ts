@@ -1,4 +1,4 @@
-import { captureTerminal } from "../preview/capture.ts";
+import { captureTerminal } from "../terminal-capture/capture.ts";
 
 function output(cast: string): string {
   return cast

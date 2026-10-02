@@ -14,7 +14,6 @@ cat >form.json <<'JSON'
 JSON
 printf '%s\n' '{"approved":false}' >values.json
 test "$(env -i PATH=/nonexistent HOME="$workspace" "$binary" --version)" = "$version"
-env -i PATH=/nonexistent HOME="$workspace" "$binary" capabilities >capabilities.json
 env -i PATH=/nonexistent HOME="$workspace" "$binary" form --definition form.json --values values.json --interactive never >response.json
 printf '%s\n' '{"apiVersion":1,"status":"ok","id":"consumer","values":{"approved":false}}' >expected.json
 cmp expected.json response.json

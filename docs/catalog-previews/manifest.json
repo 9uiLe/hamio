@@ -4,9 +4,9 @@
     "task-running-partial": {
       "sources": {
         "scripts/catalog/terminal-runner.ts": "4a08bd4c6b7bb163e36655485c2d4276416a37c158eff8474434ca1c6ced41d4",
-        "scripts/catalog/capture.ts": "ab7b5a1cb911f1367a205072b53e4b0ad1fc59d16adaf066c305570e3d1f85a9",
-        "scripts/catalog/artifacts.ts": "7fecaff78686019103444ef67c00313770f7fa273781626bc11c4420c5d340ea",
-        "scripts/preview/capture.ts": "539c0c622dba3c166b5c61a15f5607dafb8e756383bb4d41c0a5053428d46924",
+        "scripts/catalog/capture.ts": "69566b08d187c1d58330640e5823797108417a313dff6936fe61b055a34eaa73",
+        "scripts/catalog/artifacts.ts": "f1323505d5e2c3210d41ab61e01c7d257627f307afa14684344ccdcf14e8dfb6",
+        "scripts/terminal-capture/capture.ts": "94cfcba7d1b4989f06016e39e766698dc81d5435f3eac46531cf406e65b16747",
         "src/renderers/terminal.ts": "d58c230516a719a72dbe87473feec3abda16c965b213df574446e48e17f4705e",
         "src/renderers/terminal-live.ts": "cf54d6d763261ec9cf81a4dd9642f36b3c08f47ff1ee8da06ca01add32ccea7d",
         "src/terminal/text.ts": "f3fe712700a99b9712ebbf96dc6bf06bbc8ecbe6738f823de4fadcbcc7d3b1f3",
@@ -20,9 +20,9 @@
     "run-group-mixed": {
       "sources": {
         "scripts/catalog/terminal-runner.ts": "4a08bd4c6b7bb163e36655485c2d4276416a37c158eff8474434ca1c6ced41d4",
-        "scripts/catalog/capture.ts": "ab7b5a1cb911f1367a205072b53e4b0ad1fc59d16adaf066c305570e3d1f85a9",
-        "scripts/catalog/artifacts.ts": "7fecaff78686019103444ef67c00313770f7fa273781626bc11c4420c5d340ea",
-        "scripts/preview/capture.ts": "539c0c622dba3c166b5c61a15f5607dafb8e756383bb4d41c0a5053428d46924",
+        "scripts/catalog/capture.ts": "69566b08d187c1d58330640e5823797108417a313dff6936fe61b055a34eaa73",
+        "scripts/catalog/artifacts.ts": "f1323505d5e2c3210d41ab61e01c7d257627f307afa14684344ccdcf14e8dfb6",
+        "scripts/terminal-capture/capture.ts": "94cfcba7d1b4989f06016e39e766698dc81d5435f3eac46531cf406e65b16747",
         "src/renderers/terminal.ts": "d58c230516a719a72dbe87473feec3abda16c965b213df574446e48e17f4705e",
         "src/renderers/terminal-live.ts": "cf54d6d763261ec9cf81a4dd9642f36b3c08f47ff1ee8da06ca01add32ccea7d",
         "src/terminal/text.ts": "f3fe712700a99b9712ebbf96dc6bf06bbc8ecbe6738f823de4fadcbcc7d3b1f3",
@@ -36,9 +36,9 @@
     "table-narrow-long-redacted": {
       "sources": {
         "scripts/catalog/terminal-runner.ts": "4a08bd4c6b7bb163e36655485c2d4276416a37c158eff8474434ca1c6ced41d4",
-        "scripts/catalog/capture.ts": "ab7b5a1cb911f1367a205072b53e4b0ad1fc59d16adaf066c305570e3d1f85a9",
-        "scripts/catalog/artifacts.ts": "7fecaff78686019103444ef67c00313770f7fa273781626bc11c4420c5d340ea",
-        "scripts/preview/capture.ts": "539c0c622dba3c166b5c61a15f5607dafb8e756383bb4d41c0a5053428d46924",
+        "scripts/catalog/capture.ts": "69566b08d187c1d58330640e5823797108417a313dff6936fe61b055a34eaa73",
+        "scripts/catalog/artifacts.ts": "f1323505d5e2c3210d41ab61e01c7d257627f307afa14684344ccdcf14e8dfb6",
+        "scripts/terminal-capture/capture.ts": "94cfcba7d1b4989f06016e39e766698dc81d5435f3eac46531cf406e65b16747",
         "src/renderers/terminal.ts": "d58c230516a719a72dbe87473feec3abda16c965b213df574446e48e17f4705e",
         "src/renderers/terminal-live.ts": "cf54d6d763261ec9cf81a4dd9642f36b3c08f47ff1ee8da06ca01add32ccea7d",
         "src/terminal/text.ts": "f3fe712700a99b9712ebbf96dc6bf06bbc8ecbe6738f823de4fadcbcc7d3b1f3",

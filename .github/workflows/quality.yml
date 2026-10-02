@@ -54,7 +54,7 @@ jobs:
             bun install --frozen-lockfile --ignore-scripts
             bun run check
             bun run build
-            ./dist/hamio capabilities
+            ./dist/hamio presentation capabilities
           '
       - name: Verify checks leave files unchanged
         run: git diff --exit-code

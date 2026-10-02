@@ -1,8 +1,7 @@
 import { mkdir, mkdtemp, rename, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { digest } from "../preview/artifacts.ts";
-import { captureTerminal } from "../preview/capture.ts";
-import { captureSource, captures, directory, manifestPath } from "./artifacts.ts";
+import { captureTerminal } from "../terminal-capture/capture.ts";
+import { captureSource, captures, digest, directory, manifestPath } from "./artifacts.ts";
 
 if (!process.env.HAMIO_PREVIEW_FONTS)
   throw new Error(

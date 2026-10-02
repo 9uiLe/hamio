@@ -1,6 +1,6 @@
 # Phase 1 — Presentation Domain と状態契約
 
-この文書は新しい Presentation System の**設計仕様**である。以下の TypeScript は実装ではなく型のスケッチであり、Phase 3 の実装時にこの意味と不変条件を保つ。現行 API v1 の正本は移行が完了するまで [API 契約](../api.md)であり、現行実装の事実は [Phase 0 監査](current-state.md)を参照する。
+この文書は新しい Presentation System の**設計仕様**である。以下の TypeScript は実装ではなく型のスケッチであり、Phase 3 の実装時にこの意味と不変条件を保つ。現行 API v1 の正本は移行が完了するまで [API 契約](https://github.com/9uiLe/hamio/blob/v0.1.0/docs/api.md)であり、現行実装の事実は [Phase 0 監査](current-state.md)を参照する。
 
 ## 1. 境界と用語
 

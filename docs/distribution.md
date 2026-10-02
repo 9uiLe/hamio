@@ -2,7 +2,7 @@
 
 hamio は、製品コード・製品依存・Bun をまとめた実行ファイルを GitHub Releases で配布する。利用側は公開版を明示して導入し、スクリプトからその実行ファイルを直接呼び出す。通常実行には Bun・Node.js・Nix を必要としない。業務処理に使う言語ランタイムは利用側が用意する。
 
-利用者は [Nix での導入](#nix-で導入する)、[リポジトリへの導入](#リポジトリへの導入)、[GitHub Actions](#github-actions-で使う)、[更新とロールバック](#更新ロールバック削除)の手順に従う。保守者は[リリース工程](#保守者のリリース工程)に従い、配布候補、承認付き公開、公開版の導入試験を管理する。入力形式は [API 契約](api.md)、公開版の結果と未確認範囲は[リリース評価](release-readiness.md)に定める。
+利用者は [Nix での導入](#nix-で導入する)、[リポジトリへの導入](#リポジトリへの導入)、[GitHub Actions](#github-actions-で使う)、[更新とロールバック](#更新ロールバック削除)の手順に従う。保守者は[リリース工程](#保守者のリリース工程)に従い、配布候補、承認付き公開、公開版の導入試験を管理する。入力形式は [Presentation 契約](presentation-api.md)と[Form 契約](interaction-form.md)、公開版の結果と未確認範囲は[リリース評価](release-readiness.md)に定める。
 
 ## 配布方式と対象環境
 
@@ -14,7 +14,7 @@ hamio は、製品コード・製品依存・Bun をまとめた実行ファイ�
 
 対象ごとの native runner で CLI、疑似端末（PTY）、梱包した実行ファイル、配布候補、公開物の導入を試験し、確認した環境をリリースノートに記載する。古い OS、Intel Mac、Windows、musl、すべての端末は保証対象に含めない。x64 の Bun は SSE4.2 以上を要求する。[Bun の CPU 要件](https://bun.com/docs/installation#cpu-requirements)
 
-製品版は `package.json` の `version` を実行ファイルに埋め込み、同じ版の `vX.Y.Z` タグで公開する。導入時は完全な版を指定する。`latest`、範囲指定、暗黙の更新は扱わない。入出力の契約版 `apiVersion` は製品版と独立して管理する。
+製品版は `package.json` の `version` を実行ファイルに埋め込み、同じ版の `vX.Y.Z` タグで公開する。導入時は完全な版を指定する。`latest`、範囲指定、暗黙の更新は扱わない。Presentation の `protocolVersion` と Form の `apiVersion` は製品版と独立して管理する。
 
 ## 配布物と在庫情報
 
@@ -140,7 +140,6 @@ printf '%s\n' '.tools/' >> .gitignore
 )
 sh scripts/install-hamio.sh
 .tools/bin/hamio --version
-.tools/bin/hamio capabilities
 ```
 
 `.hamio-version` と `scripts/install-hamio.sh` を利用側の Git で管理する。インストーラー自身の更新でも、対象版からの取得・検証と差分のレビューを行う。
@@ -163,7 +162,7 @@ SIGKILL や電源断で lock が残った場合は、導入処理が動いてい
 
 ## スクリプトから呼び出す
 
-[Shell](../examples/form.sh)・[Python](../examples/form.py) の例と [API 契約](api.md)に従い、配置した実行ファイルを直接呼ぶ。対話のキー入力には stdin、回答の捕捉には stdout を使い、回答と終了コードの両方を判断する。
+[Shell](../examples/form.sh)・[Python](../examples/form.py) の例と [Presentation 契約](presentation-api.md)と[Form 契約](interaction-form.md)に従い、配置した実行ファイルを直接呼ぶ。対話のキー入力には stdin、回答の捕捉には stdout を使い、回答と終了コードの両方を判断する。
 
 ## GitHub Actions で使う
 
@@ -183,7 +182,7 @@ jobs:
       # <...> を action.yml を含むレビュー済みの完全な commit SHA に置換する。
       - uses: 9uiLe/hamio@<REVIEWED_40_CHARACTER_COMMIT_SHA>
         id: hamio
-      - run: hamio capabilities
+      - run: hamio --version
 ```
 
 `with.version` は pin より優先する完全な版指定、`with.token` は読み取り用 token で、既定は `github.token` とする。対応する GitHub-hosted runner を使う。キャッシュの有無によらず公開資産の検証を行う。
@@ -205,7 +204,7 @@ jobs:
 consumer_dir=/absolute/path/to/consumer
 mkdir -p "$consumer_dir/.tools/local-hamio"
 cp dist/hamio "$consumer_dir/.tools/local-hamio/hamio"
-"$consumer_dir/.tools/local-hamio/hamio" capabilities
+"$consumer_dir/.tools/local-hamio/hamio" --version
 ```
 
 配置後の実行に Bun・Node.js・Nix は不要である。ローカルビルドには公開資産の証明が付かないため、ソースとビルド環境を確認して使う。公開版インストーラーの管理領域と分けて `.tools/local-hamio/` に配置する。
