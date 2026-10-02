@@ -16,7 +16,7 @@
 | `src/adapters` / `src/terminal/text.ts` | bounded input、awaited output、Terminal text safety を共用する                             | 意味 model を知らない                                                          |
 | `scripts/catalog` / build・release      | 21共有 scenario の inspectability、配布物の再現・検証を担当する                            | 製品境界を組み立てる開発用コード                                               |
 
-`src` 内の相対 import 94 本を解析し、循環は0。Protocol→Presentation 7、Recording→Presentation 5/Protocol 5、Renderer→Presentation 4/Terminal safety 1 の方向を確認した。Terminal と HTML の相互 import、Interaction→Presentation import、Presentation→外側の import はない。`src/application/error.ts`、`io-limits.ts`、`metadata.ts`、`presentation-cli.ts`、`presentation-report.ts` はそれぞれ process error、I/O 上限、版/help、公開 Presentation 組立て、Report file の排他的公開を担当する。`src/terminal/text.ts` は Renderer と Form が共用する安全な表示文字列・幅処理として保持する。
+`src` 内の相対 import は修正前94本、修正後88本で、循環は0。修正後の Protocol→Presentation 4、Recording→Presentation 4/Protocol 5、Renderer→Presentation 4/Terminal safety 1 の方向を確認した。Terminal と HTML の相互 import、Interaction→Presentation import、Presentation→外側の import はない。`src/application/error.ts`、`io-limits.ts`、`metadata.ts`、`presentation-cli.ts`、`presentation-report.ts` はそれぞれ process error、I/O 上限、版/help、公開 Presentation 組立て、Report file の排他的公開を担当する。`src/terminal/text.ts` は Renderer と Form が共用する安全な表示文字列・幅処理として保持する。
 
 **修正した High finding:** `src/presentation/replay.ts` が Recording complete/partial を解釈し、製品未使用の `replayNdjson` とともに Presentation/Protocol に Recording 分類を持ち込んでいた。分類を `src/recording/reader.ts` へ戻し、一括 replay helper と重複テストを削除した。Reader は引き続き `PresentationSession` を使用し、第二の reducer を持たない。Streaming reader の valid/partial/invalid、terminal Run、欠落 trailer、破損 prefix の既存テストが通る。
 
