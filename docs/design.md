@@ -49,7 +49,7 @@ Form の端末キー操作は `@clack/core` の unstyled primitive を使い、�
 
 製品単体に加え、利用側の JSON 生成・転送・待機・補助プロセスを含む追加負荷を測る。Event ごとに Worker や UI process を作らない。大量 Event は bounded input と awaited write を使い、表示だけを coalesce する。長期 Recording は streaming reader で復元し、Event 全履歴を memory に保持しない。
 
-小さい機械向け呼び出しの p95 100 ms、通常 Form 入力応答の p95 50 ms、待機中 CPU 1 core 平均1%以下は設計目標であり、保証値ではない。測定条件、現状の実測、未確認範囲は[開発手順](development.md#製品試験と性能測定)と[Phase 10 記録](rearchitecture/phase-10-recording-report.md)で分けて記録する。異なる契約の旧実装と速度の百分率比較をしない。
+小さい機械向け呼び出しの p95 100 ms、通常 Form 入力応答の p95 50 ms、待機中 CPU 1 core 平均1%以下は設計目標であり、保証値ではない。測定条件、現状の実測、未確認範囲は[開発手順](development.md#製品試験と性能測定)と[Phase 12 最終レビュー](rearchitecture/phase-12-final-review.md)で分けて記録する。異なる契約の旧実装と速度の百分率比較をしない。
 
 ## 7. 配布
 

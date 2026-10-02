@@ -1,7 +1,6 @@
 import { createReadStream } from "node:fs";
 import { PresentationError } from "../presentation/error.ts";
 import type { PresentationState } from "../presentation/model.ts";
-import { finishReplay } from "../presentation/replay.ts";
 import { PresentationSession } from "../presentation/session.ts";
 import { decodeEventLine } from "../protocol/decode.ts";
 import { ProtocolError } from "../protocol/error.ts";
@@ -142,16 +141,21 @@ export async function readRecording(path: string, signal?: AbortSignal): Promise
         const end = trailer(line);
         if (end.eventCount !== count || end.lastSeq !== last)
           invalidShape("Recording trailer count or sequence does not match.");
-        const replay = finishReplay(session, end.status, count);
-        if (replay.kind === "invalid") {
-          result = bad(replay.issue);
+        const state = session.snapshot();
+        if (
+          end.status === "complete" &&
+          (state.run.kind !== "present" || state.run.value.state.kind === "running")
+        ) {
+          result = bad(
+            new PresentationError("INVALID_STATE", "Complete recording has no finished run."),
+          );
           return;
         }
         seenTrailer = true;
         result = {
-          kind: replay.kind,
-          state: replay.state,
-          ...(replay.kind === "partial" ? { reason: replay.reason } : {}),
+          kind: end.status,
+          state,
+          ...(end.status === "partial" ? { reason: "Recording is partial." } : {}),
           eventCount: count,
           lastSeq: last,
           bytes,

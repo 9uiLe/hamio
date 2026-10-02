@@ -5,7 +5,6 @@
   fetchurl,
   autoPatchelfHook,
   gzip,
-  gitMinimal,
 }:
 let
   release = lib.importJSON ./release.json;
@@ -47,10 +46,11 @@ stdenvNoCC.mkDerivation {
   '';
 
   doInstallCheck = true;
-  nativeInstallCheckInputs = [ gitMinimal ];
   installCheckPhase = ''
     runHook preInstallCheck
-    sh ${../scripts/smoke-consumer.sh} "$out/bin/hamio" '${release.version}'
+    # The pin may be an older public release; candidate commands are checked by release verification.
+    test "$("$out/bin/hamio" --version)" = '${release.version}'
+    "$out/bin/hamio" --help > /dev/null
     runHook postInstallCheck
   '';
 

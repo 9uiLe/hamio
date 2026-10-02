@@ -1,4 +1,3 @@
-// Retain v1's bounded run scale while Phase 3 measures the cost of keeping completed tasks.
 export const stateLimits = {
   tasks: 10_000,
   activeTasks: 100,

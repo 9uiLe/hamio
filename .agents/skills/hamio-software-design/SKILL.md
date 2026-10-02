@@ -5,7 +5,7 @@ description: hamio の公開契約、UI 状態、モジュール境界を設計�
 
 # ソフトウェア設計
 
-[基本設計](../../../docs/design.md)と [API 契約](../../../docs/api.md)の変更箇所を読み、次を確認する。
+[基本設計](../../../docs/design.md)と [Presentation API](../../../docs/presentation-api.md)・[Recording 形式](../../../docs/presentation-recording.md)・[Form 契約](../../../docs/interaction-form.md)の変更箇所を読み、次を確認する。
 
 - 業務の実行・権限・並列数を UI へ取り込んでいないか。公開契約に Bun・端末ライブラリ固有の型や任意関数を漏らしていないか。
 - 独立して変わる境界を明示しつつ、同時に変わる内部モデルを抽象化のためだけに別 package・サービスへ分割していないか。

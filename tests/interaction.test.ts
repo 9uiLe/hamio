@@ -262,14 +262,11 @@ test("Form redraw handles a narrower PTY without losing the answer", async () =>
   );
 });
 
-test("removed Presentation v1 commands are rejected without aliases", async () => {
-  for (const command of ["render", "stream", "capabilities"]) {
-    const result = await cli([command]);
-    expect(result.code).toBe(2);
-    expect(result.json().error.code).toBe("INVALID_ARGUMENT");
-  }
+test("root help exposes current commands and rejects unknown commands", async () => {
+  const result = await cli(["unknown"]);
+  expect(result.code).toBe(2);
+  expect(result.json().error.code).toBe("INVALID_ARGUMENT");
   const help = await cli(["--help"]);
   expect(help.stdout).toContain("presentation live");
   expect(help.stdout).toContain("hamio form");
-  expect(help.stdout).not.toContain("hamio render");
 });

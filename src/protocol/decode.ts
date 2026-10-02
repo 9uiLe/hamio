@@ -1,7 +1,4 @@
 import { stateLimits } from "../presentation/limits.ts";
-import { PresentationError } from "../presentation/error.ts";
-import { finishReplay, type ReplayResult } from "../presentation/replay.ts";
-import { PresentationSession } from "../presentation/session.ts";
 import type {
   Cell,
   ContentItem,
@@ -421,55 +418,4 @@ export function decodeEventLine(input: string | Uint8Array): PresentationEvent {
     default:
       return shape("Event type is invalid.");
   }
-}
-
-export type WireReplayResult =
-  | Exclude<ReplayResult, { kind: "invalid" }>
-  | {
-      kind: "invalid";
-      acceptedPrefix: PresentationState;
-      eventIndex: number;
-      issue: ProtocolError | PresentationError;
-    };
-
-function* ndjsonLines(
-  input: string | Uint8Array,
-): Generator<{ line: string | Uint8Array; bytes: number }> {
-  let start = 0;
-  while (start < input.length) {
-    const end = typeof input === "string" ? input.indexOf("\n", start) : input.indexOf(10, start);
-    const line = input.slice(start, end === -1 ? input.length : end);
-    const bytes =
-      (typeof line === "string" ? byteLength(line) : line.byteLength) + (end === -1 ? 0 : 1);
-    yield { line, bytes };
-    if (end === -1) break;
-    start = end + 1;
-  }
-}
-
-export function replayNdjson(
-  input: string | Uint8Array,
-  recording: "complete" | "partial",
-): WireReplayResult {
-  const session = new PresentationSession();
-  let index = 0;
-  let bytes = 0;
-  for (const frame of ndjsonLines(input)) {
-    try {
-      bytes += frame.bytes;
-      if (bytes > protocolLimits.documentBytes) limit("NDJSON batch byte limit exceeded.");
-      if (frame.line.length === 0) shape("Empty NDJSON frame is not allowed.");
-      session.accept(decodeEventLine(frame.line));
-    } catch (error) {
-      if (!(error instanceof ProtocolError) && !(error instanceof PresentationError)) throw error;
-      return {
-        kind: "invalid",
-        acceptedPrefix: session.snapshot(),
-        eventIndex: index,
-        issue: error,
-      };
-    }
-    index++;
-  }
-  return finishReplay(session, recording, index);
 }

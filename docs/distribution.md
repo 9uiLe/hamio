@@ -2,7 +2,7 @@
 
 hamio は、製品コード・製品依存・Bun をまとめた実行ファイルを GitHub Releases で配布する。利用側は公開版を明示して導入し、スクリプトからその実行ファイルを直接呼び出す。通常実行には Bun・Node.js・Nix を必要としない。業務処理に使う言語ランタイムは利用側が用意する。
 
-利用者は [Nix での導入](#nix-で導入する)、[リポジトリへの導入](#リポジトリへの導入)、[GitHub Actions](#github-actions-で使う)、[更新とロールバック](#更新ロールバック削除)の手順に従う。保守者は[リリース工程](#保守者のリリース工程)に従い、配布候補、承認付き公開、公開版の導入試験を管理する。入力形式は [Presentation 契約](presentation-api.md)と[Form 契約](interaction-form.md)、公開版の結果と未確認範囲は[リリース評価](release-readiness.md)に定める。
+利用者は [Nix での導入](#nix-で導入する)、[リポジトリへの導入](#リポジトリへの導入)、[GitHub Actions](#github-actions-で使う)、[更新とロールバック](#更新ロールバック削除)の手順に従う。保守者は[リリース工程](#保守者のリリース工程)に従い、配布候補、承認付き公開、公開版の導入試験を管理する。入力形式は [Presentation 契約](presentation-api.md)と[Form 契約](interaction-form.md)を正本とする。評価は[公開済み v0.1.0](release-readiness.md)と[次期 0.2.0 候補](release-readiness-v0.2.0.md)に分ける。
 
 ## 配布方式と対象環境
 
@@ -254,12 +254,12 @@ gh workflow run release.yml --ref REVIEW_BRANCH -f mode=verify
 
 3対象の native runner で preflight、audit、check、二候補の一致、展開後の API・端末試験を確認する。全資産の provenance と gzip に対応する SBOM の証明を発行し、別 job の新しい runner が repository・workflow・source ref・commit・GitHub-hosted runner を照合する。gzip と展開後の hash も確認し、独立した Git プロジェクトで版・機能照会・非対話フォームを試験する。
 
-`verify` の実行記録と証明は公開リポジトリ上に残る。Actions の候補資産は7日間、`verification-<対象>` artifact の検証記録は30日間保持する。長期保管が必要な commit、入力・資産 hash、対象、ランタイム、サイズ、実行結果は[リリース評価](release-readiness.md)と根拠データへ保存する。
+`verify` の実行記録と証明は公開リポジトリ上に残る。Actions の候補資産は7日間、`verification-<対象>` artifact の検証記録は30日間保持する。長期保管が必要な commit、入力・資産 hash、対象、ランタイム、サイズ、実行結果は対象版のリリース評価（[0.2.0 候補](release-readiness-v0.2.0.md)）と根拠データへ保存する。
 
 正式公開は次の手順で行う。
 
 1. 変更と `package.json` の版を PR でレビューし、`quality` と候補検証を通して `master` へマージする。
-2. 同梱部品の許諾・通知・ソース提供条件、Bun・native 依存の advisory を確認し、固定 revision、確認先、確認日、結果を記録する。製品入口のプレビューに加え、日本語・emoji・狭い幅・resize・色なし・中断と復旧、実端末・アクセシビリティの確認範囲、性能・出力量の実測条件と未測定範囲を[リリース評価](release-readiness.md)へ明記する。自動試験の成功で未実施の確認を置き換えない。
+2. 同梱部品の許諾・通知・ソース提供条件、Bun・native 依存の advisory を確認し、固定 revision、確認先、確認日、結果を記録する。製品入口のプレビューに加え、日本語・emoji・狭い幅・resize・色なし・中断と復旧、実端末・アクセシビリティの確認範囲、性能・出力量の実測条件と未測定範囲を対象版のリリース評価へ明記する。自動試験の成功で未実施の確認を置き換えない。
 3. 対象 commit と版を照合し、レビュー済みの `master` commit に `vX.Y.Z` タグを作成して push する。タグは作成後に更新・削除できない。
 4. タグを ref にして `mode=publish` を実行する。タグのソースで候補の全検証を行う。
 5. 所有者の認証で immutable releases の有効化を確認する。Environment の承認画面で対象 commit、3環境の結果、許諾・advisory の記録を照合して承認する。
