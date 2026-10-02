@@ -19,6 +19,13 @@ export interface HtmlRenderOptions {
   motion?: "system" | "reduced";
 }
 
+export interface RecordingReportInfo {
+  status: "complete" | "partial" | "invalid";
+  eventCount: number;
+  lastSeq: number | null;
+  issue?: { line: number; code: string };
+}
+
 function escapeHtml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => {
     switch (character) {
@@ -173,6 +180,21 @@ function content(item: ContentItem, mode: "report" | "live", runActivity: boolea
 }
 
 export function renderHtml(state: PresentationState, options: HtmlRenderOptions = {}): string {
+  return renderDocument(state, options);
+}
+
+export function renderRecordingReport(
+  state: PresentationState,
+  recording: RecordingReportInfo,
+): string {
+  return renderDocument(state, { mode: "report" }, recording);
+}
+
+function renderDocument(
+  state: PresentationState,
+  options: HtmlRenderOptions,
+  recording?: RecordingReportInfo,
+): string {
   const mode = options.mode ?? "report";
   const theme = options.theme ?? "system";
   const motion = options.motion ?? "system";
@@ -230,5 +252,9 @@ export function renderHtml(state: PresentationState, options: HtmlRenderOptions 
     mode === "live"
       ? '<div class="sr-only" aria-live="polite" aria-atomic="true"></div><div class="sr-only" aria-live="assertive" aria-atomic="true"></div>'
       : "";
-  return `<!doctype html><html${lang}${themeAttr}${motionAttr}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; form-action 'none'; base-uri 'none'"><title>${text(title)} · hamio</title><style>${htmlStyle}</style></head><body><div class="presentation">${pause}<main>${runHead}<div class="items">${items}</div>${runResult}</main>${liveRegions}</div></body></html>`;
+  const recordingPanel =
+    recording === undefined
+      ? ""
+      : `<aside class="recording-meta" aria-label="Recording status"><p><strong>Recording ${recording.status === "partial" ? "incomplete" : text(recording.status)}</strong> · ${text(recording.eventCount)} accepted events · final sequence ${recording.lastSeq === null ? "none" : text(recording.lastSeq)}</p>${recording.issue === undefined ? "" : `<p>Issue at line ${text(recording.issue.line)}: ${text(recording.issue.code)}</p>`}</aside>`;
+  return `<!doctype html><html${lang}${themeAttr}${motionAttr}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light dark"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; form-action 'none'; base-uri 'none'"><title>${text(title)} · hamio</title><style>${htmlStyle}</style></head><body><div class="presentation">${pause}<main>${recordingPanel}${runHead}<div class="items">${items}</div>${runResult}</main>${liveRegions}</div></body></html>`;
 }
