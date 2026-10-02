@@ -140,9 +140,9 @@ Catalog は現在 development-only artifact として存在する。人間向け
 
 Form interaction、Presentation Domain / Protocol / Renderer、Recording / Report と Catalog は責務ごとの test で確認し、同じ遷移規則を全層へ複製しない。 削除した旧経路と Form の移設は [Phase 11 記録](rearchitecture/phase-11-migration-cleanup.md)を参照する。
 
-Phase 10 の file format・crash recovery・public CLI・native PTY は [recording.test.ts](../tests/recording.test.ts)、[recording-cli.test.ts](../tests/recording-cli.test.ts)、[executable.test.ts](../tests/executable.test.ts) で確認する。Recording の wire 契約は[Recording 形式](presentation-recording.md)、実測と未確認範囲は [Phase 10 記録](rearchitecture/phase-10-recording-report.md)を正本とする。
+Recording の file format・crash recovery・public CLI・native PTY は [recording.test.ts](../tests/recording.test.ts)、[recording-cli.test.ts](../tests/recording-cli.test.ts)、[executable.test.ts](../tests/executable.test.ts) で確認する。wire 契約は[Recording 形式](presentation-recording.md)、当時の設計根拠は [Phase 10 記録](rearchitecture/phase-10-recording-report.md)、現行候補の実測と未確認範囲は[Phase 12 最終レビュー](rearchitecture/phase-12-final-review.md)に記録する。
 
-性能は本番と同じ設定の native executable で測る。入力規模、OS、runtime、sample 数、stdout/stderr bytes、CPU/RSS を残し、異なる契約の過去版へ改善率を主張しない。[Phase 10 の記録と復元の実測](rearchitecture/phase-10-recording-report.md)を参照する。通常の `check` と CI は benchmark を実行しない。業務の JSON 生成・転送・待機・補助プロセスも製品導入の追加負荷として評価する。
+性能は本番と同じ設定の native executable で測る。入力規模、OS、runtime、sample 数、stdout/stderr bytes、CPU/RSS を残し、異なる契約の過去版へ改善率を主張しない。[現行候補の実測](rearchitecture/phase-12-final-review.md#performance--distribution)を参照する。通常の `check` と CI は benchmark を実行しない。業務の JSON 生成・転送・待機・補助プロセスも製品導入の追加負荷として評価する。
 
 ## 4. Git hooks
 

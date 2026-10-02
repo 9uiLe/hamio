@@ -57,9 +57,9 @@ obsolete な v1/Phase3 由来の上限 comment 二つを削除し、repo skill �
 
 `catalog:check` は21共有 scenario を両 production renderer、40/80列、HTTP と代表 PTY capture で通した。Catalog を起動し、Chrome で mixed Run/Task、Task failure、CJK、狭い Dark Table、native binary の失敗 Report を目視。Task failure と独立 Run result、warning、redacted/null、source data を確認した。Terminal の non-TTY/cadence/resize/abort/cleanup は専用 tests、実 PTY の CLI/Recording/Form は executable/Interaction tests と実検証で確認する。継続 spinner の30秒観察では CPU 使用0.11秒、1 core 平均0.37%、出力5,518 bytes、終了後の正常応答を確認した。
 
-**修正した Medium finding:** 360px forced-colors の Report で Run ID が running status に接して表示された。narrow container の ID を別行へ移し、実 Chrome で状態語と ID を分離確認。Dark preference 下の print PDF で暗い page background が残ったのは dark palette selector が print selector より強かったため。print 側で同じ specificity を持たせ、再生成 PDF の代表ページが Light で Recording status と Run state を保持することを画像で確認した。
+**修正した Medium finding:** 360px forced-colors の Report で Run ID が running status に接して表示された。narrow container の ID を別行へ移し、実 Chrome で状態語と ID を分離確認。Dark preference 下の print PDF で暗い page background が残ったのは dark palette selector が print selector より強かったため。print 側で同じ specificity を持たせ、再生成 PDF の[代表ページ](../report-previews/partial-print.png)が Light で Recording status と Run state を保持することを画像で確認した。
 
-Chrome/macOS では Light/Dark、360/640/1200px、CJK、reduced motion、forced colors、200% CSS zoom 相当、Table scroll region を Tab で focus（2px outline）、印刷を確認。360px の product HTML は zoom 後も document 横幅360pxのまま、Table の overflow は名前付き・focus可能な region 内に残る。実 VoiceOver の発話は **NOT VERIFIED**。semantic HTML の検査を発話試験と同一視しない。macOS 以外の browser はローカル未検証。
+Chrome 154.0.8037.93 / macOS 27.0 arm64 では Light/Dark、360/640/1200px、CJK、reduced motion、forced colors、200% CSS zoom 相当、Table scroll region を Tab で focus（2px outline）、印刷を確認。360px の product HTML は zoom 後も document 横幅360pxのまま、Table の overflow は名前付き・focus可能な region 内に残る。実 VoiceOver の発話は **NOT VERIFIED**。semantic HTML の検査を発話試験と同一視しない。macOS 以外の browser はローカル未検証。
 
 ## Security / supply chain / dependencies
 
@@ -72,6 +72,8 @@ Protocol は UTF-8、JSON、closed shape、深さ/件数/byte上限、reserved k
 macOS arm64、固定 Bun 1.4.2、native executable、PATH に Bun/Node なし、各小呼び出し35 sample。median / p95 は capabilities 22.4/23.31 ms、static 24.8/26.12 ms、Form 非対話 23.34/24.06 ms、短い live 25.24/26.33 ms。100,005 Event（100,000 Progress）の 15.28 MB 入力→15.28 MB Recording は2.49秒、最大 resident set 73.8 MB。streaming replay+HTML Report は0.36秒、最大 resident set 58.4 MB、Report 13,015 bytes。`/usr/bin/time -l` の maximum resident set であり JS heap ではない。30秒 idle spinner の測定は上記。各長時間条件は単一 sample で、他 OS の性能保証や p95 として扱わない。通常 Form PTY 入力 p95 50 ms target は実利用者の操作 latency を未測定。
 
 0.2.0 source binary は macOS arm64 62,309,490 bytes（ビルド時点）。Nix は公開済み 0.1.0 を固定し、0.2.0 source build と混同しない。`check` は lint/format/typecheck/tests/Catalog、CI quality はこれに build と native capability を加える。hooks は staged 検査と pre-push の check を担い、release 候補は別の `release:verify` が独立二 build・SBOM/notices/機能を確認する。Release workflow の candidate smoke は今回現行 command へ拡張した。
+
+macOS 27.0 arm64 の clean clone から `setup → check → build → release:verify` を実行し、追跡ファイルは変更されなかった。`--version` は 0.2.0、`presentation capabilities` は protocol 2 / recording 1 を返した。40列の実 PTY では Shell producer の running、`1/2` Progress、Failure、完了を ANSI とともに確認し、同時に complete Recording を生成した。Form の実 PTY は Interaction/native executable tests で確認した。`nix flake check --all-systems --no-build --no-write-lock-file` は全3対象の derivation を評価した。CI の [Release verify run 36948468392](https://github.com/9uiLe/hamio/actions/runs/36948468392) は source 実装 commit `24fe562256026b27fd39ea9f3905f4c3a2351235` に対し macOS 15、Ubuntu 24.04 x64 / arm64 の build、attestation、独立候補検証に成功した。ローカル macOS 27 と CI macOS 15 / Linux を同一の検証とは扱わない。
 
 ## ISO/IEC 25010:2023 観察と残課題
 
