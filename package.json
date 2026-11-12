@@ -42,7 +42,7 @@
   },
   "trustedDependencies": [],
   "dependencies": {
-    "@clack/core": "1.5.1"
+    "@clack/core": "1.6.0"
   },
   "version": "0.2.0"
 }
